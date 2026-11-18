@@ -1,0 +1,3129 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Lộ trình Push Service</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: thanh chặng dính bên trái + một cột đọc; sơ đồ và code cuộn ngang trong khung riêng */
+:root{
+  --bg:#F5F7FC; --surface:#FFFFFF; --surface-2:#ECF0F9; --fg:#121933; --muted:#566086; --line:#D6DCEB;
+  --accent:#2C56F0; --accent-soft:#E3E9FF; --on-accent:#FFFFFF;
+  --reg:#0E8A7B; --reg-soft:#DCF2EE;
+  --ok:#14845A; --ok-soft:#DFF3E9; --warn:#A35F00; --warn-soft:#FBEFD9; --bad:#CC3535; --bad-soft:#FBE3E3;
+  --code-bg:#10162B; --code-fg:#E1E7F7; --code-line:#232B48; --code-muted:#8C97BD;
+  --shadow:0 1px 2px rgba(18,25,51,.06), 0 8px 24px rgba(18,25,51,.08);
+  --font-display:"Be Vietnam Pro","Inter",system-ui,sans-serif;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B0F1E; --surface:#131A30; --surface-2:#1A2240; --fg:#E6EAF7; --muted:#9AA4C6; --line:#29325A;
+    --accent:#7D9BFF; --accent-soft:#1D2A5C; --on-accent:#0B0F1E;
+    --reg:#3FC7B4; --reg-soft:#113936;
+    --ok:#4CC890; --ok-soft:#12362A; --warn:#EBA845; --warn-soft:#3A2B12; --bad:#FF7A7A; --bad-soft:#3E1A1F;
+    --code-bg:#070B17; --code-fg:#DDE3F5; --code-line:#1C2440; --code-muted:#8590B5;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0F1E; --surface:#131A30; --surface-2:#1A2240; --fg:#E6EAF7; --muted:#9AA4C6; --line:#29325A;
+  --accent:#7D9BFF; --accent-soft:#1D2A5C; --on-accent:#0B0F1E;
+  --reg:#3FC7B4; --reg-soft:#113936;
+  --ok:#4CC890; --ok-soft:#12362A; --warn:#EBA845; --warn-soft:#3A2B12; --bad:#FF7A7A; --bad-soft:#3E1A1F;
+  --code-bg:#070B17; --code-fg:#DDE3F5; --code-line:#1C2440; --code-muted:#8590B5;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.68;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-underline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 80px}
+h1,h2,h3,h4{font-family:var(--font-display);text-wrap:balance;line-height:1.2;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.6rem,3.2vw,2.05rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.22rem;font-weight:700;margin-top:40px}
+h4{font-size:1rem;font-weight:700;margin-top:24px}
+p{margin:12px 0}
+ul,ol{padding-left:22px;margin:12px 0}
+li{margin:4px 0}
+code{font-family:var(--font-mono);font-size:.88em}
+:not(pre)>code{background:var(--surface-2);border:1px solid var(--line);padding:1px 6px;border-radius:6px;white-space:nowrap}
+b,strong{font-weight:600}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;font-weight:500}
+.muted{color:var(--muted)}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr);gap:48px;align-items:center;padding-block:56px 40px}
+.hero .lead{font-size:1.12rem;color:var(--muted);max-width:60ch;margin-top:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px;padding:0;list-style:none}
+.chips li{margin:0;font-size:13px;font-weight:500;background:var(--surface);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+.phone{background:linear-gradient(165deg,var(--accent-soft),var(--surface-2) 70%);border:1px solid var(--line);border-radius:32px;padding:26px 18px 18px;box-shadow:var(--shadow)}
+.ph-time{font-family:var(--font-display);font-size:3.2rem;font-weight:600;text-align:center;line-height:1;letter-spacing:-.02em}
+.ph-date{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 22px}
+.notif{display:flex;gap:12px;background:var(--surface);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow);animation:drop .7s cubic-bezier(.2,.9,.3,1.2) both .2s}
+@keyframes drop{from{transform:translateY(-14px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.notif{animation:none}}
+.ni-icon{flex:none;width:38px;height:38px;border-radius:10px;background:var(--accent);display:grid;place-items:center}
+.ni-icon svg{width:20px;height:20px}
+.ni-body{min-width:0;flex:1}
+.ni-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);letter-spacing:.04em}
+.ni-title{font-weight:600;font-size:14.5px;line-height:1.35;margin-top:2px}
+.ni-text{font-size:14px;line-height:1.4;color:var(--fg);opacity:.85}
+.ph-caption{font-size:12px;color:var(--muted);margin:18px 2px 6px;font-family:var(--font-mono);letter-spacing:.04em}
+.phone .code{margin:0}
+.phone .code pre{font-size:12px}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px}
+.rail nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);padding-top:8px}
+.rail p{font-family:var(--font-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.rail a{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;color:var(--fg);text-decoration:none;font-size:14px;line-height:1.3}
+.rail a:hover{background:var(--surface)}
+.rail a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.rail .num{font-family:var(--font-mono);font-size:12px;width:18px;color:var(--muted)}
+.rail a.on .num{color:var(--accent)}
+.dot{margin-left:auto;width:8px;height:8px;border-radius:50%;border:1.5px solid var(--line);flex:none}
+.dot.full{background:var(--ok);border-color:var(--ok)}
+main{min-width:0;max-width:790px}
+@media (max-width:980px){.layout{grid-template-columns:minmax(0,1fr)}.rail{display:none}.hero{grid-template-columns:minmax(0,1fr);gap:32px;padding-top:36px}}
+
+/* Intro + roadmap */
+.prereq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}
+.prereq > div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.prereq h4{margin:0 0 6px}
+.prereq ul{margin:0;padding-left:18px;font-size:15px}
+@media (max-width:620px){.prereq{grid-template-columns:minmax(0,1fr)}}
+.road{list-style:none;padding:0;margin:24px 0 0;position:relative}
+.road::before{content:"";position:absolute;left:19px;top:12px;bottom:12px;width:2px;background:var(--line)}
+.road li{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr);gap:18px;margin:0 0 14px}
+.road .n{width:40px;height:40px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);display:grid;place-items:center;font-family:var(--font-mono);font-weight:500;color:var(--accent);position:relative;z-index:1}
+.road .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.road .card a{font-family:var(--font-display);font-weight:700;font-size:1.05rem;color:var(--fg);text-decoration:none}
+.road .card a:hover{color:var(--accent)}
+.road .meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;font-size:14px;margin-top:6px}
+.road .meta dt{color:var(--muted)}
+.road .meta dd{margin:0}
+.road .time{float:right;font-family:var(--font-mono);font-size:11.5px;color:var(--muted);margin-top:4px}
+
+/* Stage */
+.stage,.extra{padding-block:64px 8px;border-top:1px solid var(--line);margin-top:48px}
+.stage-head .deliver{display:flex;gap:10px;align-items:flex-start;background:var(--ok-soft);color:var(--fg);border-radius:12px;padding:10px 14px;margin-top:16px;font-size:15px}
+.stage-head .deliver b{color:var(--ok);white-space:nowrap}
+.kicker{display:inline-block;font-family:var(--font-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;padding:2px 8px;border-radius:6px;margin-right:8px;vertical-align:3px}
+.k-learn{background:var(--accent-soft);color:var(--accent)}
+.k-do{background:var(--reg-soft);color:var(--reg)}
+.callout{border-radius:12px;padding:12px 16px;margin:18px 0;border:1px solid var(--line);background:var(--surface)}
+.callout p{margin:6px 0}
+.callout ul{margin:6px 0}
+.callout .tag{font-family:var(--font-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:500}
+.callout.analogy{background:var(--reg-soft);border-color:transparent}
+.callout.analogy .tag{color:var(--reg)}
+.callout.warn{background:var(--warn-soft);border-color:transparent}
+.callout.warn .tag{color:var(--warn)}
+.callout.tip .tag{color:var(--accent)}
+.callout.danger{background:var(--bad-soft);border-color:transparent}
+.callout.danger .tag{color:var(--bad)}
+
+/* Steps */
+ol.steps{list-style:none;padding:0;counter-reset:s;margin:20px 0}
+ol.steps > li{counter-increment:s;position:relative;padding-left:44px;margin:0 0 26px}
+ol.steps > li::before{content:counter(s);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:9px;background:var(--reg);color:var(--on-accent);font-family:var(--font-mono);font-size:13px;font-weight:500;display:grid;place-items:center}
+ol.steps > li > p:first-child{margin-top:3px}
+ol.steps .st{font-weight:600}
+
+/* Tables */
+.tbl{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:var(--surface-2)}
+td code{white-space:nowrap}
+.num-col{font-variant-numeric:tabular-nums;text-align:right}
+
+/* Code */
+.code{position:relative;background:var(--code-bg);border-radius:12px;margin:14px 0;border:1px solid var(--code-line)}
+.code .file{font-family:var(--font-mono);font-size:12px;color:var(--code-muted);padding:8px 96px 8px 14px;border-bottom:1px solid var(--code-line)}
+.code pre{margin:0;padding:14px 16px;overflow-x:auto;font:13.2px/1.62 var(--font-mono);color:var(--code-fg);tab-size:2}
+.code pre code{font-size:inherit;background:none;padding:0;border:0;white-space:pre}
+.copy{position:absolute;top:5px;right:6px;font:500 11.5px var(--font-body);background:transparent;color:var(--code-muted);border:1px solid var(--code-line);border-radius:7px;padding:3px 9px;cursor:pointer}
+.copy:hover{color:var(--code-fg);border-color:var(--code-muted)}
+.hljs-keyword,.hljs-selector-tag,.hljs-meta .hljs-keyword{color:#94B4FF}
+.hljs-string,.hljs-template-string,.hljs-regexp{color:#9FE0B2}
+.hljs-comment,.hljs-quote{color:#7380A6;font-style:italic}
+.hljs-number,.hljs-literal{color:#F6B66E}
+.hljs-title,.hljs-title.function_,.hljs-section{color:#FFD47E}
+.hljs-attr,.hljs-property,.hljs-attribute{color:#8DD5FF}
+.hljs-built_in,.hljs-type,.hljs-title.class_{color:#7FE0D3}
+.hljs-variable,.hljs-params{color:#E1E7F7}
+.hljs-meta{color:#A3ACCB}
+.hljs-symbol,.hljs-bullet{color:#F29BB5}
+
+/* Figures */
+.fig{margin:22px 0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 16px 12px}
+.fig .scroll{overflow-x:auto}
+.fig svg.dg{display:block;width:100%;min-width:640px;height:auto}
+.fig figcaption{font-size:13.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{display:inline-block;width:22px;height:0;border-top:2.5px solid}
+.fig pre.mermaid{margin:0;background:transparent;text-align:center;font-family:var(--font-body)}
+
+/* SVG diagram tokens */
+.dg text{font-family:var(--font-body);fill:var(--fg);font-size:13px}
+.dg .b{font-weight:600}
+.dg .m{fill:var(--muted);font-size:11.5px}
+.dg .a{fill:var(--accent)}
+.dg .mid{text-anchor:middle}
+.dg .n{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.dg .n2{fill:var(--surface-2);stroke:var(--line);stroke-width:1.2}
+.dg .na{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.dg .nw{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.3}
+.dg .nb{fill:var(--bad-soft);stroke:var(--bad);stroke-width:1.3}
+.dg .nok{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.3}
+.dg .grp{fill:none;stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 5}
+.dg .e{fill:none;stroke:var(--muted);stroke-width:1.5}
+.dg .ea{stroke:var(--accent);stroke-width:1.8}
+.dg .er{stroke:var(--reg);stroke-width:1.8}
+.dg .ew{stroke:var(--warn);stroke-width:1.6;stroke-dasharray:6 4}
+.dg .eb{stroke:var(--bad);stroke-width:1.6}
+.dg .dash{stroke-dasharray:6 5}
+.dg .bga{fill:var(--accent)} .dg .bgr{fill:var(--reg)} .dg .bgb{fill:var(--bad)} .dg .bgok{fill:var(--ok)}
+.dg .bgt{fill:var(--on-accent);font-size:11px;font-weight:700;text-anchor:middle;dominant-baseline:central}
+.dg .ic{stroke:var(--on-accent);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.mk-m{fill:var(--muted)} .mk-a{fill:var(--accent)} .mk-r{fill:var(--reg)} .mk-w{fill:var(--warn)} .mk-b{fill:var(--bad)}
+
+/* Example sample table look */
+.sample td{font-family:var(--font-mono);font-size:13px}
+.funnel{display:grid;gap:8px;margin:16px 0}
+.funnel div{display:grid;grid-template-columns:150px minmax(0,1fr) 54px;gap:12px;align-items:center;font-size:14px}
+.funnel .bar{height:22px;border-radius:6px;background:var(--accent)}
+.funnel .v{font-variant-numeric:tabular-nums;text-align:right;font-family:var(--font-mono);font-size:13px}
+@media (max-width:520px){.funnel div{grid-template-columns:110px minmax(0,1fr) 46px}}
+
+/* Checklist */
+.checkbox{margin:28px 0 8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+.checkbox h4{margin:0 0 6px;display:flex;justify-content:space-between;align-items:baseline}
+.checkbox .count{font-family:var(--font-mono);font-size:12px;color:var(--muted);font-weight:500}
+.checks{list-style:none;padding:0;margin:0}
+.checks li{margin:0}
+.checks label{display:flex;gap:10px;align-items:flex-start;padding:5px 0;cursor:pointer;font-size:15px}
+.checks input{accent-color:var(--ok);width:17px;height:17px;margin-top:4px;flex:none}
+.checks input:checked + span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+
+.tree{font-family:var(--font-mono)}
+footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:20px}
+</style>
+</head>
+<body>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="mk-m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-m" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="mk-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-a" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="mk-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-r" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="mk-w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-w" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="mk-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-b" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <p class="eyebrow">Tài liệu học backend · NestJS · từ số 0</p>
+    <h1>Tự xây Push Notification Service, từng chặng một</h1>
+    <p class="lead">Chín chặng, mỗi chặng học một nhóm khái niệm rồi viết thêm một mảnh code. Cuối lộ trình bạn có một service gửi thông báo cho Android, iOS và Web, có hàng đợi, tự thử lại khi lỗi, hẹn giờ, chống gửi trùng và lưu lịch sử.</p>
+    <ul class="chips" aria-label="Công nghệ dùng trong lộ trình">
+      <li>Node.js + TypeScript</li><li>NestJS</li><li>PostgreSQL</li><li>Redis + BullMQ</li><li>Firebase Cloud Messaging</li><li>Docker</li>
+    </ul>
+  </div>
+  <div class="phone" aria-label="Ví dụ một thông báo và payload server gửi đi">
+    <div class="ph-time">9:30</div>
+    <div class="ph-date">Thứ Năm, 19 tháng 11</div>
+    <div class="notif">
+      <div class="ni-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="var(--on-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="ni-body">
+        <div class="ni-top"><span>TASKAPP</span><span>bây giờ</span></div>
+        <div class="ni-title">Sắp đến hạn: Nộp báo cáo tuần</div>
+        <div class="ni-text">Còn 30 phút nữa. Nhấn để mở task.</div>
+      </div>
+    </div>
+    <p class="ph-caption">SERVER CỦA BẠN GỬI ĐI CHỪNG NÀY:</p>
+    <div class="code"><pre><code class="language-json">{
+  "token": "fMEz3h1bQ0u…",
+  "notification": {
+    "title": "Sắp đến hạn: Nộp báo cáo tuần",
+    "body": "Còn 30 phút nữa. Nhấn để mở task."
+  },
+  "data": { "taskId": "t_8421", "screen": "TaskDetail" }
+}</code></pre></div>
+  </div>
+</header>
+
+<div class="layout">
+<aside class="rail" aria-label="Mục lục">
+  <nav>
+    <p>Lộ trình</p>
+    <a href="#bat-dau"><span class="num">·</span>Trước khi bắt đầu</a>
+    <a href="#chang-0"><span class="num">0</span>Toàn cảnh<i class="dot" data-stage="0"></i></a>
+    <a href="#chang-1"><span class="num">1</span>Server đầu tiên<i class="dot" data-stage="1"></i></a>
+    <a href="#chang-2"><span class="num">2</span>Push đầu tiên<i class="dot" data-stage="2"></i></a>
+    <a href="#chang-3"><span class="num">3</span>Lưu device token<i class="dot" data-stage="3"></i></a>
+    <a href="#chang-4"><span class="num">4</span>API gửi thông báo<i class="dot" data-stage="4"></i></a>
+    <a href="#chang-5"><span class="num">5</span>Hàng đợi &amp; worker<i class="dot" data-stage="5"></i></a>
+    <a href="#chang-6"><span class="num">6</span>Lịch sử &amp; trạng thái<i class="dot" data-stage="6"></i></a>
+    <a href="#chang-7"><span class="num">7</span>Tính năng thật<i class="dot" data-stage="7"></i></a>
+    <a href="#chang-8"><span class="num">8</span>Lên production<i class="dot" data-stage="8"></i></a>
+    <a href="#thuat-ngu"><span class="num">·</span>Thuật ngữ &amp; đọc thêm</a>
+  </nav>
+</aside>
+
+<main>
+
+<!-- ============ INTRO ============ -->
+<section class="extra" id="bat-dau" style="border-top:0;margin-top:0;padding-top:8px">
+  <p class="eyebrow">Trước khi bắt đầu</p>
+  <h2>Cách dùng tài liệu này</h2>
+  <p>Mỗi chặng có hai phần. Phần <span class="kicker k-learn">Học</span> giải thích khái niệm bằng ví dụ đời thường và sơ đồ. Phần <span class="kicker k-do">Làm</span> là các bước code, mỗi bước chạy thử được ngay. Cuối chặng có danh sách tự kiểm tra; tick vào đó, trình duyệt sẽ nhớ tiến độ của bạn.</p>
+  <p>Ví dụ xuyên suốt là một <b>app quản lý công việc (TaskApp)</b> cần nhắc người dùng trước hạn chót. Bạn sẽ xây phần backend lo việc gửi thông báo, gọi là <b>Push Service</b>.</p>
+  <div class="prereq">
+    <div>
+      <h4>Bạn cần biết</h4>
+      <ul>
+        <li>JavaScript/TypeScript cơ bản, <code>async/await</code></li>
+        <li>Dùng terminal: <code>cd</code>, <code>npm</code></li>
+        <li>Đã từng làm app React Native hoặc web (để nhận thông báo)</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Bạn cần cài</h4>
+      <ul>
+        <li>Node.js 20 trở lên</li>
+        <li>Docker Desktop (chạy PostgreSQL, Redis)</li>
+        <li>Tài khoản Google để tạo Firebase project</li>
+        <li>Một điện thoại thật hoặc Chrome để thử</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout tip"><span class="tag">Lời khuyên</span><p>Gõ lại code thay vì copy cả khối. Khi gõ, bạn sẽ tự hỏi "dòng này để làm gì", và đó là lúc học nhiều nhất. Nút Sao chép chỉ để dùng cho lệnh terminal dài.</p></div>
+
+  <h3>Bản đồ lộ trình</h3>
+  <p>Các chặng xếp theo thứ tự phụ thuộc: chặng sau dùng code của chặng trước. Thời gian là ước lượng cho người mới, mỗi buổi khoảng 2–3 giờ.</p>
+  <ol class="road">
+    <li><span class="n">0</span><div class="card"><span class="time">~1 buổi</span><a href="#chang-0">Bức tranh toàn cảnh</a><dl class="meta"><dt>Học</dt><dd>push vs pull, push provider, device token</dd><dt>Làm được</dt><dd>vẽ lại luồng ai gửi cho ai</dd></dl></div></li>
+    <li><span class="n">1</span><div class="card"><span class="time">1–2 buổi</span><a href="#chang-1">Server đầu tiên</a><dl class="meta"><dt>Học</dt><dd>HTTP, REST, module, controller, dependency injection</dd><dt>Làm được</dt><dd>app NestJS trả lời <code>GET /health</code></dd></dl></div></li>
+    <li><span class="n">2</span><div class="card"><span class="time">1–2 buổi</span><a href="#chang-2">Gửi push đầu tiên</a><dl class="meta"><dt>Học</dt><dd>Firebase, service account, notification vs data</dd><dt>Làm được</dt><dd>một thông báo thật hiện trên máy bạn</dd></dl></div></li>
+    <li><span class="n">3</span><div class="card"><span class="time">2 buổi</span><a href="#chang-3">Lưu device token</a><dl class="meta"><dt>Học</dt><dd>database, SQL, upsert, vòng đời token</dd><dt>Làm được</dt><dd>API <code>POST /devices</code></dd></dl></div></li>
+    <li><span class="n">4</span><div class="card"><span class="time">2 buổi</span><a href="#chang-4">API gửi thông báo</a><dl class="meta"><dt>Học</dt><dd>DTO, guard, API key, JWT, xử lý lỗi FCM</dd><dt>Làm được</dt><dd>API <code>POST /notifications</code>, tự dọn token chết</dd></dl></div></li>
+    <li><span class="n">5</span><div class="card"><span class="time">2 buổi</span><a href="#chang-5">Hàng đợi &amp; worker</a><dl class="meta"><dt>Học</dt><dd>bất đồng bộ, queue, retry, backoff</dd><dt>Làm được</dt><dd>API trả lời ngay, tiến trình worker riêng gửi ở nền</dd></dl></div></li>
+    <li><span class="n">6</span><div class="card"><span class="time">2 buổi</span><a href="#chang-6">Lịch sử &amp; trạng thái</a><dl class="meta"><dt>Học</dt><dd>state machine, idempotency, sent ≠ opened</dd><dt>Làm được</dt><dd>tra cứu một thông báo đã tới máy nào</dd></dl></div></li>
+    <li><span class="n">7</span><div class="card"><span class="time">2–3 buổi</span><a href="#chang-7">Tính năng thật</a><dl class="meta"><dt>Học</dt><dd>hẹn giờ, template, giờ yên tĩnh, rate limit</dd><dt>Làm được</dt><dd>nhắc deadline đúng giờ, huỷ được</dd></dl></div></li>
+    <li><span class="n">8</span><div class="card"><span class="time">2–3 buổi</span><a href="#chang-8">Lên production</a><dl class="meta"><dt>Học</dt><dd>log, metric, Docker, bảo mật, ước lượng tải</dd><dt>Làm được</dt><dd>service đóng gói, chạy ổn định, scale được</dd></dl></div></li>
+  </ol>
+</section>
+
+<!-- ============ STAGE 0 ============ -->
+<section class="stage" id="chang-0">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 0 · đọc hiểu · ~1 buổi</p>
+    <h2>Bức tranh toàn cảnh</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>bạn vẽ lại được sơ đồ ai gửi cho ai, và hiểu vì sao server không gửi thẳng tới điện thoại.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Push và pull khác nhau thế nào</h3>
+  <p>Có hai cách để app biết "có việc mới". Với <b>pull</b>, app cứ vài phút lại hỏi server "có gì mới không?". Cách này đơn giản nhưng tốn pin, tốn mạng, và chỉ chạy khi app đang mở. Với <b>push</b>, server chủ động báo cho thiết bị đúng lúc có chuyện, kể cả khi app đang đóng.</p>
+  <div class="callout analogy"><span class="tag">Ví von</span><p>Pull giống như cứ 5 phút bạn lại chạy ra cổng xem có thư chưa. Push giống như bưu tá bấm chuông khi có thư. Cách thứ hai đỡ mệt hơn nhiều, nhưng phải có một bưu tá. Trong thế giới push, "bưu tá" là dịch vụ của Google và Apple.</p></div>
+
+  <h3>Vì sao server không gửi thẳng tới điện thoại</h3>
+  <p>Điện thoại không có địa chỉ cố định. Nó đổi từ Wi-Fi sang 4G, nằm sau lớp NAT của nhà mạng, và hệ điều hành tắt app chạy nền để tiết kiệm pin. Nếu mỗi app tự giữ một kết nối tới server riêng của mình thì 50 app sẽ là 50 kết nối, và pin cạn rất nhanh.</p>
+  <p>Vì vậy hệ điều hành giữ <b>một</b> kết nối thường trực duy nhất tới dịch vụ push của hãng, mọi app dùng chung đường đó. Dịch vụ này gọi là <b>push provider</b>:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Nền tảng</th><th>Push provider</th><th>Ai vận hành</th></tr></thead>
+    <tbody>
+      <tr><td>Android</td><td>Firebase Cloud Messaging (FCM)</td><td>Google</td></tr>
+      <tr><td>iOS, iPadOS, macOS</td><td>Apple Push Notification service (APNs)</td><td>Apple</td></tr>
+      <tr><td>Trình duyệt (Chrome, Firefox, Safari, Edge)</td><td>Web Push: mỗi trình duyệt có push service riêng</td><td>Google, Mozilla, Apple, Microsoft</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Device token: địa chỉ nhận thư</h3>
+  <p>Khi app xin quyền nhận thông báo, provider cấp cho cặp (app, thiết bị) một chuỗi dài gọi là <b>device token</b> (FCM gọi là <i>registration token</i>). Muốn gửi tới máy nào, bạn đưa token của máy đó cho provider. Một token FCM trông như thế này:</p>
+  <div class="code"><pre><code class="language-plaintext">fMEz3h1bQ0uXo2k9Rr7d1P:APA91bHk3V0w9mJ2c8hQx5sZ…(khoảng 150 ký tự)</code></pre></div>
+  <ul>
+    <li><b>Mỗi app trên mỗi máy có token riêng.</b> Một người dùng có điện thoại, iPad và Chrome trên laptop thì có 3 token.</li>
+    <li><b>Token có thể đổi</b> khi cài lại app, xoá dữ liệu app, hoặc khi provider tự làm mới.</li>
+    <li><b>Gỡ app thì token chết.</b> Lần sau bạn gửi vào token đó, provider báo lỗi "không còn đăng ký".</li>
+  </ul>
+
+  <h3>Ba vai trong hệ thống</h3>
+  <p>Toàn bộ lộ trình xoay quanh sơ đồ dưới đây. Có hai pha: <b>pha đăng ký</b> (bước 1–3, xảy ra khi người dùng mở app) và <b>pha gửi</b> (bước A–C, xảy ra mỗi khi có chuyện cần báo).</p>
+
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 760 420" role="img" aria-label="Sơ đồ ba vai: thiết bị, push provider và push service của bạn, với pha đăng ký token và pha gửi">
+      <!-- provider -->
+      <rect class="n" x="290" y="20" width="180" height="96" rx="14"/>
+      <text class="b mid" x="380" y="50">Push Provider</text>
+      <text class="m mid" x="380" y="72">FCM · APNs · Web Push</text>
+      <text class="m mid" x="380" y="92">Google / Apple vận hành</text>
+      <!-- device -->
+      <rect class="n" x="24" y="130" width="180" height="190" rx="16"/>
+      <text class="b mid" x="114" y="156">Thiết bị người dùng</text>
+      <rect class="n2" x="46" y="170" width="136" height="40" rx="8"/>
+      <text class="mid" x="114" y="195">App (RN / Web)</text>
+      <text class="m mid" x="114" y="232">OS giữ 1 kết nối</text>
+      <text class="m mid" x="114" y="248">thường trực tới provider</text>
+      <rect class="na" x="40" y="264" width="148" height="42" rx="10"/>
+      <text class="b" x="52" y="281" style="font-size:11.5px">Sắp đến hạn</text>
+      <text class="m" x="52" y="297">Nộp báo cáo tuần</text>
+      <!-- service -->
+      <rect class="na" x="556" y="130" width="180" height="180" rx="16"/>
+      <text class="b mid" x="646" y="158">Push Service</text>
+      <text class="a mid" x="646" y="177" style="font-size:12px">phần bạn sẽ xây</text>
+      <text class="m" x="578" y="210">• lưu token theo user</text>
+      <text class="m" x="578" y="232">• nhận yêu cầu gửi</text>
+      <text class="m" x="578" y="254">• dựng payload, gửi đi</text>
+      <text class="m" x="578" y="276">• thử lại, lưu lịch sử</text>
+      <!-- db -->
+      <rect class="n" x="620" y="350" width="116" height="50" rx="10"/>
+      <text class="b mid" x="678" y="380">PostgreSQL</text>
+      <path class="e" d="M678 312 V348" marker-start="url(#mk-m)" marker-end="url(#mk-m)"/>
+      <!-- backend -->
+      <rect class="n" x="290" y="340" width="180" height="60" rx="12"/>
+      <text class="b mid" x="380" y="366">Backend chính</text>
+      <text class="m mid" x="380" y="386">ví dụ: Task API</text>
+      <!-- 1-2 register with provider -->
+      <path class="e er" d="M100 128 V52 H286" marker-start="url(#mk-r)" marker-end="url(#mk-r)"/>
+      <circle class="bgr" cx="122" cy="38" r="9"/><text class="bgt" x="122" y="38">1</text>
+      <circle class="bgr" cx="144" cy="38" r="9"/><text class="bgt" x="144" y="38">2</text>
+      <text x="160" y="42" style="font-size:12px">xin &amp; nhận token</text>
+      <!-- 3 send token to service -->
+      <path class="e er" d="M206 252 H552" marker-end="url(#mk-r)"/>
+      <circle class="bgr" cx="300" cy="238" r="9"/><text class="bgt" x="300" y="238">3</text>
+      <text x="316" y="242" style="font-size:12px">POST /devices { token, platform }</text>
+      <!-- A backend asks service -->
+      <path class="e ea" d="M472 370 H596 V314" marker-end="url(#mk-a)"/>
+      <circle class="bga" cx="488" cy="356" r="9"/><text class="bgt" x="488" y="356">A</text>
+      <text x="503" y="360" style="font-size:12px">nhắc user 42</text>
+      <!-- B service to provider -->
+      <path class="e ea" d="M600 128 V68 H474" marker-end="url(#mk-a)"/>
+      <circle class="bga" cx="492" cy="54" r="9"/><text class="bgt" x="492" y="54">B</text>
+      <text x="507" y="58" style="font-size:12px">gửi tới token</text>
+      <!-- C provider to device -->
+      <path class="e ea dash" d="M330 118 V176 H208" marker-end="url(#mk-a)"/>
+      <circle class="bga" cx="224" cy="194" r="9"/><text class="bgt" x="224" y="194">C</text>
+      <text x="239" y="198" style="font-size:12px">đẩy xuống máy</text>
+    </svg>
+    </div>
+    <figcaption>
+      <div class="legend"><span><i style="border-color:var(--reg)"></i>Pha đăng ký (1–3)</span><span><i style="border-color:var(--accent)"></i>Pha gửi (A–C)</span></div>
+      Server của bạn không bao giờ nói chuyện trực tiếp với điện thoại. Nó chỉ nói chuyện với provider, và provider dùng kết nối thường trực sẵn có để đẩy xuống máy.
+    </figcaption>
+  </figure>
+
+  <ol>
+    <li><b>1–2.</b> App xin quyền, rồi xin provider một token. Provider trả token về.</li>
+    <li><b>3.</b> App gửi token lên Push Service, kèm thông tin "token này của user nào". Service lưu vào database.</li>
+    <li><b>A.</b> Một hệ thống khác (Task API) cần báo cho user 42: nó gọi Push Service, không cần biết gì về token hay FCM.</li>
+    <li><b>B.</b> Push Service tìm các token của user 42, dựng nội dung, gửi cho provider.</li>
+    <li><b>C.</b> Provider đẩy thông báo xuống máy qua kết nối thường trực. Hệ điều hành hiển thị nó.</li>
+  </ol>
+
+  <h3>Vì sao lộ trình này dùng FCM cho cả ba nền tảng</h3>
+  <p>FCM nhận một kiểu API duy nhất rồi tự chuyển tiếp: tới iOS qua APNs (bạn tải APNs key của Apple lên Firebase), tới trình duyệt qua Web Push. Người mới chỉ cần học một API và một thư viện <code>firebase-admin</code>. Khi đã vững, bạn có thể gọi APNs hoặc Web Push trực tiếp để bớt phụ thuộc Google. Kiến trúc service không đổi, chỉ thay "bộ gửi".</p>
+
+  <h3>Push Service của bạn chịu trách nhiệm gì</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Việc</th><th>Vì sao cần</th><th>Chặng</th></tr></thead>
+    <tbody>
+      <tr><td>Lưu token theo user</td><td>Provider chỉ biết token, không biết user là ai</td><td>3</td></tr>
+      <tr><td>Nhận yêu cầu gửi từ service khác</td><td>Tách việc gửi khỏi logic nghiệp vụ của Task API</td><td>4</td></tr>
+      <tr><td>Dọn token chết</td><td>Gửi vào token chết tốn công và làm sai thống kê</td><td>4</td></tr>
+      <tr><td>Gửi ở nền, tự thử lại</td><td>Provider có lúc chậm hoặc lỗi tạm thời</td><td>5</td></tr>
+      <tr><td>Lưu lịch sử, chống gửi trùng</td><td>Trả lời được câu "sao tôi không nhận được?"</td><td>6</td></tr>
+      <tr><td>Hẹn giờ, template, tôn trọng cài đặt</td><td>Trải nghiệm người dùng thật</td><td>7</td></tr>
+      <tr><td>Log, metric, bảo mật, scale</td><td>Chạy ổn định trên production</td><td>8</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="0">0/4</span></h4>
+    <ul class="checks" data-stage="0">
+      <li><label><input type="checkbox" data-k="0-1"><span>Giải thích được push khác pull thế nào, bằng lời của mình</span></label></li>
+      <li><label><input type="checkbox" data-k="0-2"><span>Biết device token là gì và vì sao nó có thể thay đổi</span></label></li>
+      <li><label><input type="checkbox" data-k="0-3"><span>Vẽ lại được sơ đồ ba vai với các bước 1–3 và A–C trên giấy</span></label></li>
+      <li><label><input type="checkbox" data-k="0-4"><span>Biết FCM chuyển tiếp sang APNs và Web Push giúp mình</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 1 ============ -->
+<section class="stage" id="chang-1">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 1 · ~1–2 buổi</p>
+    <h2>Server đầu tiên</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>bạn có một app NestJS chạy được, trả lời <code>GET /health</code>, và hiểu module, controller, provider là gì.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Server, request và response</h3>
+  <p>Server là một chương trình chạy liên tục, lắng nghe ở một <b>cổng</b> (port, ví dụ 3000). Client gửi tới một <b>request</b>, server trả lại một <b>response</b>. Ngôn ngữ chung của hai bên là HTTP. Nhìn dưới dạng chữ thô, một request trông như sau:</p>
+  <div class="code"><div class="file">Request: app gửi token lên server</div><pre><code class="language-plaintext">POST /devices HTTP/1.1                     ← method + đường dẫn
+Host: push.example.com
+Content-Type: application/json             ← header: thông tin kèm theo
+Authorization: Bearer eyJhbGciOi…          ← header: "tôi là ai"
+
+{"token":"fMEz3h1bQ0u…","platform":"android"}   ← body: dữ liệu</code></pre></div>
+  <div class="code"><div class="file">Response: server trả lời</div><pre><code class="language-plaintext">HTTP/1.1 201 Created                       ← status code
+Content-Type: application/json
+
+{"id":17,"platform":"android"}</code></pre></div>
+
+  <h4>Method nói lên bạn muốn làm gì</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>Method</th><th>Ý nghĩa</th><th>Ví dụ trong service</th></tr></thead>
+    <tbody>
+      <tr><td><code>GET</code></td><td>Đọc, không thay đổi gì</td><td>Xem trạng thái một thông báo</td></tr>
+      <tr><td><code>POST</code></td><td>Tạo mới hoặc thực hiện một hành động</td><td>Đăng ký thiết bị, yêu cầu gửi</td></tr>
+      <tr><td><code>PUT</code> / <code>PATCH</code></td><td>Thay thế / sửa một phần</td><td>Cập nhật cài đặt thông báo</td></tr>
+      <tr><td><code>DELETE</code></td><td>Xoá</td><td>Gỡ thiết bị khi đăng xuất, huỷ lịch nhắc</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>Status code nói lên kết quả</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>Mã</th><th>Nghĩa</th><th>Khi nào dùng</th></tr></thead>
+    <tbody>
+      <tr><td><code>200</code></td><td>OK</td><td>Thành công, có dữ liệu trả về</td></tr>
+      <tr><td><code>201</code></td><td>Created</td><td>Đã tạo mới (thiết bị vừa đăng ký)</td></tr>
+      <tr><td><code>202</code></td><td>Accepted</td><td>Đã nhận, sẽ xử lý sau. Rất quan trọng ở chặng 5</td></tr>
+      <tr><td><code>204</code></td><td>No Content</td><td>Thành công, không có gì để trả</td></tr>
+      <tr><td><code>400</code></td><td>Bad Request</td><td>Dữ liệu gửi lên sai định dạng</td></tr>
+      <tr><td><code>401</code></td><td>Unauthorized</td><td>Không biết bạn là ai (thiếu hoặc sai khoá)</td></tr>
+      <tr><td><code>404</code></td><td>Not Found</td><td>Không tìm thấy</td></tr>
+      <tr><td><code>409</code></td><td>Conflict</td><td>Xung đột trạng thái (huỷ một thông báo đã gửi)</td></tr>
+      <tr><td><code>429</code></td><td>Too Many Requests</td><td>Gọi quá nhiều, bị giới hạn</td></tr>
+      <tr><td><code>500</code></td><td>Internal Server Error</td><td>Server có bug</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>REST: đặt tên API theo "thứ" mà nó quản lý</h3>
+  <p>REST là một cách đặt tên quen thuộc: đường dẫn là danh từ (tài nguyên), method là động từ. Đây là toàn bộ API bạn sẽ xây trong lộ trình:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Endpoint</th><th>Làm gì</th><th>Ai gọi</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST /devices</code></td><td>Đăng ký hoặc cập nhật token</td><td>App</td></tr>
+      <tr><td><code>DELETE /devices/:token</code></td><td>Gỡ token khi đăng xuất</td><td>App</td></tr>
+      <tr><td><code>POST /notifications</code></td><td>Yêu cầu gửi một thông báo</td><td>Service nội bộ</td></tr>
+      <tr><td><code>GET /notifications/:id</code></td><td>Xem trạng thái, đã tới máy nào</td><td>Service nội bộ, admin</td></tr>
+      <tr><td><code>DELETE /notifications/:id</code></td><td>Huỷ thông báo hẹn giờ</td><td>Service nội bộ</td></tr>
+      <tr><td><code>POST /notifications/:id/opened</code></td><td>Báo người dùng đã bấm mở</td><td>App</td></tr>
+      <tr><td><code>GET /health</code></td><td>Server còn sống không</td><td>Hạ tầng, giám sát</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Biến môi trường: cấu hình nằm ngoài code</h3>
+  <p>Mật khẩu database, khoá API, đường dẫn file bí mật... khác nhau giữa máy bạn và server thật, và không được nằm trong Git. Ta để chúng trong <b>biến môi trường</b>. Lúc phát triển, ghi vào file <code>.env</code> (đã cho vào <code>.gitignore</code>), <code>ConfigModule</code> của NestJS đọc file đó khi app khởi động.</p>
+  <div class="callout analogy"><span class="tag">Ví von</span><p>Node.js xử lý nhiều request cùng lúc giống một người phục vụ bàn giỏi: đặt món xong cho bàn 1 thì không đứng chờ bếp, mà đi nhận món bàn 2. Khi bếp báo xong (database trả kết quả) thì quay lại bàn 1. Vì thế code Node đầy <code>async/await</code>: mỗi chữ <code>await</code> là một lần "đi làm việc khác trong lúc chờ".</p></div>
+
+  <h3>NestJS: khung nhà dựng sẵn</h3>
+  <p>Express chỉ đưa bạn công cụ nhận request và trả response; chia file, chia lớp thế nào là tự bạn nghĩ. <b>NestJS</b> chạy bên trên Express nhưng đặt sẵn một cấu trúc: mỗi phần việc có một chỗ cố định. Với người mới, điều này giữ cho code gọn gàng khi service lớn dần, và mọi dự án Nest trông giống nhau nên đọc code của người khác cũng dễ.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Khối</th><th>Là gì</th><th>Trong service</th></tr></thead>
+    <tbody>
+      <tr><td><b>Module</b></td><td>Một hộp gom các thứ liên quan tới một chủ đề</td><td><code>DevicesModule</code>, <code>NotificationsModule</code></td></tr>
+      <tr><td><b>Controller</b></td><td>Nhận request HTTP, gọi service, trả response</td><td><code>DevicesController</code> lo <code>/devices</code></td></tr>
+      <tr><td><b>Provider</b> (service, repository)</td><td>Class chứa logic; Nest tạo nó và đưa tới nơi cần</td><td><code>FcmService</code>, <code>DevicesRepository</code></td></tr>
+      <tr><td><b>Decorator</b></td><td>Ký hiệu <code>@</code> gắn thêm ý nghĩa cho class, hàm, tham số</td><td><code>@Controller('devices')</code>, <code>@Post()</code>, <code>@Body()</code></td></tr>
+      <tr><td><b>DTO + Pipe</b></td><td>Class mô tả dữ liệu hợp lệ + bộ kiểm tra tự động</td><td><code>RegisterDeviceDto</code> + <code>ValidationPipe</code></td></tr>
+      <tr><td><b>Guard</b></td><td>Người gác cửa: request có được vào không</td><td><code>ApiKeyGuard</code>, <code>JwtAuthGuard</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>Dependency Injection (DI)</h4>
+  <p>Trong Nest, một class không tự <code>new</code> những thứ nó cần. Nó khai báo trong constructor "tôi cần <code>DbService</code>", Nest tạo <code>DbService</code> đúng một lần rồi đưa vào mọi nơi cần.</p>
+  <div class="code"><pre><code class="language-ts">@Injectable()
+export class DevicesRepository {
+  // Không có "new DbService()" ở đâu cả: Nest tự đưa vào
+  constructor(private readonly db: DbService) {}
+}</code></pre></div>
+  <div class="callout analogy"><span class="tag">Ví von</span><p>Đầu bếp không tự đi chợ. Đầu bếp ghi "cần cà chua, thịt bò", quản lý bếp (Nest) lo mua và đặt sẵn lên bàn. Muốn đổi nhà cung cấp, hoặc thay bằng đồ giả để tập nấu (viết test), chỉ quản lý phải đổi, đầu bếp không sửa gì. Bạn sẽ thấy lợi ích này rõ nhất ở chặng 8 khi viết test.</p></div>
+
+  <h4>Hành trình của một request trong NestJS</h4>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 760 210" role="img" aria-label="Request đi qua Guard, Pipe, Controller, Service, Repository; Guard trả 401, Pipe trả 400 nếu không hợp lệ; response đi ngược về client">
+      <rect class="n2" x="6" y="30" width="104" height="56" rx="10"/>
+      <text class="b mid" x="58" y="54">Request</text><text class="m mid" x="58" y="72">POST /devices</text>
+      <rect class="n" x="132" y="30" width="104" height="56" rx="10"/>
+      <text class="b mid" x="184" y="54">Guard</text><text class="m mid" x="184" y="72">được vào không?</text>
+      <rect class="n" x="258" y="30" width="104" height="56" rx="10"/>
+      <text class="b mid" x="310" y="54">Pipe</text><text class="m mid" x="310" y="72">dữ liệu hợp lệ?</text>
+      <rect class="na" x="384" y="30" width="104" height="56" rx="10"/>
+      <text class="b mid" x="436" y="54">Controller</text><text class="m mid" x="436" y="72">nhận, điều phối</text>
+      <rect class="n" x="510" y="30" width="104" height="56" rx="10"/>
+      <text class="b mid" x="562" y="54">Service</text><text class="m mid" x="562" y="72">logic nghiệp vụ</text>
+      <rect class="n" x="636" y="30" width="104" height="56" rx="10"/>
+      <text class="b mid" x="688" y="54">Repository</text><text class="m mid" x="688" y="72">câu SQL → DB</text>
+      <path class="e" d="M110 58 H130" marker-end="url(#mk-m)"/>
+      <path class="e" d="M236 58 H256" marker-end="url(#mk-m)"/>
+      <path class="e" d="M362 58 H382" marker-end="url(#mk-m)"/>
+      <path class="e" d="M488 58 H508" marker-end="url(#mk-m)"/>
+      <path class="e" d="M614 58 H634" marker-end="url(#mk-m)"/>
+      <path class="e ea" d="M436 88 V150 H58 V90" marker-end="url(#mk-a)"/>
+      <path class="e eb dash" d="M184 88 V148"/>
+      <path class="e eb dash" d="M310 88 V148"/>
+      <text x="192" y="122" style="font-size:12px;fill:var(--bad)">sai khoá → 401</text>
+      <text x="318" y="122" style="font-size:12px;fill:var(--bad)">sai dữ liệu → 400</text>
+      <text class="a mid" x="247" y="168" style="font-size:12px">response JSON trả về client</text>
+      <text class="m mid" x="380" y="198">Lỗi ném ra ở bất kỳ đâu (ví dụ NotFoundException) được exception filter của Nest đổi thành JSON lỗi</text>
+    </svg>
+    </div>
+    <figcaption>Guard và Pipe chặn request xấu trước khi nó chạm tới code của bạn. Controller nên mỏng: nhận dữ liệu đã sạch, gọi service, trả kết quả.</figcaption>
+  </figure>
+
+  <h3>Đích đến: cấu trúc thư mục cuối lộ trình</h3>
+  <p>Mỗi thư mục trong <code>src/</code> là một module. Đừng lo nếu thấy nhiều, mỗi thứ được thêm vào ở đúng chặng của nó.</p>
+  <div class="code"><pre><code class="language-plaintext tree">push-service/
+├─ .env                            ← chặng 1  (không commit)
+├─ nest-cli.json, tsconfig*.json   ← chặng 1  (Nest CLI tạo sẵn)
+├─ docker-compose.yml              ← chặng 3
+├─ Dockerfile                      ← chặng 8
+├─ secrets/firebase-sa.json        ← chặng 2  (không commit!)
+├─ db/001_…, 002_…, 003_….sql      ← chặng 3, 6, 7
+├─ scripts/send-test.ts            ← chặng 2
+├─ scripts/make-jwt.ts             ← chặng 4
+└─ src/
+   ├─ main.ts                ← chặng 1  khởi động API
+   ├─ app.module.ts          ← chặng 1  module gốc của API
+   ├─ health/                ← chặng 1, 8
+   ├─ fcm/                   ← chặng 2  FcmModule, FcmService
+   ├─ database/              ← chặng 3  DatabaseModule, DbService
+   ├─ devices/               ← chặng 3  controller, repository, dto
+   ├─ auth/                  ← chặng 4  guard, decorator @CurrentUser
+   ├─ common/                ← chặng 4  validator dùng chung
+   ├─ notifications/         ← chặng 4–7 controller, service, repository, dto,
+   │                                     templates, quiet-hours, rules
+   ├─ queue/                 ← chặng 5  QueueModule
+   ├─ worker/                ← chặng 5  WorkerModule, NotificationsProcessor
+   ├─ worker.ts              ← chặng 5  khởi động worker
+   └─ redis/                 ← chặng 7  RedisModule</code></pre></div>
+
+  <h3><span class="kicker k-do">Làm</span>Dựng app NestJS</h3>
+  <ol class="steps">
+    <li><p class="st">Cài Nest CLI và tạo project</p>
+      <div class="code"><pre><code class="language-bash">npm i -g @nestjs/cli
+nest new push-service --package-manager npm
+cd push-service
+npm i @nestjs/config</code></pre></div>
+      <p>CLI tạo sẵn TypeScript, script chạy, Jest để test. Xoá ba file mẫu, ta sẽ tự viết:</p>
+      <div class="code"><pre><code class="language-bash">rm src/app.controller.ts src/app.service.ts src/app.controller.spec.ts</code></pre></div>
+    </li>
+    <li><p class="st">Tạo <code>.env</code> và bổ sung <code>.gitignore</code></p>
+      <div class="code"><div class="file">.env</div><pre><code class="language-ini">PORT=3000</code></pre></div>
+      <div class="code"><div class="file">.gitignore (thêm vào cuối file CLI đã tạo)</div><pre><code class="language-plaintext">.env
+secrets/</code></pre></div>
+    </li>
+    <li><p class="st">Viết controller đầu tiên</p>
+      <p>Có thể gõ <code>nest g controller health --no-spec</code>: CLI tạo file và tự đăng ký vào module. Nội dung:</p>
+      <div class="code"><div class="file">src/health/health.controller.ts</div><pre><code class="language-ts">import { Controller, Get } from '@nestjs/common';
+
+@Controller('health')          // mọi route trong class này bắt đầu bằng /health
+export class HealthController {
+  @Get()                       // GET /health
+  check() {
+    // Trả về object, Nest tự đổi thành JSON với status 200
+    return { status: 'ok', time: new Date().toISOString() };
+  }
+}</code></pre></div>
+    </li>
+    <li><p class="st">Khai báo module gốc</p>
+      <div class="code"><div class="file">src/app.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { HealthController } from './health/health.controller';
+
+@Module({
+  imports: [
+    // Đọc .env vào ConfigService; isGlobal: mọi module dùng được mà không cần import lại
+    ConfigModule.forRoot({ isGlobal: true }),
+  ],
+  controllers: [HealthController],
+})
+export class AppModule {}</code></pre></div>
+    </li>
+    <li><p class="st">Sửa <code>src/main.ts</code>: điểm khởi động</p>
+      <div class="code"><div class="file">src/main.ts</div><pre><code class="language-ts">import { NestFactory } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks(); // nhận tín hiệu tắt để đóng kết nối gọn gàng (chặng 8)
+
+  const port = Number(app.get(ConfigService).get('PORT') ?? 3000);
+  await app.listen(port);
+  console.log(`API đang chạy ở http://localhost:${port}`);
+}
+bootstrap();</code></pre></div>
+    </li>
+    <li><p class="st">Chạy và gọi thử</p>
+      <div class="code"><pre><code class="language-bash">npm run start:dev</code></pre></div>
+      <p><code>start:dev</code> tự build lại khi bạn sửa code. Mở terminal thứ hai:</p>
+      <div class="code"><pre><code class="language-bash">curl -i http://localhost:3000/health</code></pre></div>
+      <div class="code"><div class="file">Kết quả mong đợi</div><pre><code class="language-plaintext">HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+
+{"status":"ok","time":"2026-11-19T02:30:00.000Z"}</code></pre></div>
+    </li>
+  </ol>
+  <div class="callout tip"><span class="tag">Bài tập nhỏ</span><p>Gọi <code>curl -i http://localhost:3000/khong-co</code> và xem Nest trả JSON lỗi thế nào. Sau đó thêm <code>@Get('version')</code> vào <code>HealthController</code>, trả về <code>{"version":"0.1.0"}</code>.</p></div>
+  <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
+    <li><b><code>Nest can't resolve dependencies of the X (?)</code></b>: class X cần một provider mà module chưa khai báo, hoặc chưa import module chứa nó. Thông báo lỗi ghi rõ thiếu gì ở module nào, đọc kỹ là ra.</li>
+    <li><b>Đã viết controller mà gọi vẫn 404</b>: quên thêm controller vào mảng <code>controllers</code> của module (lệnh <code>nest g</code> tự làm việc này).</li>
+    <li><b><code>EADDRINUSE</code></b>: cổng 3000 đang bị chương trình khác dùng. Tắt nó đi hoặc đổi <code>PORT</code> trong <code>.env</code>.</li>
+  </ul></div>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="1">0/4</span></h4>
+    <ul class="checks" data-stage="1">
+      <li><label><input type="checkbox" data-k="1-1"><span>Kể được 4 phần của một request HTTP</span></label></li>
+      <li><label><input type="checkbox" data-k="1-2"><span>Biết khi nào dùng 200, 201, 202, 400, 401</span></label></li>
+      <li><label><input type="checkbox" data-k="1-3"><span><code>curl /health</code> trả về <code>{"status":"ok"}</code></span></label></li>
+      <li><label><input type="checkbox" data-k="1-4"><span>Hiểu vì sao <code>.env</code> không được commit</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 2 ============ -->
+<section class="stage" id="chang-2">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 2 · ~1–2 buổi</p>
+    <h2>Gửi push đầu tiên</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>một thông báo thật hiện lên điện thoại hoặc trình duyệt của bạn, gửi từ một script Node chạy trên máy.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Firebase project và các loại "chìa khoá"</h3>
+  <p>Firebase project là nơi gom app Android, app iOS và web app của bạn lại để FCM biết chúng cùng một hệ thống. Người mới hay nhầm giữa các loại khoá, nên hãy phân biệt rõ ngay từ đầu:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Thứ</th><th>Dùng ở đâu</th><th>Bí mật?</th></tr></thead>
+    <tbody>
+      <tr><td>Firebase config (<code>apiKey</code>, <code>projectId</code>…)</td><td>Trong app và web app</td><td>Không. Nhúng vào app được</td></tr>
+      <tr><td><code>google-services.json</code> / <code>GoogleService-Info.plist</code></td><td>App Android / iOS</td><td>Không</td></tr>
+      <tr><td><b>Service account JSON</b></td><td>Server của bạn</td><td><b>Có.</b> Ai có file này gửi được push tới mọi người dùng</td></tr>
+      <tr><td>APNs auth key (<code>.p8</code>)</td><td>Tải lên Firebase Console</td><td>Có</td></tr>
+      <tr><td>Web Push certificate (VAPID key)</td><td>Public key nằm trong web app</td><td>Public key thì không</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout danger"><span class="tag">Quan trọng</span><p>Không bao giờ commit service account JSON, không gửi qua chat, không nhúng vào app. Nếu lỡ lộ, vào Google Cloud Console xoá key đó và tạo key mới ngay.</p></div>
+
+  <h3>Lấy token ở phía client</h3>
+  <p>Việc này nằm trong app, không phải server, nhưng bạn cần nó để có token mà thử. Luồng như sau:</p>
+  <figure class="fig">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant U as Người dùng
+    participant A as App
+    participant F as FCM
+    participant S as Push Service
+    A->>U: Hỏi quyền nhận thông báo
+    U-->>A: Cho phép
+    A->>F: getToken()
+    F-->>A: token "fMEz3h1b..."
+    A->>S: POST /devices (từ chặng 3)
+    S-->>A: 201 Created
+</pre>
+    <figcaption>Người dùng phải đồng ý trước. Nếu họ từ chối, bạn không có token và không gửi được gì.</figcaption>
+  </figure>
+
+  <h4>React Native (dùng <code>@react-native-firebase/messaging</code>)</h4>
+  <div class="code"><div class="file">app/push.ts (trong app React Native)</div><pre><code class="language-ts">import messaging from '@react-native-firebase/messaging';
+import { PermissionsAndroid, Platform } from 'react-native';
+
+export async function getPushToken(): Promise&lt;string | null&gt; {
+  // Android 13+ phải xin quyền POST_NOTIFICATIONS
+  if (Platform.OS === 'android' &amp;&amp; Platform.Version >= 33) {
+    await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+  }
+  // iOS hiện hộp thoại xin quyền
+  const status = await messaging().requestPermission();
+  const allowed =
+    status === messaging.AuthorizationStatus.AUTHORIZED ||
+    status === messaging.AuthorizationStatus.PROVISIONAL;
+  if (!allowed) return null;
+
+  const token = await messaging().getToken();
+  console.log('FCM token:', token); // copy chuỗi này để thử ở bước sau
+  return token;
+}
+
+// Thông báo tới lúc app ĐANG MỞ: hệ điều hành không tự hiện, bạn tự xử lý
+messaging().onMessage(async (msg) => {
+  console.log('Nhận khi đang mở app:', msg.notification?.title, msg.data);
+});</code></pre></div>
+  <p class="muted">Bản React Native Firebase mới có thêm kiểu API dạng hàm (<code>getMessaging()</code>, <code>getToken()</code>); cách viết trên vẫn chạy. Nếu dùng Expo, hãy dùng thư viện này qua development build: trên iOS, <code>expo-notifications</code> trả về APNs token chứ không phải FCM token.</p>
+
+  <h4>Web (Firebase JS SDK)</h4>
+  <div class="code"><div class="file">web/push.js</div><pre><code class="language-js">import { initializeApp } from 'firebase/app';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+
+const app = initializeApp(firebaseConfig); // lấy trong Project settings
+const messaging = getMessaging(app);
+
+// Gọi hàm này khi người dùng bấm nút "Bật thông báo", không gọi lúc vừa tải trang
+export async function enablePush() {
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') return null;
+
+  const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  return getToken(messaging, {
+    vapidKey: 'PUBLIC_VAPID_KEY_CỦA_BẠN',
+    serviceWorkerRegistration: registration,
+  });
+}
+
+onMessage(messaging, (payload) => console.log('Nhận khi đang mở tab:', payload));</code></pre></div>
+  <div class="code"><div class="file">public/firebase-messaging-sw.js (service worker, chạy cả khi tab đã đóng)</div><pre><code class="language-js">importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+
+firebase.initializeApp({ /* firebaseConfig giống bên trên */ });
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  // Phần "notification" đã được tự hiển thị. Ở đây xử lý thêm phần "data" nếu cần.
+  console.log('Nhận ở nền:', payload.data);
+});</code></pre></div>
+  <p class="muted">Web Push cần HTTPS (riêng <code>localhost</code> được miễn). Trên iPhone, web chỉ nhận được push khi người dùng đã "Thêm vào Màn hình chính" (iOS 16.4 trở lên).</p>
+
+  <h3>Notification message và data message</h3>
+  <p>Một tin FCM có thể có hai phần, và chúng hành xử khác nhau:</p>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th><code>notification</code></th><th><code>data</code></th></tr></thead>
+    <tbody>
+      <tr><td>Là gì</td><td>Tiêu đề, nội dung để hiển thị</td><td>Cặp key–value tuỳ ý, cho code của app đọc</td></tr>
+      <tr><td>Ai hiển thị</td><td>Hệ điều hành tự hiện khi app ở nền</td><td>Không ai hiện cả, app tự quyết</td></tr>
+      <tr><td>Dùng cho</td><td>Thứ người dùng nhìn thấy</td><td>Điều hướng (<code>taskId</code>, <code>screen</code>), đồng bộ ngầm</td></tr>
+      <tr><td>Lưu ý</td><td>Ngắn gọn, tiêu đề dưới ~50 ký tự</td><td><b>Mọi giá trị phải là chuỗi</b>: <code>"3"</code> chứ không phải <code>3</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Thực tế hay dùng cả hai: <code>notification</code> để hiện, <code>data</code> để khi bấm vào thì mở đúng màn hình. Bạn còn có thể chỉnh riêng cho từng nền tảng. Toàn bộ tin nhắn phải nhỏ hơn 4 KB.</p>
+  <div class="code"><div class="file">Một tin FCM đầy đủ</div><pre><code class="language-json">{
+  "token": "fMEz3h1bQ0u…",
+  "notification": {
+    "title": "Sắp đến hạn: Nộp báo cáo tuần",
+    "body": "Còn 30 phút nữa. Nhấn để mở task."
+  },
+  "data": { "taskId": "t_8421", "screen": "TaskDetail" },
+  "android": { "priority": "high" },
+  "apns": { "payload": { "aps": { "sound": "default", "badge": 3 } } },
+  "webpush": { "fcmOptions": { "link": "https://app.example.com/tasks/t_8421" } }
+}</code></pre></div>
+
+  <h4>App đang ở trạng thái nào thì thông báo cư xử ra sao</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>Trạng thái app</th><th>Tin có <code>notification</code></th><th>Tin chỉ có <code>data</code></th></tr></thead>
+    <tbody>
+      <tr><td><b>Đang mở</b> (foreground)</td><td>OS <b>không</b> tự hiện. App nhận qua <code>onMessage</code> và tự quyết định</td><td>Nhận qua <code>onMessage</code></td></tr>
+      <tr><td><b>Chạy nền</b> (background)</td><td>OS tự hiện. Bấm vào thì mở app</td><td>Android: chạy background handler. iOS: có thể bị trễ hoặc bỏ</td></tr>
+      <tr><td><b>Đã tắt hẳn</b> (killed)</td><td>OS tự hiện</td><td>Không đảm bảo, nhất là trên iOS</td></tr>
+    </tbody>
+  </table></div>
+  <p>Kết luận cho người mới: thông báo người dùng cần thấy thì luôn có phần <code>notification</code>.</p>
+
+  <h3><span class="kicker k-do">Làm</span>Gửi thông báo từ server</h3>
+  <ol class="steps">
+    <li><p class="st">Tạo Firebase project và lấy khoá</p>
+      <ul>
+        <li>Vào <a href="https://console.firebase.google.com" target="_blank" rel="noopener">Firebase Console</a>, tạo project (ví dụ <code>task-app-dev</code>), thêm app Android, iOS hoặc Web.</li>
+        <li><b>Server:</b> Project settings → Service accounts → Generate new private key. Lưu file thành <code>secrets/firebase-sa.json</code>.</li>
+        <li><b>iOS:</b> tạo APNs Authentication Key (.p8) trên Apple Developer, rồi tải lên ở Project settings → Cloud Messaging.</li>
+        <li><b>Web:</b> Project settings → Cloud Messaging → Web Push certificates → Generate key pair. Lấy public key cho <code>vapidKey</code>.</li>
+      </ul>
+    </li>
+    <li><p class="st">Chạy app, cho phép thông báo, copy token từ console log</p></li>
+    <li><p class="st">Cài thư viện và khai báo cấu hình</p>
+      <div class="code"><pre><code class="language-bash">npm i firebase-admin
+npm i -D tsx dotenv</code></pre></div>
+      <div class="code"><div class="file">.env (thêm dòng)</div><pre><code class="language-ini">FIREBASE_CREDENTIALS=./secrets/firebase-sa.json</code></pre></div>
+      <p><code>tsx</code> dùng để chạy các script nhỏ trong thư mục <code>scripts/</code>. Để <code>nest build</code> không biên dịch lẫn thư mục này (sẽ làm lệch đường dẫn <code>dist/main.js</code>), thêm nó vào danh sách loại trừ:</p>
+      <div class="code"><div class="file">tsconfig.build.json</div><pre><code class="language-json">{
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "test", "dist", "scripts", "**/*spec.ts"]
+}</code></pre></div>
+    </li>
+    <li><p class="st">Gửi thử bằng một script độc lập</p>
+      <p>Trước khi đưa vào Nest, hãy thấy kết quả ngay bằng một script ngắn gọi thẳng <code>firebase-admin</code>:</p>
+      <div class="code"><div class="file">scripts/send-test.ts</div><pre><code class="language-ts">import 'dotenv/config';
+import { readFileSync } from 'node:fs';
+import { cert, initializeApp } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
+
+async function main() {
+  const token = process.argv[2];
+  if (!token) {
+    console.error('Cách dùng: npx tsx scripts/send-test.ts &lt;device-token&gt;');
+    process.exit(1);
+  }
+  const serviceAccount = JSON.parse(readFileSync(process.env.FIREBASE_CREDENTIALS!, 'utf8'));
+  initializeApp({ credential: cert(serviceAccount) });
+
+  const id = await getMessaging().send({
+    token,
+    notification: { title: 'Xin chào', body: 'Đây là push đầu tiên từ server của bạn' },
+    data: { screen: 'Home' },
+  });
+  console.log('FCM đã nhận:', id);
+}
+main();</code></pre></div>
+      <div class="code"><pre><code class="language-bash">npx tsx scripts/send-test.ts "dán-token-vào-đây"</code></pre></div>
+      <div class="code"><div class="file">Kết quả mong đợi</div><pre><code class="language-plaintext">FCM đã nhận: projects/task-app-dev/messages/0:1763519400123456%31bd1c9631bd1c96</code></pre></div>
+      <p class="muted">Script này cố ý không dùng Nest. <code>tsx</code> chạy TypeScript rất nhanh nhưng không sinh metadata kiểu mà DI của Nest cần, nên script nào dựng app Nest thì phải chạy qua <code>nest start</code> hoặc code đã build.</p>
+    </li>
+    <li><p class="st">Đưa vào Nest: <code>FcmModule</code> và <code>FcmService</code></p>
+      <p>Trong service, phần gửi nằm trong một provider. Mọi chỗ cần gửi push chỉ việc inject <code>FcmService</code>.</p>
+      <div class="code"><div class="file">src/fcm/fcm.service.ts</div><pre><code class="language-ts">import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { readFileSync } from 'node:fs';
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
+import { getMessaging, Messaging } from 'firebase-admin/messaging';
+
+@Injectable()
+export class FcmService implements OnModuleInit {
+  private messaging!: Messaging;
+
+  constructor(private readonly config: ConfigService) {}
+
+  // Lifecycle hook: Nest gọi một lần khi module đã khởi tạo xong
+  onModuleInit() {
+    const path = this.config.getOrThrow&lt;string&gt;('FIREBASE_CREDENTIALS'); // thiếu thì dừng ngay
+    const serviceAccount = JSON.parse(readFileSync(path, 'utf8'));
+    if (getApps().length === 0) initializeApp({ credential: cert(serviceAccount) });
+    // firebase-admin lo phần khó: lấy OAuth token, gọi FCM HTTP v1 API
+    this.messaging = getMessaging();
+  }
+
+  sendOne(token: string, title: string, body: string, data?: Record&lt;string, string&gt;) {
+    return this.messaging.send({ token, notification: { title, body }, data });
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/fcm/fcm.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
+import { FcmService } from './fcm.service';
+
+@Module({
+  providers: [FcmService],
+  exports: [FcmService], // cho module khác import FcmModule là dùng được FcmService
+})
+export class FcmModule {}</code></pre></div>
+      <p><code>providers</code> là những gì module tự tạo; <code>exports</code> là những gì module cho bên ngoài dùng. Chưa có ai dùng <code>FcmModule</code> lúc này, chặng 4 sẽ import nó.</p>
+    </li>
+    <li><p class="st">Thử nghiệm để hiểu sâu</p>
+      <ul>
+        <li>Gửi khi app <b>đang mở</b>: không thấy gì trên khay thông báo, nhưng thấy log <code>onMessage</code>. Đây là chuyện bình thường.</li>
+        <li>Đưa app về nền rồi gửi lại: thông báo hiện ra.</li>
+        <li>Đổi <code>data: { count: 3 }</code> (số, không phải chuỗi): xem lỗi trả về.</li>
+        <li>Gửi ở chế độ thử: <code>getMessaging().send(message, true)</code>. FCM kiểm tra tin nhắn nhưng không gửi thật, rất tiện khi viết test.</li>
+      </ul>
+    </li>
+  </ol>
+  <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
+    <li><b>Gửi thành công mà không thấy gì</b>: app đang mở (xem bảng trạng thái), hoặc chưa cấp quyền thông báo, hoặc máy đang bật chế độ tập trung.</li>
+    <li><b>Android 13+ không hiện</b>: chưa xin quyền <code>POST_NOTIFICATIONS</code>.</li>
+    <li><b>iOS không nhận</b>: chưa tải APNs key lên Firebase, chưa bật Push Notifications capability trong Xcode. Nên thử trên máy thật.</li>
+    <li><b><code>messaging/invalid-argument</code></b>: token copy thiếu ký tự, hoặc <code>data</code> có giá trị không phải chuỗi.</li>
+    <li><b><code>messaging/mismatched-credential</code></b>: token của project Firebase này, service account của project khác.</li>
+  </ul></div>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="2">0/5</span></h4>
+    <ul class="checks" data-stage="2">
+      <li><label><input type="checkbox" data-k="2-1"><span>Nhận được thông báo đầu tiên trên máy thật hoặc Chrome</span></label></li>
+      <li><label><input type="checkbox" data-k="2-2"><span>Biết file nào là bí mật, file nào nhúng vào app được</span></label></li>
+      <li><label><input type="checkbox" data-k="2-3"><span>Phân biệt được <code>notification</code> và <code>data</code></span></label></li>
+      <li><label><input type="checkbox" data-k="2-4"><span>Giải thích được vì sao app đang mở thì không thấy thông báo</span></label></li>
+      <li><label><input type="checkbox" data-k="2-5"><span><code>secrets/</code> đã nằm trong <code>.gitignore</code></span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 3 ============ -->
+<section class="stage" id="chang-3">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 3 · ~2 buổi</p>
+    <h2>Lưu device token</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>có API <code>POST /devices</code> lưu token vào PostgreSQL, và app tự gọi API này mỗi khi có token mới.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Vì sao cần database</h3>
+  <p>Ở chặng 2 bạn dán token bằng tay. Thực tế, token tới từ hàng nghìn máy vào lúc bất kỳ, và khi Task API nói "nhắc user 42", service phải tra được user 42 đang có những máy nào. Server có thể khởi động lại bất cứ lúc nào, nên thông tin này phải nằm trong một nơi bền vững: <b>database</b>.</p>
+  <p>PostgreSQL là database quan hệ: dữ liệu nằm trong <b>bảng</b>, mỗi <b>dòng</b> là một bản ghi, mỗi <b>cột</b> có kiểu dữ liệu cố định. Bảng <code>devices</code> của bạn sẽ trông như thế này:</p>
+  <div class="tbl"><table class="sample">
+    <thead><tr><th>id</th><th>user_id</th><th>token</th><th>platform</th><th>last_seen_at</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>u_42</td><td>fMEz3h1bQ0…</td><td>android</td><td>2026-11-19 08:12</td></tr>
+      <tr><td>2</td><td>u_42</td><td>cX9a0Lw2Rk…</td><td>ios</td><td>2026-11-18 21:40</td></tr>
+      <tr><td>3</td><td>u_77</td><td>e1Kq7Zp4Tm…</td><td>web</td><td>2026-11-19 07:55</td></tr>
+    </tbody>
+  </table></div>
+  <p>User <code>u_42</code> có hai dòng vì có hai máy. Đây là quan hệ <b>một–nhiều</b>: một user, nhiều thiết bị.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Khái niệm</th><th>Trong bảng devices</th><th>Để làm gì</th></tr></thead>
+    <tbody>
+      <tr><td>Primary key</td><td><code>id</code></td><td>Định danh duy nhất cho mỗi dòng</td></tr>
+      <tr><td>Unique constraint</td><td><code>token</code></td><td>Database cấm hai dòng trùng token</td></tr>
+      <tr><td>Index</td><td>trên <code>user_id</code></td><td>Như mục lục cuối sách: tìm "các máy của u_42" nhanh mà không phải đọc cả bảng</td></tr>
+    </tbody>
+  </table></div>
+  <p>Cột <code>user_id</code> có kiểu chữ (<code>TEXT</code>) vì người dùng thuộc về một hệ thống khác (hệ thống đăng nhập của bạn). Push Service không sở hữu user, nó chỉ ghi lại id. Đây là ý tưởng <b>ranh giới service</b>: mỗi service chỉ giữ dữ liệu của mình.</p>
+
+  <h3>Upsert: thêm mới hoặc cập nhật trong một câu lệnh</h3>
+  <p>App sẽ gửi token lên mỗi lần mở. Hãy xem ba tình huống:</p>
+  <ul>
+    <li><b>Token mới tinh</b> → thêm dòng mới.</li>
+    <li><b>Token đã có, cùng user</b> → không thêm dòng trùng, chỉ cập nhật <code>last_seen_at</code>.</li>
+    <li><b>Token đã có, khác user</b> (A đăng xuất, B đăng nhập trên cùng máy) → chuyển token sang user B, để A không nhận nhầm thông báo của B.</li>
+  </ul>
+  <p>Cả ba được xử lý bằng một câu <code>INSERT … ON CONFLICT (token) DO UPDATE</code>, gọi là <b>upsert</b> (update + insert).</p>
+
+  <h3>Vòng đời của một token</h3>
+  <figure class="fig">
+<pre class="mermaid">
+stateDiagram-v2
+    state "Mới tạo" as Moi
+    state "Đang dùng" as Dung
+    state "Đã đổi" as Doi
+    state "Gỡ khỏi user" as Go
+    state "Chết" as Chet
+    [*] --> Moi: App gọi getToken
+    Moi --> Dung: POST /devices
+    Dung --> Dung: Mở app, cập nhật last_seen_at
+    Dung --> Doi: onTokenRefresh
+    Doi --> Dung: Gửi token mới lên
+    Dung --> Go: Người dùng đăng xuất
+    Dung --> Chet: Gỡ app, FCM báo UNREGISTERED
+    Go --> [*]
+    Chet --> [*]: Server xoá token
+</pre>
+    <figcaption>Token không sống mãi. Service phải theo dõi cả lúc nó sinh ra lẫn lúc nó chết. Phần "chết" bạn sẽ xử lý ở chặng 4.</figcaption>
+  </figure>
+
+  <h3>Tham số hoá câu SQL: chống SQL injection</h3>
+  <p>Đừng bao giờ ghép chuỗi người dùng gửi vào câu SQL. Nếu ai đó gửi token là <code>x'; DROP TABLE devices; --</code>, câu lệnh ghép chuỗi sẽ xoá bảng của bạn. Thay vào đó dùng <b>tham số</b> <code>$1, $2</code>; thư viện <code>pg</code> gửi giá trị riêng, database không bao giờ hiểu nhầm nó là lệnh.</p>
+  <div class="code"><pre><code class="language-ts">// SAI: ghép chuỗi
+db.query(`SELECT * FROM devices WHERE token = '${token}'`);
+// ĐÚNG: tham số hoá
+db.query('SELECT * FROM devices WHERE token = $1', [token]);</code></pre></div>
+
+  <div class="callout analogy"><span class="tag">Docker trong một phút</span><p>Docker chạy phần mềm trong một "hộp" đã cài sẵn mọi thứ. Thay vì tự cài PostgreSQL và Redis lên máy, bạn viết một file <code>docker-compose.yml</code> mô tả cần những hộp nào, rồi chạy một lệnh. Xoá đi cũng sạch sẽ, không để lại gì.</p></div>
+
+  <h3><span class="kicker k-do">Làm</span>Lưu token vào PostgreSQL</h3>
+  <ol class="steps">
+    <li><p class="st">Chạy PostgreSQL và Redis bằng Docker (Redis dùng từ chặng 5)</p>
+      <div class="code"><div class="file">docker-compose.yml</div><pre><code class="language-yaml">services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: push
+      POSTGRES_PASSWORD: push
+      POSTGRES_DB: push
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+volumes:
+  pgdata:</code></pre></div>
+      <div class="code"><pre><code class="language-bash">docker compose up -d</code></pre></div>
+    </li>
+    <li><p class="st">Viết migration tạo bảng</p>
+      <p>Migration là file SQL đánh số thứ tự, ghi lại từng lần thay đổi cấu trúc database. Nhờ vậy ai cũng dựng lại được database giống hệt bạn.</p>
+      <div class="code"><div class="file">db/001_devices.sql</div><pre><code class="language-sql">CREATE TABLE devices (
+  id           BIGSERIAL PRIMARY KEY,
+  user_id      TEXT        NOT NULL,
+  token        TEXT        NOT NULL UNIQUE,
+  platform     TEXT        NOT NULL CHECK (platform IN ('android', 'ios', 'web')),
+  app_version  TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX devices_user_id_idx ON devices (user_id);</code></pre></div>
+      <div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push &lt; db/001_devices.sql</code></pre></div>
+    </li>
+    <li><p class="st">Cài thư viện và cấu hình</p>
+      <div class="code"><pre><code class="language-bash">npm i pg class-validator class-transformer
+npm i -D @types/pg</code></pre></div>
+      <div class="code"><div class="file">.env (thêm dòng)</div><pre><code class="language-ini">DATABASE_URL=postgres://push:push@localhost:5432/push</code></pre></div>
+      <p class="muted">Lộ trình này viết SQL bằng tay qua thư viện <code>pg</code> để bạn hiểu từng câu lệnh. Khi đã quen, bạn có thể chuyển sang ORM như TypeORM (<code>@nestjs/typeorm</code>) hoặc Prisma; khái niệm bảng, index, upsert vẫn y nguyên.</p>
+    </li>
+    <li><p class="st"><code>DatabaseModule</code>: một provider giữ kết nối, dùng chung toàn app</p>
+      <div class="code"><div class="file">src/database/db.service.ts</div><pre><code class="language-ts">import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Pool, QueryResultRow } from 'pg';
+
+@Injectable()
+export class DbService implements OnModuleDestroy {
+  // Pool giữ sẵn vài kết nối để dùng lại, không mở kết nối mới cho mỗi request
+  private readonly pool: Pool;
+
+  constructor(config: ConfigService) {
+    this.pool = new Pool({ connectionString: config.getOrThrow&lt;string&gt;('DATABASE_URL'), max: 10 });
+  }
+
+  query&lt;T extends QueryResultRow = any&gt;(sql: string, params: unknown[] = []) {
+    return this.pool.query&lt;T&gt;(sql, params);
+  }
+
+  // Lifecycle hook: app tắt thì đóng hết kết nối
+  onModuleDestroy() {
+    return this.pool.end();
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/database/database.module.ts</div><pre><code class="language-ts">import { Global, Module } from '@nestjs/common';
+import { DbService } from './db.service';
+
+@Global() // module toàn cục: mọi module inject được DbService mà không cần import
+@Module({
+  providers: [DbService],
+  exports: [DbService],
+})
+export class DatabaseModule {}</code></pre></div>
+      <p>Đừng lạm dụng <code>@Global</code>. Chỉ dùng cho thứ thật sự ai cũng cần, như kết nối database và cấu hình.</p>
+    </li>
+    <li><p class="st">DTO: mô tả body hợp lệ bằng decorator</p>
+      <p><b>DTO</b> (Data Transfer Object) là class mô tả hình dạng dữ liệu đi vào. Các decorator của <code>class-validator</code> ghi luật; <code>ValidationPipe</code> tự kiểm tra trước khi tới controller.</p>
+      <div class="code"><div class="file">src/devices/dto/register-device.dto.ts</div><pre><code class="language-ts">import { IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+
+export type Platform = 'android' | 'ios' | 'web';
+
+export class RegisterDeviceDto {
+  @IsString() @MinLength(1)
+  userId!: string;                 // TẠM THỜI, chặng 4 sẽ bỏ
+
+  @IsString() @MinLength(20)
+  token!: string;
+
+  @IsIn(['android', 'ios', 'web'])
+  platform!: Platform;
+
+  @IsOptional() @IsString()
+  appVersion?: string;
+}</code></pre></div>
+    </li>
+    <li><p class="st">Repository: nơi duy nhất viết SQL cho bảng <code>devices</code></p>
+      <div class="code"><div class="file">src/devices/devices.repository.ts</div><pre><code class="language-ts">import { Injectable } from '@nestjs/common';
+import { DbService } from '../database/db.service';
+import { Platform } from './dto/register-device.dto';
+
+@Injectable()
+export class DevicesRepository {
+  constructor(private readonly db: DbService) {}
+
+  async upsert(userId: string, token: string, platform: Platform, appVersion?: string) {
+    const { rows } = await this.db.query(
+      `INSERT INTO devices (user_id, token, platform, app_version)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (token) DO UPDATE
+         SET user_id      = EXCLUDED.user_id,
+             platform     = EXCLUDED.platform,
+             app_version  = EXCLUDED.app_version,
+             last_seen_at = now()
+       RETURNING id, user_id, platform, last_seen_at`,
+      [userId, token, platform, appVersion ?? null],
+    );
+    return rows[0];
+  }
+
+  async tokensOf(userId: string): Promise&lt;string[]&gt; {
+    const { rows } = await this.db.query&lt;{ token: string }&gt;(
+      'SELECT token FROM devices WHERE user_id = $1',
+      [userId],
+    );
+    return rows.map((r) => r.token);
+  }
+
+  async removeTokens(tokens: string[]) {
+    if (tokens.length === 0) return;
+    await this.db.query('DELETE FROM devices WHERE token = ANY($1)', [tokens]);
+  }
+
+  async removeToken(token: string, userId?: string) {
+    // Có userId thì chỉ xoá khi token thuộc đúng người đó
+    await this.db.query(
+      'DELETE FROM devices WHERE token = $1 AND ($2::text IS NULL OR user_id = $2)',
+      [token, userId ?? null],
+    );
+  }
+}</code></pre></div>
+      <p><code>EXCLUDED</code> là dòng bạn vừa định thêm vào. Câu <code>SET user_id = EXCLUDED.user_id</code> nghĩa là "lấy user_id mới ghi đè lên cái cũ".</p>
+    </li>
+    <li><p class="st">Controller và module</p>
+      <div class="code"><div class="file">src/devices/devices.controller.ts</div><pre><code class="language-ts">import { Body, Controller, Delete, HttpCode, Param, Post } from '@nestjs/common';
+import { DevicesRepository } from './devices.repository';
+import { RegisterDeviceDto } from './dto/register-device.dto';
+
+@Controller('devices')
+export class DevicesController {
+  constructor(private readonly devices: DevicesRepository) {}
+
+  @Post() // POST mặc định trả 201 Created
+  register(@Body() dto: RegisterDeviceDto) {
+    // Tới được đây nghĩa là dto đã qua kiểm tra
+    return this.devices.upsert(dto.userId, dto.token, dto.platform, dto.appVersion);
+  }
+
+  @Delete(':token')
+  @HttpCode(204)
+  async remove(@Param('token') token: string) {
+    await this.devices.removeToken(token);
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/devices/devices.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
+import { DevicesController } from './devices.controller';
+import { DevicesRepository } from './devices.repository';
+
+@Module({
+  controllers: [DevicesController],
+  providers: [DevicesRepository],
+  exports: [DevicesRepository], // chặng 4 cần dùng để tìm token
+})
+export class DevicesModule {}</code></pre></div>
+    </li>
+    <li><p class="st">Gắn vào app và bật kiểm tra dữ liệu toàn cục</p>
+      <div class="code"><div class="file">src/app.module.ts (sửa imports)</div><pre><code class="language-ts">import { DatabaseModule } from './database/database.module';
+import { DevicesModule } from './devices/devices.module';
+
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, DevicesModule],</code></pre></div>
+      <div class="code"><div class="file">src/main.ts (thêm sau NestFactory.create)</div><pre><code class="language-ts">import { ValidationPipe } from '@nestjs/common';
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,            // bỏ các field không khai báo trong DTO
+      forbidNonWhitelisted: true, // ... hoặc báo lỗi luôn nếu có field lạ
+      transform: true,            // biến body thành instance của class DTO
+    }),
+  );</code></pre></div>
+    </li>
+    <li><p class="st">Gọi thử và nhìn vào database</p>
+      <div class="code"><pre><code class="language-bash">curl -i -X POST http://localhost:3000/devices \
+  -H 'Content-Type: application/json' \
+  -d '{"userId":"u_42","token":"dán-token-thật-vào-đây","platform":"android"}'</code></pre></div>
+      <div class="code"><pre><code class="language-bash">docker compose exec postgres psql -U push -d push -c 'SELECT id, user_id, platform, last_seen_at FROM devices;'</code></pre></div>
+      <p>Gọi lệnh curl thêm lần nữa: vẫn chỉ có một dòng, nhưng <code>last_seen_at</code> đổi. Đó là upsert. Thử gửi <code>"platform":"windows"</code>, ValidationPipe trả lỗi mà bạn không phải viết dòng kiểm tra nào:</p>
+      <div class="code"><div class="file">Kết quả</div><pre><code class="language-json">{
+  "message": ["platform must be one of the following values: android, ios, web"],
+  "error": "Bad Request",
+  "statusCode": 400
+}</code></pre></div>
+    </li>
+    <li><p class="st">Cho app tự gửi token lên</p>
+      <div class="code"><div class="file">app/push.ts (thêm vào app React Native)</div><pre><code class="language-ts">// Android emulator gọi máy bạn qua 10.0.2.2; iOS simulator dùng localhost;
+// điện thoại thật dùng IP LAN của máy bạn, ví dụ http://192.168.1.10:3000
+const API = 'http://10.0.2.2:3000';
+
+async function sendTokenToServer(token: string) {
+  await fetch(`${API}/devices`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: currentUser.id, token, platform: Platform.OS }),
+  });
+}
+
+export async function registerDevice() {
+  const token = await getPushToken();
+  if (token) await sendTokenToServer(token);
+  // Token có thể đổi bất cứ lúc nào: luôn lắng nghe
+  messaging().onTokenRefresh(sendTokenToServer);
+}</code></pre></div>
+      <p>Gọi <code>registerDevice()</code> sau khi người dùng đăng nhập. Khi đăng xuất, gọi <code>DELETE /devices/:token</code>.</p>
+    </li>
+  </ol>
+  <div class="callout danger"><span class="tag">Lỗ hổng tạm thời</span><p>Lúc này <code>userId</code> nằm trong body, nên ai cũng có thể gửi token của mình kèm <code>userId</code> của người khác và đọc trộm thông báo của họ. Chặng 4 sẽ sửa bằng JWT: server tự biết bạn là ai từ chữ ký, không tin vào body.</p></div>
+  <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
+    <li><b><code>ECONNREFUSED 127.0.0.1:5432</code></b>: Docker chưa chạy, hoặc chưa <code>docker compose up -d</code>.</li>
+    <li><b><code>relation "devices" does not exist</code></b>: chưa chạy file migration.</li>
+    <li><b>DTO không được kiểm tra</b>: quên <code>useGlobalPipes</code>, hoặc khai báo kiểu tham số là <code>any</code> thay vì class DTO. Pipe chỉ biết luật khi kiểu là một class.</li>
+    <li><b>App gọi API không được</b>: Android emulator không hiểu <code>localhost</code> là máy bạn. Dùng <code>10.0.2.2</code>.</li>
+  </ul></div>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="3">0/5</span></h4>
+    <ul class="checks" data-stage="3">
+      <li><label><input type="checkbox" data-k="3-1"><span>Giải thích được primary key, unique, index bằng lời</span></label></li>
+      <li><label><input type="checkbox" data-k="3-2"><span>Gọi <code>POST /devices</code> hai lần vẫn chỉ có một dòng</span></label></li>
+      <li><label><input type="checkbox" data-k="3-3"><span>Biết vì sao phải dùng <code>$1</code> thay vì ghép chuỗi</span></label></li>
+      <li><label><input type="checkbox" data-k="3-4"><span>App tự gửi token lên server khi đăng nhập</span></label></li>
+      <li><label><input type="checkbox" data-k="3-5"><span>Chỉ ra được lỗ hổng của việc để <code>userId</code> trong body</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 4 ============ -->
+<section class="stage" id="chang-4">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 4 · ~2 buổi</p>
+    <h2>API gửi thông báo</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>Task API gọi <code>POST /notifications</code> với userId và nội dung; service gửi tới mọi máy của user đó và tự dọn token chết.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Hợp đồng API</h3>
+  <p>Trước khi code, hãy viết ra request và response trông thế nào. Đây là "hợp đồng" giữa bạn và người gọi API. Đổi hợp đồng là làm hỏng code của người khác, nên nghĩ kỹ từ đầu.</p>
+  <div class="code"><div class="file">Request</div><pre><code class="language-plaintext">POST /notifications
+X-API-Key: dev-secret-change-me
+Content-Type: application/json
+
+{
+  "userId": "u_42",
+  "title": "Sắp đến hạn: Nộp báo cáo tuần",
+  "body": "Còn 30 phút nữa. Nhấn để mở task.",
+  "data": { "taskId": "t_8421", "screen": "TaskDetail" }
+}</code></pre></div>
+  <div class="code"><div class="file">Response</div><pre><code class="language-plaintext">200 OK
+{ "sent": 2, "failed": 0, "removedTokens": 0 }</code></pre></div>
+
+  <h3>Xác thực: ai được gọi API nào</h3>
+  <p>Service có hai loại người gọi, và mỗi loại chứng minh danh tính theo cách khác nhau:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Người gọi</th><th>Endpoint</th><th>Cách xác thực</th></tr></thead>
+    <tbody>
+      <tr><td>App của người dùng</td><td><code>/devices</code>, <code>/notifications/:id/opened</code></td><td>JWT do hệ thống đăng nhập cấp, gửi trong header <code>Authorization: Bearer …</code></td></tr>
+      <tr><td>Service nội bộ (Task API)</td><td><code>/notifications</code></td><td>API key bí mật trong header <code>X-API-Key</code></td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout analogy"><span class="tag">Ví von</span><p><b>API key</b> giống thẻ ra vào của nhân viên: ai cầm thẻ thì được vào, nên chỉ đưa cho người trong công ty. <b>JWT</b> giống vé xem phim có dấu mộc: trên vé ghi "user u_42, hết hạn 10:00", và soát vé chỉ cần kiểm tra mộc có thật không, không cần gọi về phòng vé. Ai sửa chữ trên vé thì mộc không còn khớp.</p></div>
+
+  <h3>Fan-out: một yêu cầu, nhiều thiết bị</h3>
+  <p>"Gửi cho u_42" thật ra là "gửi cho mọi token của u_42". Việc nhân một yêu cầu thành nhiều lần gửi gọi là <b>fan-out</b>. FCM có hàm <code>sendEachForMulticast</code> nhận tối đa 500 token mỗi lần và trả về kết quả riêng cho từng token.</p>
+
+  <h3>Đọc lỗi từ FCM</h3>
+  <p>Lỗi nào cũng giống nhau là cách xử lý tệ nhất. Hãy chia làm ba nhóm:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Mã lỗi</th><th>Nghĩa</th><th>Nên làm gì</th></tr></thead>
+    <tbody>
+      <tr><td><code>registration-token-not-registered</code></td><td>Token chết (gỡ app, hết hạn)</td><td><b>Xoá token</b> khỏi database</td></tr>
+      <tr><td><code>invalid-registration-token</code></td><td>Token sai định dạng</td><td><b>Xoá token</b></td></tr>
+      <tr><td><code>invalid-argument</code></td><td>Payload sai (data không phải chuỗi, quá 4 KB…)</td><td>Sửa code. Thử lại vô ích</td></tr>
+      <tr><td><code>message-rate-exceeded</code></td><td>Gửi quá nhanh</td><td><b>Thử lại sau</b></td></tr>
+      <tr><td><code>server-unavailable</code>, <code>internal-error</code></td><td>FCM đang có sự cố</td><td><b>Thử lại sau</b></td></tr>
+      <tr><td><code>third-party-auth-error</code></td><td>APNs key hoặc cấu hình iOS sai</td><td>Kiểm tra lại APNs key trên Firebase</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Trong code, các mã này có tiền tố <code>messaging/</code>, ví dụ <code>messaging/registration-token-not-registered</code>.</p>
+
+  <figure class="fig">
+<pre class="mermaid">
+sequenceDiagram
+    participant T as Task API
+    participant S as Push Service
+    participant DB as PostgreSQL
+    participant F as FCM
+    T->>S: POST /notifications + X-API-Key
+    S->>S: Kiểm tra API key, validate body
+    S->>DB: Lấy token của u_42
+    DB-->>S: 2 token
+    S->>F: sendEachForMulticast(2 token)
+    F-->>S: 1 thành công, 1 token chết
+    S->>DB: Xoá token chết
+    S-->>T: 200 sent 1, removed 1
+</pre>
+    <figcaption>Phiên bản đồng bộ: Task API phải đứng chờ đến khi FCM trả lời. Chặng 5 sẽ chỉ ra vì sao đây là vấn đề.</figcaption>
+  </figure>
+
+  <h3><span class="kicker k-do">Làm</span>Viết API gửi</h3>
+  <ol class="steps">
+    <li><p class="st">Thêm khoá vào cấu hình</p>
+      <div class="code"><pre><code class="language-bash">npm i @nestjs/jwt</code></pre></div>
+      <div class="code"><div class="file">.env (thêm dòng; production phải dùng chuỗi ngẫu nhiên dài)</div><pre><code class="language-ini">API_KEY=dev-secret-change-me
+JWT_SECRET=dev-jwt-secret-at-least-32-characters-long</code></pre></div>
+    </li>
+    <li><p class="st">Viết hai guard và một decorator</p>
+      <p><b>Guard</b> là người gác cửa: Nest gọi <code>canActivate()</code> trước controller. Trả <code>true</code> thì cho vào, ném <code>UnauthorizedException</code> thì Nest trả 401.</p>
+      <div class="code"><div class="file">src/auth/api-key.guard.ts</div><pre><code class="language-ts">import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { timingSafeEqual } from 'node:crypto';
+import type { Request } from 'express';
+
+// Cho service nội bộ: so khớp header X-API-Key
+@Injectable()
+export class ApiKeyGuard implements CanActivate {
+  private readonly expected: Buffer;
+
+  constructor(config: ConfigService) {
+    this.expected = Buffer.from(config.getOrThrow&lt;string&gt;('API_KEY'));
+  }
+
+  canActivate(ctx: ExecutionContext): boolean {
+    const req = ctx.switchToHttp().getRequest&lt;Request&gt;();
+    const given = Buffer.from(req.header('x-api-key') ?? '');
+    // timingSafeEqual so sánh mất thời gian như nhau dù sai ở ký tự nào,
+    // kẻ xấu không đo thời gian để đoán dần từng ký tự được
+    if (given.length !== this.expected.length || !timingSafeEqual(given, this.expected)) {
+      throw new UnauthorizedException();
+    }
+    return true;
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/auth/jwt-auth.guard.ts</div><pre><code class="language-ts">import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import type { Request } from 'express';
+
+// Cho app: kiểm tra JWT do hệ thống đăng nhập phát hành
+@Injectable()
+export class JwtAuthGuard implements CanActivate {
+  constructor(private readonly jwt: JwtService) {}
+
+  async canActivate(ctx: ExecutionContext): Promise&lt;boolean&gt; {
+    const req = ctx.switchToHttp().getRequest&lt;Request &amp; { userId?: string }&gt;();
+    const header = req.header('authorization') ?? '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+    try {
+      // sai chữ ký hoặc hết hạn sẽ ném lỗi
+      const payload = await this.jwt.verifyAsync&lt;{ sub?: string }&gt;(token);
+      if (!payload.sub) throw new Error('JWT thiếu sub');
+      req.userId = payload.sub; // sub = id người dùng, gắn vào request cho controller dùng
+      return true;
+    } catch {
+      throw new UnauthorizedException();
+    }
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/auth/current-user.decorator.ts</div><pre><code class="language-ts">import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+
+// Dùng trong controller: register(@CurrentUser() userId: string)
+export const CurrentUser = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext): string => ctx.switchToHttp().getRequest().userId,
+);</code></pre></div>
+      <div class="code"><div class="file">src/auth/auth.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { ApiKeyGuard } from './api-key.guard';
+import { JwtAuthGuard } from './jwt-auth.guard';
+
+@Module({
+  imports: [
+    // registerAsync: đợi ConfigService sẵn sàng rồi mới lấy secret
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({ secret: config.getOrThrow&lt;string&gt;('JWT_SECRET') }),
+    }),
+  ],
+  providers: [ApiKeyGuard, JwtAuthGuard],
+  exports: [ApiKeyGuard, JwtAuthGuard, JwtModule],
+})
+export class AuthModule {}</code></pre></div>
+      <p class="muted">Ví dụ này dùng khoá chung HS256 cho đơn giản. Nếu hệ thống đăng nhập của bạn (Auth0, Firebase Auth, Cognito…) ký bằng RS256, cấu hình <code>JwtModule</code> với public key của họ, hoặc dùng Passport (<code>@nestjs/passport</code>) với chiến lược JWT.</p>
+    </li>
+    <li><p class="st">Sửa <code>/devices</code>: lấy userId từ JWT, bỏ khỏi body</p>
+      <p>Xoá field <code>userId</code> trong <code>RegisterDeviceDto</code>. Nhờ <code>forbidNonWhitelisted</code>, app nào còn gửi <code>userId</code> sẽ bị báo lỗi 400, giúp bạn phát hiện code cũ.</p>
+      <div class="code"><div class="file">src/devices/devices.controller.ts</div><pre><code class="language-ts">import { Body, Controller, Delete, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { DevicesRepository } from './devices.repository';
+import { RegisterDeviceDto } from './dto/register-device.dto';
+
+@Controller('devices')
+@UseGuards(JwtAuthGuard) // áp cho mọi route trong controller
+export class DevicesController {
+  constructor(private readonly devices: DevicesRepository) {}
+
+  @Post()
+  register(@CurrentUser() userId: string, @Body() dto: RegisterDeviceDto) {
+    return this.devices.upsert(userId, dto.token, dto.platform, dto.appVersion);
+  }
+
+  @Delete(':token')
+  @HttpCode(204)
+  async remove(@CurrentUser() userId: string, @Param('token') token: string) {
+    await this.devices.removeToken(token, userId); // chỉ xoá được token của chính mình
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/devices/devices.module.ts (thêm imports)</div><pre><code class="language-ts">import { AuthModule } from '../auth/auth.module';
+
+  imports: [AuthModule], // JwtAuthGuard cần JwtService từ AuthModule</code></pre></div>
+      <p>Phía app, thay <code>userId</code> trong body bằng header <code>Authorization: `Bearer ${userJwt}`</code>.</p>
+    </li>
+    <li><p class="st">Nâng cấp <code>FcmService</code>: gửi theo lô và phân loại lỗi</p>
+      <div class="code"><div class="file">src/fcm/fcm.service.ts (thêm phía trên class)</div><pre><code class="language-ts">export type PushPayload = { title: string; body: string; data?: Record&lt;string, string&gt; };
+export type SendResult = { token: string; ok: boolean; messageId?: string; errorCode?: string };
+
+const DEAD = new Set([
+  'messaging/registration-token-not-registered',
+  'messaging/invalid-registration-token',
+]);
+const RETRYABLE = new Set([
+  'messaging/message-rate-exceeded',
+  'messaging/server-unavailable',
+  'messaging/internal-error',
+  'messaging/unknown-error',
+]);
+export const isDeadToken = (code?: string) => !!code &amp;&amp; DEAD.has(code);
+export const isRetryable = (code?: string) => !!code &amp;&amp; RETRYABLE.has(code);
+
+function chunk&lt;T&gt;(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i &lt; items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}</code></pre></div>
+      <div class="code"><div class="file">src/fcm/fcm.service.ts (thêm method vào class FcmService)</div><pre><code class="language-ts">  async sendToTokens(tokens: string[], p: PushPayload): Promise&lt;SendResult[]&gt; {
+    const results: SendResult[] = [];
+    for (const batch of chunk(tokens, 500)) { // FCM nhận tối đa 500 token mỗi lần
+      const res = await this.messaging.sendEachForMulticast({
+        tokens: batch,
+        notification: { title: p.title, body: p.body },
+        data: p.data,
+        android: { priority: 'high' },
+        apns: { payload: { aps: { sound: 'default' } } },
+      });
+      res.responses.forEach((r, i) =>
+        results.push({ token: batch[i], ok: r.success, messageId: r.messageId, errorCode: r.error?.code }),
+      );
+    }
+    return results;
+  }</code></pre></div>
+    </li>
+    <li><p class="st">Validator tự viết: object mà mọi giá trị là chuỗi</p>
+      <p><code>class-validator</code> không có sẵn luật "mọi giá trị trong object phải là chuỗi", mà FCM lại bắt buộc điều đó với <code>data</code>. Ta tự tạo một decorator:</p>
+      <div class="code"><div class="file">src/common/is-string-record.ts</div><pre><code class="language-ts">import { registerDecorator, ValidationOptions } from 'class-validator';
+
+export function IsStringRecord(options?: ValidationOptions) {
+  return (object: object, propertyName: string) =>
+    registerDecorator({
+      name: 'isStringRecord',
+      target: object.constructor,
+      propertyName,
+      options,
+      validator: {
+        validate: (value: unknown) =>
+          typeof value === 'object' &amp;&amp;
+          value !== null &amp;&amp;
+          !Array.isArray(value) &amp;&amp;
+          Object.values(value).every((v) => typeof v === 'string'),
+        defaultMessage: () => `${propertyName} phải là object có mọi giá trị là chuỗi`,
+      },
+    });
+}</code></pre></div>
+      <div class="code"><div class="file">src/notifications/dto/send-notification.dto.ts</div><pre><code class="language-ts">import { IsOptional, IsString, Length, MinLength } from 'class-validator';
+import { IsStringRecord } from '../../common/is-string-record';
+
+export class SendNotificationDto {
+  @IsString() @MinLength(1)
+  userId!: string;
+
+  @IsString() @Length(1, 100)
+  title!: string;
+
+  @IsString() @Length(1, 500)
+  body!: string;
+
+  @IsOptional() @IsStringRecord() // FCM chỉ nhận giá trị chuỗi
+  data?: Record&lt;string, string&gt;;
+}</code></pre></div>
+    </li>
+    <li><p class="st">Service, controller và module cho <code>/notifications</code></p>
+      <div class="code"><div class="file">src/notifications/notifications.service.ts</div><pre><code class="language-ts">import { Injectable, NotFoundException } from '@nestjs/common';
+import { DevicesRepository } from '../devices/devices.repository';
+import { FcmService, isDeadToken } from '../fcm/fcm.service';
+import { SendNotificationDto } from './dto/send-notification.dto';
+
+@Injectable()
+export class NotificationsService {
+  constructor(
+    private readonly devices: DevicesRepository,
+    private readonly fcm: FcmService,
+  ) {}
+
+  async send(dto: SendNotificationDto) {
+    const { userId, ...payload } = dto;
+    const tokens = await this.devices.tokensOf(userId);
+    if (tokens.length === 0) throw new NotFoundException('no_devices'); // Nest trả 404
+
+    const results = await this.fcm.sendToTokens(tokens, payload);
+    const dead = results.filter((r) => isDeadToken(r.errorCode)).map((r) => r.token);
+    await this.devices.removeTokens(dead); // dọn token chết ngay khi FCM báo
+
+    return {
+      sent: results.filter((r) => r.ok).length,
+      failed: results.filter((r) => !r.ok).length,
+      removedTokens: dead.length,
+    };
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.controller.ts</div><pre><code class="language-ts">import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { ApiKeyGuard } from '../auth/api-key.guard';
+import { SendNotificationDto } from './dto/send-notification.dto';
+import { NotificationsService } from './notifications.service';
+
+@Controller('notifications')
+export class NotificationsController {
+  constructor(private readonly notifications: NotificationsService) {}
+
+  @Post()
+  @HttpCode(200)
+  @UseGuards(ApiKeyGuard)
+  send(@Body() dto: SendNotificationDto) {
+    return this.notifications.send(dto); // controller mỏng: chỉ chuyển việc cho service
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
+import { DevicesModule } from '../devices/devices.module';
+import { FcmModule } from '../fcm/fcm.module';
+import { NotificationsController } from './notifications.controller';
+import { NotificationsService } from './notifications.service';
+
+@Module({
+  imports: [AuthModule, DevicesModule, FcmModule],
+  controllers: [NotificationsController],
+  providers: [NotificationsService],
+})
+export class NotificationsModule {}</code></pre></div>
+      <p>Thêm <code>NotificationsModule</code> vào mảng <code>imports</code> của <code>AppModule</code>.</p>
+    </li>
+    <li><p class="st">Script tạo JWT để thử (giả làm hệ thống đăng nhập)</p>
+      <div class="code"><div class="file">scripts/make-jwt.ts</div><pre><code class="language-ts">import 'dotenv/config';
+import { JwtService } from '@nestjs/jwt';
+
+// Tự new JwtService được vì ở đây không cần DI
+const jwt = new JwtService({ secret: process.env.JWT_SECRET });
+
+async function main() {
+  const userId = process.argv[2] ?? 'u_42';
+  console.log(await jwt.signAsync({ sub: userId }, { expiresIn: '1h' }));
+}
+main();</code></pre></div>
+    </li>
+    <li><p class="st">Thử toàn bộ luồng</p>
+      <div class="code"><pre><code class="language-bash">JWT=$(npx tsx scripts/make-jwt.ts u_42)
+curl -X POST http://localhost:3000/devices \
+  -H "Authorization: Bearer $JWT" -H 'Content-Type: application/json' \
+  -d '{"token":"dán-token-thật-vào-đây","platform":"android"}'</code></pre></div>
+      <div class="code"><pre><code class="language-bash">curl -X POST http://localhost:3000/notifications \
+  -H 'X-API-Key: dev-secret-change-me' -H 'Content-Type: application/json' \
+  -d '{"userId":"u_42","title":"Sắp đến hạn: Nộp báo cáo tuần","body":"Còn 30 phút nữa.","data":{"taskId":"t_8421"}}'</code></pre></div>
+      <p>Thêm một token giả (chuỗi dài bất kỳ) cho u_42 rồi gửi lại: bạn sẽ thấy <code>failed: 1</code>. Gỡ app trên máy thật, đợi vài phút rồi gửi: token đó bị xoá, <code>removedTokens: 1</code>.</p>
+    </li>
+  </ol>
+  <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
+    <li><b>Luôn 401</b>: header gõ sai tên, hoặc <code>.env</code> có khoảng trắng thừa sau giá trị.</li>
+    <li><b><code>Nest can't resolve dependencies of the JwtAuthGuard (?)</code></b>: module dùng guard chưa import <code>AuthModule</code>, nên không có <code>JwtService</code>.</li>
+    <li><b>Lỗi 400 với <code>data</code></b>: Task API gửi số hoặc boolean. Chuyển thành chuỗi trước khi gửi.</li>
+  </ul></div>
+  <div class="callout tip"><span class="tag">Còn vấn đề gì?</span><p>API chạy được, nhưng hãy tưởng tượng: FCM chậm 3 giây thì Task API cũng chờ 3 giây. FCM lỗi 10 phút thì mọi thông báo trong 10 phút đó mất luôn. Gửi cho 50.000 người thì request bị timeout. Chặng 5 giải quyết cả ba.</p></div>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="4">0/5</span></h4>
+    <ul class="checks" data-stage="4">
+      <li><label><input type="checkbox" data-k="4-1"><span>Gọi <code>/notifications</code> không có API key thì bị 401</span></label></li>
+      <li><label><input type="checkbox" data-k="4-2"><span><code>/devices</code> lấy userId từ JWT, không tin vào body</span></label></li>
+      <li><label><input type="checkbox" data-k="4-3"><span>Phân loại được lỗi FCM: xoá token, sửa code, hay thử lại</span></label></li>
+      <li><label><input type="checkbox" data-k="4-4"><span>Thấy token chết tự biến mất khỏi database</span></label></li>
+      <li><label><input type="checkbox" data-k="4-5"><span>Nói được ba điểm yếu của cách gửi đồng bộ</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 5 ============ -->
+<section class="stage" id="chang-5">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 5 · ~2 buổi</p>
+    <h2>Hàng đợi &amp; worker</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>API trả lời <code>202</code> trong vài mili giây; một tiến trình worker riêng gửi thông báo ở nền và tự thử lại khi FCM lỗi.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Đồng bộ và bất đồng bộ</h3>
+  <p>Ý tưởng chính: tách việc <b>nhận yêu cầu</b> khỏi việc <b>thực hiện yêu cầu</b>. API chỉ ghi lại "có việc cần làm" rồi trả lời ngay. Một chương trình khác làm việc đó sau.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 770 256" role="img" aria-label="So sánh dòng thời gian: gửi đồng bộ mất khoảng 900 mili giây, gửi bất đồng bộ trả lời sau 15 mili giây">
+      <text class="b" x="0" y="44">Đồng bộ</text><text class="m" x="0" y="60">chặng 4</text>
+      <rect class="n2" x="150" y="30" width="12" height="28" rx="3"/>
+      <rect class="n2" x="162" y="30" width="18" height="28" rx="3"/>
+      <rect class="nw" x="180" y="30" width="480" height="28" rx="3"/>
+      <text class="mid" x="420" y="49" style="font-size:12px">chờ FCM ~800 ms</text>
+      <rect class="n2" x="660" y="30" width="24" height="28" rx="3"/>
+      <path class="e ea" d="M684 24 V64"/>
+      <text class="a" x="684" y="18" style="font-size:12px;text-anchor:end">Task API nhận phản hồi sau ~900 ms</text>
+      <text class="m" x="150" y="80">Task API phải đứng chờ. FCM chậm hay treo thì request này chậm hay treo theo.</text>
+
+      <text class="b" x="0" y="122">API</text><text class="m" x="0" y="138">bất đồng bộ</text>
+      <rect class="n2" x="150" y="106" width="12" height="28" rx="3"/>
+      <rect class="na" x="162" y="106" width="10" height="28" rx="3"/>
+      <path class="e ea" d="M172 100 V140"/>
+      <text class="a" x="182" y="125" style="font-size:12px">trả 202 Accepted sau ~15 ms</text>
+
+      <text class="b" x="0" y="176">Worker</text><text class="m" x="0" y="192">bất đồng bộ</text>
+      <rect class="n2" x="180" y="160" width="18" height="28" rx="3"/>
+      <rect class="nw" x="198" y="160" width="480" height="28" rx="3"/>
+      <text class="mid" x="438" y="179" style="font-size:12px">gọi FCM ~800 ms</text>
+      <rect class="n2" x="678" y="160" width="24" height="28" rx="3"/>
+      <text class="m" x="198" y="208">Không ai phải chờ. Nếu lỗi, job tự được thử lại.</text>
+
+      <path class="e" d="M150 228 H750"/>
+      <path class="e" d="M150 228 V234 M300 228 V234 M450 228 V234 M600 228 V234 M750 228 V234"/>
+      <text class="m mid" x="150" y="248">0</text><text class="m mid" x="300" y="248">250 ms</text><text class="m mid" x="450" y="248">500 ms</text><text class="m mid" x="600" y="248">750 ms</text><text class="m mid" x="750" y="248">1 s</text>
+    </svg>
+    </div>
+    <figcaption>Vẽ theo cùng một thang thời gian. Ô xám nhỏ là validate và truy vấn database, ô vàng là lúc chờ FCM, ô xanh là thao tác đưa job vào hàng đợi.</figcaption>
+  </figure>
+  <div class="callout analogy"><span class="tag">Ví von</span><p>Ở quán cà phê đông khách, thu ngân không tự pha từng ly. Họ nhận order, in phiếu, đưa bạn số thứ tự (đó là <code>202 Accepted</code> kèm <code>jobId</code>), rồi phục vụ người tiếp theo. Phiếu xếp hàng trên quầy (<b>queue</b>), mấy người pha chế (<b>worker</b>) lấy phiếu ra làm lần lượt. Đông khách thì thêm người pha chế, không cần thêm thu ngân.</p></div>
+
+  <h3>Các khái niệm của hàng đợi</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Khái niệm</th><th>Nghĩa</th><th>Trong service</th></tr></thead>
+    <tbody>
+      <tr><td>Job</td><td>Một đơn vị công việc, chứa đủ thông tin để làm</td><td>"gửi thông báo này cho u_42"</td></tr>
+      <tr><td>Queue</td><td>Nơi job xếp hàng chờ, lưu bền vững</td><td>Hàng đợi <code>notifications</code> trong Redis</td></tr>
+      <tr><td>Producer</td><td>Ai đưa job vào</td><td>Tiến trình API</td></tr>
+      <tr><td>Worker (consumer)</td><td>Ai lấy job ra làm</td><td>Tiến trình worker, chạy riêng</td></tr>
+      <tr><td>Concurrency</td><td>Một worker làm song song bao nhiêu job</td><td>10</td></tr>
+      <tr><td>Retry + backoff</td><td>Lỗi thì thử lại, mỗi lần chờ lâu hơn</td><td>5 lần: chờ 2s, 4s, 8s, 16s</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Redis</b> là một kho dữ liệu chạy trong bộ nhớ, rất nhanh. <b>BullMQ</b> là thư viện Node dùng Redis làm hàng đợi, lo sẵn retry, hẹn giờ, chống trùng.</p>
+
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 760 310" role="img" aria-label="Kiến trúc hàng đợi: API đưa job vào Redis, ba worker lấy job gửi tới FCM, lỗi tạm thời quay lại hàng chờ, hết lượt thì vào danh sách failed">
+      <rect class="n" x="10" y="60" width="110" height="64" rx="12"/>
+      <text class="b mid" x="65" y="88">Push API</text>
+      <text class="m mid" x="65" y="106">queue.add()</text>
+      <path class="e ea" d="M122 92 H156" marker-end="url(#mk-a)"/>
+
+      <rect class="n2" x="160" y="48" width="250" height="88" rx="14"/>
+      <text class="m" x="176" y="70">Hàng đợi trong Redis · waiting</text>
+      <rect class="na" x="176" y="84" width="46" height="36" rx="8"/><text class="mid" x="199" y="107">job</text>
+      <rect class="na" x="234" y="84" width="46" height="36" rx="8"/><text class="mid" x="257" y="107">job</text>
+      <rect class="na" x="292" y="84" width="46" height="36" rx="8"/><text class="mid" x="315" y="107">job</text>
+      <rect class="na" x="350" y="84" width="46" height="36" rx="8"/><text class="mid" x="373" y="107">job</text>
+
+      <path class="e" d="M412 92 L456 50" marker-end="url(#mk-m)"/>
+      <path class="e" d="M412 92 L456 102" marker-end="url(#mk-m)"/>
+      <path class="e" d="M412 92 L456 154" marker-end="url(#mk-m)"/>
+
+      <rect class="n" x="460" y="26" width="130" height="44" rx="10"/><text class="b mid" x="525" y="53">Worker 1</text>
+      <rect class="n" x="460" y="80" width="130" height="44" rx="10"/><text class="b mid" x="525" y="107">Worker 2</text>
+      <rect class="n" x="460" y="134" width="130" height="44" rx="10"/><text class="b mid" x="525" y="161">Worker 3</text>
+
+      <path class="e ea" d="M592 48 L636 84" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M592 102 L636 92" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M592 156 L636 100" marker-end="url(#mk-a)"/>
+      <rect class="na" x="640" y="60" width="110" height="64" rx="12"/>
+      <text class="b mid" x="695" y="88">FCM</text>
+      <text class="m mid" x="695" y="106">→ APNs, Web Push</text>
+
+      <path class="e ew" d="M480 178 V250 H404" marker-end="url(#mk-w)"/>
+      <text class="m" x="474" y="214" style="text-anchor:end">lỗi tạm thời</text>
+      <rect class="nw" x="230" y="222" width="170" height="56" rx="12"/>
+      <text class="b mid" x="315" y="246">delayed</text>
+      <text class="m mid" x="315" y="264">đợi tới giờ thử lại</text>
+      <path class="e ew" d="M315 220 V140" marker-end="url(#mk-w)"/>
+      <text class="m" x="323" y="184">quay lại hàng</text>
+
+      <path class="e eb" d="M580 178 V232" marker-end="url(#mk-b)"/>
+      <text class="m" x="588" y="210">hết 5 lượt</text>
+      <rect class="nb" x="500" y="236" width="120" height="56" rx="12"/>
+      <text class="b mid" x="560" y="260">failed</text>
+      <text class="m mid" x="560" y="278">giữ lại để xem</text>
+    </svg>
+    </div>
+    <figcaption>Job lỗi tạm thời không mất: nó sang trạng thái <b>delayed</b>, hết thời gian chờ thì quay lại hàng. Thử đủ số lần mà vẫn lỗi thì vào <b>failed</b> để bạn xem lại (nhiều hệ thống gọi đây là dead letter queue).</figcaption>
+  </figure>
+
+  <h3>Retry với exponential backoff</h3>
+  <p>Khi FCM quá tải, thử lại ngay lập tức chỉ làm nó quá tải thêm. <b>Exponential backoff</b> nghĩa là mỗi lần thất bại, chờ gấp đôi lần trước. Hệ thống có thời gian hồi phục, và job vẫn được gửi sớm nhất có thể.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 760 130" role="img" aria-label="Dòng thời gian retry: lần 1 ở 0 giây lỗi, lần 2 ở 2 giây lỗi, lần 3 ở 6 giây lỗi, lần 4 ở 14 giây thành công">
+      <path class="e" d="M40 80 H740"/>
+      <rect class="nw" x="40" y="74" width="43.75" height="12" rx="2" style="stroke:none"/>
+      <rect class="nw" x="83.75" y="74" width="87.5" height="12" rx="2" style="stroke:none;opacity:.85"/>
+      <rect class="nw" x="171.25" y="74" width="175" height="12" rx="2" style="stroke:none;opacity:.7"/>
+      <rect class="grp" x="346.25" y="74" width="350" height="12" rx="2"/>
+      <text class="m mid" x="62" y="104">chờ 2s</text>
+      <text class="m mid" x="127.5" y="104">chờ 4s</text>
+      <text class="m mid" x="258.75" y="104">chờ 8s</text>
+      <text class="m mid" x="521.25" y="104">nếu lần 4 cũng lỗi: chờ 16s</text>
+      <g transform="translate(40,80)"><circle class="bgb" r="11"/><path class="ic" d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(83.75,80)"><circle class="bgb" r="11"/><path class="ic" d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(171.25,80)"><circle class="bgb" r="11"/><path class="ic" d="M-4 -4 L4 4 M4 -4 L-4 4"/></g>
+      <g transform="translate(346.25,80)"><circle class="bgok" r="11"/><path class="ic" d="M-5 0 L-1.5 4 L5 -4"/></g>
+      <circle cx="696.25" cy="80" r="11" class="grp" style="fill:var(--surface)"/>
+      <text class="b mid" x="40" y="54" style="font-size:12px">Lần 1</text>
+      <text class="b mid" x="88" y="40" style="font-size:12px">Lần 2</text>
+      <text class="b mid" x="171.25" y="54" style="font-size:12px">Lần 3</text>
+      <text class="b mid" x="346.25" y="54" style="font-size:12px">Lần 4: thành công</text>
+      <text class="m mid" x="696.25" y="54">Lần 5 (dự phòng)</text>
+      <text class="m mid" x="40" y="122">0s</text><text class="m mid" x="83.75" y="122">2s</text><text class="m mid" x="171.25" y="122">6s</text><text class="m mid" x="346.25" y="122">14s</text><text class="m mid" x="696.25" y="122">30s</text>
+    </svg>
+    </div>
+    <figcaption>Vẽ đúng tỉ lệ với cấu hình <code>attempts: 5, backoff: exponential, delay: 2000</code>. Hệ thống lớn còn thêm <b>jitter</b> (cộng ngẫu nhiên vài trăm mili giây) để hàng nghìn job không cùng thử lại một lúc.</figcaption>
+  </figure>
+
+  <h3>Lỗi nào nên thử lại</h3>
+  <p>Chỉ thử lại lỗi <b>tạm thời</b> (FCM sập, mạng chập, bị giới hạn tốc độ). Lỗi <b>vĩnh viễn</b> (user không có máy nào, payload sai) thử bao nhiêu lần cũng vậy, chỉ tốn tài nguyên. BullMQ có <code>UnrecoverableError</code>: ném lỗi này thì job vào failed luôn, không thử lại.</p>
+  <div class="callout warn"><span class="tag">Sự thật khó chịu</span><p>Hàng đợi đảm bảo <b>at-least-once</b>: mỗi job chạy <i>ít nhất</i> một lần. Nếu worker gửi xong nhưng sập trước khi kịp báo "xong", job sẽ chạy lại và người dùng nhận <b>hai</b> thông báo. Chặng 6 xử lý chuyện này.</p></div>
+
+  <h3>Một codebase, hai tiến trình</h3>
+  <p>Trong NestJS, API và worker dùng chung code nhưng khởi động từ hai điểm khác nhau. API chạy <code>main.ts</code> với <code>AppModule</code> và mở cổng HTTP. Worker chạy <code>worker.ts</code> với <code>WorkerModule</code>, không mở cổng nào, chỉ lấy job từ Redis. Hai bên chia sẻ các module nền.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 760 280" role="img" aria-label="AppModule cho API và WorkerModule cho worker dùng chung ConfigModule, DatabaseModule, FcmModule, QueueModule và RedisModule">
+      <rect class="n" x="10" y="30" width="330" height="130" rx="14"/>
+      <text class="b" x="26" y="56">API · main.ts → AppModule</text>
+      <rect class="n2" x="26" y="72" width="140" height="34" rx="8"/><text class="mid" x="96" y="94">HealthController</text>
+      <rect class="n2" x="180" y="72" width="144" height="34" rx="8"/><text class="mid" x="252" y="94">DevicesModule</text>
+      <rect class="na" x="26" y="114" width="164" height="34" rx="8"/><text class="mid" x="108" y="136">NotificationsModule</text>
+      <rect class="n2" x="204" y="114" width="120" height="34" rx="8"/><text class="mid" x="264" y="136">AuthModule</text>
+
+      <rect class="n" x="420" y="30" width="330" height="130" rx="14"/>
+      <text class="b" x="436" y="56">Worker · worker.ts → WorkerModule</text>
+      <rect class="na" x="436" y="72" width="180" height="34" rx="8"/><text class="mid" x="526" y="94">NotificationsProcessor</text>
+      <rect class="n2" x="626" y="72" width="108" height="34" rx="8"/><text class="mid" x="680" y="94">Repositories</text>
+      <text class="m" x="436" y="136">không có controller, không mở cổng HTTP</text>
+
+      <path class="e ea" d="M342 95 H416" marker-end="url(#mk-a)"/>
+      <text class="m mid" x="379" y="86">job qua Redis</text>
+
+      <path class="e" d="M175 162 V200 M585 162 V200 M80 200 H669"/>
+      <path class="e" d="M80 200 V222" marker-end="url(#mk-m)"/>
+      <path class="e" d="M232 200 V222" marker-end="url(#mk-m)"/>
+      <path class="e" d="M374 200 V222" marker-end="url(#mk-m)"/>
+      <path class="e" d="M511 200 V222" marker-end="url(#mk-m)"/>
+      <path class="e" d="M669 200 V222" marker-end="url(#mk-m)"/>
+      <rect class="n" x="10" y="224" width="140" height="40" rx="9"/><text class="mid" x="80" y="249">ConfigModule</text>
+      <rect class="n" x="162" y="224" width="140" height="40" rx="9"/><text class="mid" x="232" y="249">DatabaseModule</text>
+      <rect class="n" x="314" y="224" width="120" height="40" rx="9"/><text class="mid" x="374" y="249">FcmModule</text>
+      <rect class="n" x="446" y="224" width="130" height="40" rx="9"/><text class="mid" x="511" y="249">QueueModule</text>
+      <rect class="n" x="588" y="224" width="162" height="40" rx="9"/><text class="mid" x="669" y="249">RedisModule (ch. 7)</text>
+    </svg>
+    </div>
+    <figcaption>Hàng dưới là các module dùng chung. Muốn thêm sức gửi, chạy thêm tiến trình worker; API không bị ảnh hưởng.</figcaption>
+  </figure>
+
+  <h3><span class="kicker k-do">Làm</span>Thêm hàng đợi và worker</h3>
+  <ol class="steps">
+    <li><p class="st">Cài BullMQ cho Nest và cấu hình Redis</p>
+      <div class="code"><pre><code class="language-bash">npm i @nestjs/bullmq bullmq</code></pre></div>
+      <div class="code"><div class="file">.env (thêm)</div><pre><code class="language-ini">REDIS_HOST=localhost
+REDIS_PORT=6379</code></pre></div>
+    </li>
+    <li><p class="st"><code>QueueModule</code>: kết nối Redis và khai báo hàng đợi</p>
+      <div class="code"><div class="file">src/queue/queue.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
+
+export const NOTIFICATIONS_QUEUE = 'notifications';
+export type SendJob = { userId: string; title: string; body: string; data?: Record&lt;string, string&gt; };
+
+@Module({
+  imports: [
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get('REDIS_HOST', 'localhost'),
+          port: Number(config.get('REDIS_PORT', 6379)),
+        },
+      }),
+    }),
+    BullModule.registerQueue({
+      name: NOTIFICATIONS_QUEUE,
+      defaultJobOptions: {
+        attempts: 5,                                   // thử tối đa 5 lần
+        backoff: { type: 'exponential', delay: 2000 }, // chờ 2s, 4s, 8s, 16s
+        removeOnComplete: 1000,                        // giữ 1000 job xong gần nhất để xem
+        removeOnFail: 5000,
+      },
+    }),
+  ],
+  exports: [BullModule], // ai import QueueModule thì inject được hàng đợi
+})
+export class QueueModule {}</code></pre></div>
+    </li>
+    <li><p class="st">API chỉ đưa job vào hàng rồi trả 202</p>
+      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Injectable } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { NOTIFICATIONS_QUEUE, SendJob } from '../queue/queue.module';
+import { SendNotificationDto } from './dto/send-notification.dto';
+
+@Injectable()
+export class NotificationsService {
+  constructor(@InjectQueue(NOTIFICATIONS_QUEUE) private readonly queue: Queue&lt;SendJob&gt;) {}
+
+  async enqueue(dto: SendNotificationDto) {
+    const job = await this.queue.add('send', { ...dto });
+    return { jobId: job.id, status: 'queued' };
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.controller.ts (sửa handler)</div><pre><code class="language-ts">  @Post()
+  @HttpCode(202) // Accepted: đã nhận, sẽ xử lý sau
+  @UseGuards(ApiKeyGuard)
+  send(@Body() dto: SendNotificationDto) {
+    return this.notifications.enqueue(dto);
+  }</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.module.ts (sửa imports)</div><pre><code class="language-ts">  imports: [AuthModule, QueueModule], // không cần DevicesModule, FcmModule nữa: worker lo việc gửi</code></pre></div>
+    </li>
+    <li><p class="st">Viết processor: class xử lý job</p>
+      <div class="code"><div class="file">src/worker/notifications.processor.ts</div><pre><code class="language-ts">import { Logger } from '@nestjs/common';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Job, UnrecoverableError } from 'bullmq';
+import { NOTIFICATIONS_QUEUE, SendJob } from '../queue/queue.module';
+import { DevicesRepository } from '../devices/devices.repository';
+import { FcmService, isDeadToken, isRetryable } from '../fcm/fcm.service';
+
+@Processor(NOTIFICATIONS_QUEUE, { concurrency: 10 }) // làm song song tối đa 10 job
+export class NotificationsProcessor extends WorkerHost {
+  private readonly logger = new Logger(NotificationsProcessor.name);
+
+  constructor(
+    private readonly devices: DevicesRepository,
+    private readonly fcm: FcmService,
+  ) {
+    super();
+  }
+
+  // BullMQ gọi hàm này cho mỗi job
+  async process(job: Job&lt;SendJob&gt;) {
+    const { userId, ...payload } = job.data;
+    const tokens = await this.devices.tokensOf(userId);
+    if (tokens.length === 0) {
+      // Lỗi vĩnh viễn: thử lại cũng vô ích
+      throw new UnrecoverableError(`User ${userId} chưa có thiết bị`);
+    }
+
+    const results = await this.fcm.sendToTokens(tokens, payload);
+    await this.devices.removeTokens(results.filter((r) => isDeadToken(r.errorCode)).map((r) => r.token));
+
+    // Mọi thiết bị đều lỗi tạm thời: ném lỗi để BullMQ thử lại sau
+    if (results.every((r) => isRetryable(r.errorCode))) {
+      throw new Error('FCM đang lỗi tạm thời');
+    }
+    return { sent: results.filter((r) => r.ok).length };
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job, result: unknown) {
+    this.logger.log(`xong job ${job.id}: ${JSON.stringify(result)}`);
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, err: Error) {
+    this.logger.warn(`lỗi job ${job?.id}, lần ${job?.attemptsMade}: ${err.message}`);
+  }
+}</code></pre></div>
+    </li>
+    <li><p class="st"><code>WorkerModule</code> và điểm khởi động riêng</p>
+      <div class="code"><div class="file">src/worker/worker.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { DatabaseModule } from '../database/database.module';
+import { QueueModule } from '../queue/queue.module';
+import { FcmModule } from '../fcm/fcm.module';
+import { DevicesRepository } from '../devices/devices.repository';
+import { NotificationsProcessor } from './notifications.processor';
+
+@Module({
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, QueueModule, FcmModule],
+  // Worker chỉ cần repository, không cần controller hay guard
+  providers: [NotificationsProcessor, DevicesRepository],
+})
+export class WorkerModule {}</code></pre></div>
+      <div class="code"><div class="file">src/worker.ts</div><pre><code class="language-ts">import { Logger } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { WorkerModule } from './worker/worker.module';
+
+async function bootstrap() {
+  // Application context: có đủ DI nhưng không mở cổng HTTP
+  const app = await NestFactory.createApplicationContext(WorkerModule);
+  app.enableShutdownHooks();
+  new Logger('Worker').log('Worker đã sẵn sàng, đang chờ job…');
+}
+bootstrap();</code></pre></div>
+      <div class="code"><div class="file">package.json (thêm vào scripts)</div><pre><code class="language-json">"worker:dev": "nest start --watch --entryFile worker",
+"start:worker": "node dist/worker"</code></pre></div>
+      <div class="code"><div class="file">nest-cli.json (sửa)</div><pre><code class="language-json">"compilerOptions": {
+  "deleteOutDir": false
+}</code></pre></div>
+      <p>Mặc định mỗi lần build, Nest xoá thư mục <code>dist</code>. Khi API và worker cùng chạy chế độ watch, hai tiến trình sẽ xoá file của nhau, nên ta tắt tuỳ chọn này. Mở hai terminal: một chạy <code>npm run start:dev</code> (API), một chạy <code>npm run worker:dev</code>.</p>
+    </li>
+    <li><p class="st">Thí nghiệm: nhìn tận mắt hàng đợi hoạt động</p>
+      <ul>
+        <li><b>Tắt worker</b> (Ctrl+C). Gọi API gửi 3 lần: cả 3 đều trả 202 ngay.</li>
+        <li>Xem có bao nhiêu job đang chờ trong Redis:
+          <div class="code"><pre><code class="language-bash">docker compose exec redis redis-cli LLEN bull:notifications:wait</code></pre></div></li>
+        <li><b>Bật lại worker</b>: 3 job được xử lý ngay, 3 thông báo hiện lên máy. Không mất gì cả.</li>
+        <li><b>Giả lập FCM sập</b>: thêm <code>if (Math.random() &lt; 0.7) throw new Error('giả lập FCM sập');</code> vào đầu <code>process()</code>, gửi vài lần và đọc log để thấy các lần thử lại cách nhau 2s, 4s, 8s.</li>
+      </ul>
+    </li>
+  </ol>
+  <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
+    <li><b>Job nằm im không chạy</b>: quên chạy worker, hoặc tên queue ở <code>registerQueue</code> và <code>@Processor</code> khác nhau. Dùng chung hằng số <code>NOTIFICATIONS_QUEUE</code> để tránh gõ sai.</li>
+    <li><b>API cũng xử lý job</b>: bạn lỡ thêm <code>NotificationsProcessor</code> vào module của API. Processor chỉ nằm trong <code>WorkerModule</code>.</li>
+    <li><b>Đọc kỹ chỗ còn hở</b>: nếu 1 trong 2 máy lỗi tạm thời, code trên không thử lại máy đó. Muốn thử lại riêng từng máy thì phải nhớ máy nào đã gửi xong, tức là cần lưu trạng thái. Đó là việc của chặng 6.</li>
+  </ul></div>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="5">0/5</span></h4>
+    <ul class="checks" data-stage="5">
+      <li><label><input type="checkbox" data-k="5-1"><span>API trả <code>202</code> kể cả khi worker đang tắt</span></label></li>
+      <li><label><input type="checkbox" data-k="5-2"><span>Bật worker lên thì job tồn đọng được xử lý hết</span></label></li>
+      <li><label><input type="checkbox" data-k="5-3"><span>Thấy log retry với khoảng chờ tăng dần</span></label></li>
+      <li><label><input type="checkbox" data-k="5-4"><span>Phân biệt được lỗi nên thử lại và lỗi không nên thử lại</span></label></li>
+      <li><label><input type="checkbox" data-k="5-5"><span>Giải thích được at-least-once và vì sao nó gây gửi trùng</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 6 ============ -->
+<section class="stage" id="chang-6">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 6 · ~2 buổi</p>
+    <h2>Lịch sử &amp; trạng thái</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>mỗi thông báo có id và trạng thái tra cứu được; gọi lại cùng một yêu cầu không gửi trùng; retry chỉ gửi lại cho máy chưa nhận.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Vì sao phải lưu lịch sử</h3>
+  <ul>
+    <li><b>Hỗ trợ người dùng</b>: "Hôm qua tôi không nhận được nhắc deadline". Có lịch sử, bạn tra được ngay: gửi lúc nào, tới máy nào, lỗi gì.</li>
+    <li><b>Retry thông minh</b>: biết máy nào đã nhận để lần sau chỉ gửi cho máy còn lại.</li>
+    <li><b>Chống gửi trùng</b>: biết yêu cầu này đã nhận chưa.</li>
+    <li><b>Thống kê</b>: bao nhiêu phần trăm thông báo được mở.</li>
+  </ul>
+
+  <h3>Mô hình dữ liệu</h3>
+  <figure class="fig">
+<pre class="mermaid">
+erDiagram
+    devices ||--o{ deliveries : "theo token"
+    notifications ||--o{ deliveries : "có"
+    devices {
+        bigint id PK
+        text user_id
+        text token UK
+        text platform
+    }
+    notifications {
+        uuid id PK
+        text user_id
+        text title
+        text body
+        jsonb data
+        text status
+        text idempotency_key UK
+        timestamptz send_at
+        timestamptz opened_at
+    }
+    deliveries {
+        uuid notification_id FK
+        text token
+        text status
+        text error_code
+        int attempts
+    }
+</pre>
+    <figcaption>Một <b>notification</b> là một yêu cầu gửi ("nhắc u_42 về task t_8421"). Mỗi <b>delivery</b> là kết quả gửi tới một máy cụ thể. Deliveries lưu token dạng chữ thay vì khoá ngoại tới devices, để lịch sử vẫn còn khi token đã bị xoá.</figcaption>
+  </figure>
+
+  <h3>Trạng thái là một state machine</h3>
+  <p>Một thông báo chỉ được đi theo những mũi tên cho phép. Viết rõ ra như dưới đây giúp bạn không bao giờ có thông báo "đã gửi rồi lại quay về đang chờ".</p>
+  <figure class="fig">
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> queued: Gửi ngay
+    [*] --> scheduled: Có hẹn giờ (chặng 7)
+    scheduled --> processing: Đến giờ, worker nhận
+    scheduled --> canceled: Bị huỷ
+    queued --> canceled: Bị huỷ
+    queued --> processing: Worker nhận job
+    processing --> processing: Lỗi tạm thời, thử lại
+    processing --> sent: Mọi máy đều nhận
+    processing --> partially_sent: Một số máy lỗi
+    processing --> failed: Không máy nào nhận
+    sent --> [*]
+    partially_sent --> [*]
+    failed --> [*]
+    canceled --> [*]
+</pre>
+  </figure>
+
+  <h3>Idempotency: gọi hai lần, kết quả như gọi một lần</h3>
+  <p>Task API gọi bạn, mạng chập đúng lúc bạn trả lời. Task API không biết bạn đã nhận chưa nên gọi lại. Không có biện pháp gì thì người dùng nhận hai thông báo giống hệt.</p>
+  <p>Cách giải: người gọi gửi kèm header <code>Idempotency-Key</code>, một chuỗi duy nhất cho mỗi ý định gửi (ví dụ <code>due-soon:t_8421</code>). Database có ràng buộc UNIQUE trên cột này, nên lần thứ hai không tạo được bản ghi mới, và bạn trả lại kết quả của lần đầu.</p>
+  <figure class="fig">
+<pre class="mermaid">
+sequenceDiagram
+    participant T as Task API
+    participant S as Push Service
+    participant DB as PostgreSQL
+    T->>S: POST /notifications, Idempotency-Key due-soon t_8421
+    S->>DB: INSERT ... ON CONFLICT DO NOTHING
+    DB-->>S: Tạo mới, id n1
+    S--xT: 202 n1 (mạng chập, Task API không nhận được)
+    T->>S: Gửi lại, cùng Idempotency-Key
+    S->>DB: INSERT ... ON CONFLICT DO NOTHING
+    DB-->>S: Đã tồn tại
+    S-->>T: 200 n1, duplicate true
+</pre>
+    <figcaption>Lần thứ hai không tạo job mới. Thêm một lớp nữa: dùng chính id thông báo làm <code>jobId</code> trong BullMQ, hàng đợi cũng bỏ qua job trùng id.</figcaption>
+  </figure>
+  <div class="callout analogy"><span class="tag">Ví von</span><p>Chuyển khoản ngân hàng có mã giao dịch. Bấm "Chuyển" hai lần vì mạng lag, ngân hàng thấy cùng mã thì chỉ trừ tiền một lần. Idempotency-Key chính là mã giao dịch đó.</p></div>
+
+  <h3>"Đã gửi" không có nghĩa là "đã đọc"</h3>
+  <p>FCM trả về thành công chỉ có nghĩa là <b>FCM đã nhận</b> tin. Máy có thể đang tắt (FCM giữ tin một thời gian, mặc định tối đa 4 tuần), người dùng có thể tắt thông báo của app trong cài đặt. Muốn biết người dùng có mở không, app phải tự báo về khi họ bấm vào.</p>
+  <div class="funnel" aria-label="Ví dụ phễu thông báo">
+    <div><span>FCM nhận</span><span class="bar" style="width:100%"></span><span class="v">1.000</span></div>
+    <div><span>Hiện trên máy</span><span class="bar" style="width:86%;opacity:.75"></span><span class="v">~860</span></div>
+    <div><span>Người dùng mở</span><span class="bar" style="width:14%;opacity:.55"></span><span class="v">~140</span></div>
+  </div>
+  <p class="muted">Số liệu minh hoạ. Bạn đo được hàng đầu (từ FCM) và hàng cuối (app báo về). Hàng giữa thường không đo trực tiếp được.</p>
+
+  <h3><span class="kicker k-do">Làm</span>Lưu trạng thái, chống trùng</h3>
+  <ol class="steps">
+    <li><p class="st">Migration mới</p>
+      <div class="code"><div class="file">db/002_notifications.sql</div><pre><code class="language-sql">CREATE TABLE notifications (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         TEXT        NOT NULL,
+  title           TEXT        NOT NULL,
+  body            TEXT        NOT NULL,
+  data            JSONB       NOT NULL DEFAULT '{}',
+  status          TEXT        NOT NULL DEFAULT 'queued',
+  idempotency_key TEXT UNIQUE,
+  send_at         TIMESTAMPTZ,              -- dùng ở chặng 7
+  opened_at       TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX notifications_user_idx ON notifications (user_id, created_at DESC);
+
+CREATE TABLE deliveries (
+  notification_id UUID NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
+  token           TEXT NOT NULL,
+  status          TEXT NOT NULL,            -- sent | failed
+  fcm_message_id  TEXT,
+  error_code      TEXT,
+  attempts        INT  NOT NULL DEFAULT 1,
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (notification_id, token)
+);</code></pre></div>
+      <div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push &lt; db/002_notifications.sql</code></pre></div>
+    </li>
+    <li><p class="st"><code>NotificationsRepository</code>: mọi câu SQL của hai bảng mới</p>
+      <div class="code"><div class="file">src/notifications/notifications.repository.ts</div><pre><code class="language-ts">import { Injectable } from '@nestjs/common';
+import { DbService } from '../database/db.service';
+import type { SendResult } from '../fcm/fcm.service';
+
+export type NotificationRow = {
+  id: string; user_id: string; title: string; body: string;
+  data: Record&lt;string, string&gt;; status: string; opened_at: Date | null;
+};
+
+export type NewNotification = {
+  userId: string; title: string; body: string; data?: Record&lt;string, string&gt;;
+  sendAt?: Date; status?: 'queued' | 'scheduled'; // dùng ở chặng 7
+};
+
+@Injectable()
+export class NotificationsRepository {
+  constructor(private readonly db: DbService) {}
+
+  async create(n: NewNotification, idempotencyKey: string | null) {
+    const { rows } = await this.db.query&lt;{ id: string; status: string }&gt;(
+      `INSERT INTO notifications (user_id, title, body, data, idempotency_key, send_at, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (idempotency_key) DO NOTHING
+       RETURNING id, status`,
+      [n.userId, n.title, n.body, n.data ?? {}, idempotencyKey, n.sendAt ?? null, n.status ?? 'queued'],
+    );
+    if (rows[0]) return { ...rows[0], duplicate: false };
+    // Trùng key: trả lại bản đã có, không tạo mới
+    const existing = await this.db.query&lt;{ id: string; status: string }&gt;(
+      'SELECT id, status FROM notifications WHERE idempotency_key = $1',
+      [idempotencyKey],
+    );
+    return { ...existing.rows[0], duplicate: true };
+  }
+
+  async findById(id: string) {
+    const { rows } = await this.db.query&lt;NotificationRow&gt;('SELECT * FROM notifications WHERE id = $1', [id]);
+    return rows[0] ?? null;
+  }
+
+  async setStatus(id: string, status: string) {
+    await this.db.query('UPDATE notifications SET status = $2, updated_at = now() WHERE id = $1', [id, status]);
+  }
+
+  async sentTokens(notificationId: string): Promise&lt;Set&lt;string&gt;&gt; {
+    const { rows } = await this.db.query&lt;{ token: string }&gt;(
+      `SELECT token FROM deliveries WHERE notification_id = $1 AND status = 'sent'`,
+      [notificationId],
+    );
+    return new Set(rows.map((r) => r.token));
+  }
+
+  async saveDelivery(notificationId: string, r: SendResult) {
+    await this.db.query(
+      `INSERT INTO deliveries (notification_id, token, status, fcm_message_id, error_code)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (notification_id, token) DO UPDATE
+         SET status         = EXCLUDED.status,
+             fcm_message_id = EXCLUDED.fcm_message_id,
+             error_code     = EXCLUDED.error_code,
+             attempts       = deliveries.attempts + 1,
+             updated_at     = now()`,
+      [notificationId, r.token, r.ok ? 'sent' : 'failed', r.messageId ?? null, r.errorCode ?? null],
+    );
+  }
+
+  async deliveriesOf(notificationId: string) {
+    // Cắt ngắn token: không lộ token đầy đủ ra ngoài
+    const { rows } = await this.db.query(
+      `SELECT left(token, 10) || '…' AS token, status, error_code, attempts, updated_at
+       FROM deliveries WHERE notification_id = $1`,
+      [notificationId],
+    );
+    return rows;
+  }
+
+  async markOpened(id: string, userId: string) {
+    await this.db.query(
+      `UPDATE notifications SET opened_at = now()
+       WHERE id = $1 AND user_id = $2 AND opened_at IS NULL`,
+      [id, userId],
+    );
+  }
+}</code></pre></div>
+    </li>
+    <li><p class="st">Job giờ chỉ mang id</p>
+      <p>Dữ liệu thật nằm ở database, job chỉ cần trỏ tới nó. Database là <b>nguồn sự thật duy nhất</b>, job không bao giờ lệch với nó.</p>
+      <div class="code"><div class="file">src/queue/queue.module.ts (sửa kiểu)</div><pre><code class="language-ts">export type SendJob = { notificationId: string };</code></pre></div>
+    </li>
+    <li><p class="st">Service: ghi database trước, rồi đưa vào hàng đợi</p>
+      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { NOTIFICATIONS_QUEUE, SendJob } from '../queue/queue.module';
+import { SendNotificationDto } from './dto/send-notification.dto';
+import { NotificationsRepository } from './notifications.repository';
+
+@Injectable()
+export class NotificationsService {
+  constructor(
+    private readonly repo: NotificationsRepository,
+    @InjectQueue(NOTIFICATIONS_QUEUE) private readonly queue: Queue&lt;SendJob&gt;,
+  ) {}
+
+  async create(dto: SendNotificationDto, idempotencyKey: string | null) {
+    const n = await this.repo.create(dto, idempotencyKey);
+    if (n.duplicate) return n; // đã nhận yêu cầu này rồi, không gửi lại
+    // jobId = id thông báo: BullMQ cũng bỏ qua job trùng id
+    await this.queue.add('send', { notificationId: n.id }, { jobId: n.id });
+    return n;
+  }
+
+  async detail(id: string) {
+    const n = await this.repo.findById(id);
+    if (!n) throw new NotFoundException();
+    return { ...n, deliveries: await this.repo.deliveriesOf(id) };
+  }
+}</code></pre></div>
+    </li>
+    <li><p class="st">Controller: thêm tra cứu và báo "đã mở"</p>
+      <div class="code"><div class="file">src/notifications/notifications.controller.ts (thay toàn bộ)</div><pre><code class="language-ts">import {
+  Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Res, UseGuards,
+} from '@nestjs/common';
+import type { Response } from 'express';
+import { ApiKeyGuard } from '../auth/api-key.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { SendNotificationDto } from './dto/send-notification.dto';
+import { NotificationsService } from './notifications.service';
+import { NotificationsRepository } from './notifications.repository';
+
+@Controller('notifications')
+export class NotificationsController {
+  constructor(
+    private readonly notifications: NotificationsService,
+    private readonly repo: NotificationsRepository,
+  ) {}
+
+  @Post()
+  @UseGuards(ApiKeyGuard)
+  async create(
+    @Body() dto: SendNotificationDto,
+    @Headers('idempotency-key') idempotencyKey: string | undefined,
+    @Res({ passthrough: true }) res: Response, // passthrough: vẫn để Nest trả body như thường
+  ) {
+    const n = await this.notifications.create(dto, idempotencyKey ?? null);
+    res.status(n.duplicate ? 200 : 202); // trùng: 200 kèm bản cũ; mới: 202
+    return n;
+  }
+
+  @Get(':id')
+  @UseGuards(ApiKeyGuard)
+  detail(@Param('id', ParseUUIDPipe) id: string) { // id không phải UUID thì Nest trả 400
+    return this.notifications.detail(id);
+  }
+
+  @Post(':id/opened')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  async opened(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() userId: string) {
+    await this.repo.markOpened(id, userId);
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.module.ts (sửa providers)</div><pre><code class="language-ts">  providers: [NotificationsService, NotificationsRepository],</code></pre></div>
+      <div class="callout tip"><span class="tag">Nâng cao</span><p>Nếu ghi database thành công mà đưa vào hàng đợi thất bại (Redis sập đúng lúc đó), bản ghi sẽ nằm mãi ở <code>queued</code>. Cách đơn giản: một tác vụ định kỳ (<code>@nestjs/schedule</code> với <code>@Cron</code>) tìm bản ghi <code>queued</code> quá 5 phút và đưa lại vào hàng. Cách bài bản hơn có tên là <b>transactional outbox pattern</b>, đáng tìm đọc khi bạn đã vững.</p></div>
+    </li>
+    <li><p class="st">Processor: chỉ gửi cho máy chưa nhận, ghi kết quả từng máy</p>
+      <div class="code"><div class="file">src/worker/notifications.processor.ts (thay constructor, process, onFailed)</div><pre><code class="language-ts">import { NotificationsRepository } from '../notifications/notifications.repository';
+
+  constructor(
+    private readonly devices: DevicesRepository,
+    private readonly notifications: NotificationsRepository,
+    private readonly fcm: FcmService,
+  ) {
+    super();
+  }
+
+  async process(job: Job&lt;SendJob&gt;) {
+    const n = await this.notifications.findById(job.data.notificationId);
+    if (!n || n.status === 'canceled') return 'skipped';
+
+    await this.notifications.setStatus(n.id, 'processing');
+    const tokens = await this.devices.tokensOf(n.user_id);
+    const alreadySent = await this.notifications.sentTokens(n.id); // các lần thử trước đã gửi xong
+    const pending = tokens.filter((t) => !alreadySent.has(t));
+
+    const results = await this.fcm.sendToTokens(pending, {
+      title: n.title,
+      body: n.body,
+      data: { ...n.data, notificationId: n.id }, // app cần id để báo "đã mở"
+    });
+    for (const r of results) await this.notifications.saveDelivery(n.id, r);
+    const dead = results.filter((r) => isDeadToken(r.errorCode)).map((r) => r.token);
+    await this.devices.removeTokens(dead);
+
+    // Còn máy lỗi tạm thời và còn lượt: ném lỗi để thử lại (chỉ máy đó)
+    const hasMoreAttempts = job.attemptsMade + 1 &lt; (job.opts.attempts ?? 1);
+    if (hasMoreAttempts &amp;&amp; results.some((r) => isRetryable(r.errorCode))) {
+      throw new Error('Còn thiết bị lỗi tạm thời, sẽ thử lại');
+    }
+
+    const sentCount = alreadySent.size + results.filter((r) => r.ok).length;
+    const total = tokens.length - dead.length;
+    const status = sentCount === 0 ? 'failed' : sentCount &lt; total ? 'partially_sent' : 'sent';
+    await this.notifications.setStatus(n.id, status);
+    return status;
+  }
+
+  // Lỗi bất ngờ ở lần cuối (mạng, database): đánh dấu failed để không kẹt ở processing
+  @OnWorkerEvent('failed')
+  async onFailed(job: Job&lt;SendJob&gt; | undefined, err: Error) {
+    this.logger.warn(`lỗi job ${job?.id}, lần ${job?.attemptsMade}: ${err.message}`);
+    if (job &amp;&amp; job.attemptsMade >= (job.opts.attempts ?? 1)) {
+      await this.notifications.setStatus(job.data.notificationId, 'failed');
+    }
+  }</code></pre></div>
+      <div class="code"><div class="file">src/worker/worker.module.ts (sửa providers)</div><pre><code class="language-ts">  providers: [NotificationsProcessor, DevicesRepository, NotificationsRepository],</code></pre></div>
+      <p>Không còn dùng <code>UnrecoverableError</code>: user không có máy nào thì thông báo chuyển sang <code>failed</code> và được ghi lại, thay vì chỉ nằm trong danh sách job lỗi.</p>
+    </li>
+    <li><p class="st">Thử chống trùng và tra cứu</p>
+      <div class="code"><pre><code class="language-bash">curl -X POST http://localhost:3000/notifications \
+  -H 'X-API-Key: dev-secret-change-me' -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: due-soon:t_8421' \
+  -d '{"userId":"u_42","title":"Sắp đến hạn: Nộp báo cáo tuần","body":"Còn 30 phút nữa.","data":{"taskId":"t_8421"}}'</code></pre></div>
+      <p>Chạy lệnh trên hai lần. Lần đầu nhận <code>202</code>, lần hai nhận <code>200</code> với <code>"duplicate": true</code> và cùng <code>id</code>. Máy chỉ hiện một thông báo. Rồi tra cứu:</p>
+      <div class="code"><pre><code class="language-bash">curl http://localhost:3000/notifications/&lt;id-vừa-nhận&gt; -H 'X-API-Key: dev-secret-change-me'</code></pre></div>
+      <div class="code"><div class="file">Kết quả ví dụ</div><pre><code class="language-json">{
+  "id": "8f0c2c1e-5b7a-4c8e-9a51-2a7f3e9d1b40",
+  "user_id": "u_42",
+  "title": "Sắp đến hạn: Nộp báo cáo tuần",
+  "status": "partially_sent",
+  "opened_at": null,
+  "deliveries": [
+    { "token": "fMEz3h1bQ0…", "status": "sent", "error_code": null, "attempts": 1 },
+    { "token": "cX9a0Lw2Rk…", "status": "failed", "error_code": "messaging/server-unavailable", "attempts": 5 }
+  ]
+}</code></pre></div>
+    </li>
+    <li><p class="st">App báo "đã mở" khi người dùng bấm vào</p>
+      <div class="code"><div class="file">app/push.ts (thêm)</div><pre><code class="language-ts">import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+
+async function handleOpen(msg: FirebaseMessagingTypes.RemoteMessage | null) {
+  const id = msg?.data?.notificationId;
+  if (typeof id !== 'string') return;
+  await fetch(`${API}/notifications/${id}/opened`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${userJwt}` },
+  });
+  navigation.navigate('TaskDetail', { taskId: msg?.data?.taskId });
+}
+
+messaging().onNotificationOpenedApp(handleOpen);       // bấm khi app chạy nền
+messaging().getInitialNotification().then(handleOpen); // bấm khi app đã tắt hẳn</code></pre></div>
+    </li>
+  </ol>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="6">0/5</span></h4>
+    <ul class="checks" data-stage="6">
+      <li><label><input type="checkbox" data-k="6-1"><span>Gọi hai lần cùng Idempotency-Key chỉ nhận một thông báo</span></label></li>
+      <li><label><input type="checkbox" data-k="6-2"><span><code>GET /notifications/:id</code> cho thấy từng máy nhận hay lỗi</span></label></li>
+      <li><label><input type="checkbox" data-k="6-3"><span>Vẽ lại được state machine của một thông báo</span></label></li>
+      <li><label><input type="checkbox" data-k="6-4"><span>Retry chỉ gửi cho máy chưa nhận</span></label></li>
+      <li><label><input type="checkbox" data-k="6-5"><span>Bấm vào thông báo thì <code>opened_at</code> có giá trị</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 7 ============ -->
+<section class="stage" id="chang-7">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 7 · ~2–3 buổi</p>
+    <h2>Tính năng thật</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>nhắc deadline gửi đúng giờ và huỷ được; nội dung theo ngôn ngữ người dùng; tôn trọng cài đặt tắt thông báo và giờ yên tĩnh.</span></p>
+  </div>
+
+  <p>Chặng này gồm nhiều tính năng nhỏ, độc lập nhau. Mỗi tính năng là một quyết định nằm trên đường đi của một yêu cầu gửi:</p>
+  <figure class="fig">
+<pre class="mermaid">
+flowchart TD
+    A["POST /notifications"] --> B{"Trùng Idempotency-Key?"}
+    B -- có --> B1["Trả lại bản cũ"]
+    B -- không --> C{"User tắt loại thông báo này?"}
+    C -- tắt --> C1["Bỏ qua, trả skipped"]
+    C -- bật --> D{"Quá giới hạn mỗi giờ?"}
+    D -- quá --> D1["Trả 429"]
+    D -- chưa --> E["Dựng nội dung từ template"]
+    E --> F["Tính giờ gửi: sendAt, giờ yên tĩnh"]
+    F --> G[("Lưu notifications")]
+    G --> H["Đưa job vào hàng với delay"]
+    H --> I["Worker gửi đúng giờ"]
+</pre>
+    <figcaption>Kiểm tra trùng thực ra xảy ra lúc ghi database (bước G); ở đây vẽ lên đầu cho dễ hình dung.</figcaption>
+  </figure>
+
+  <h3><span class="kicker k-learn">Học</span>1. Hẹn giờ và huỷ</h3>
+  <p>Kịch bản: người dùng tạo task hạn 10:00, muốn được nhắc trước 30 phút. Task API gọi bạn ngay lúc tạo task, kèm <code>sendAt: "2026-11-19T09:30:00+07:00"</code>. Bạn tính <code>delay = sendAt − bây giờ</code> và đưa job vào hàng với <code>delay</code>. BullMQ giữ job ở trạng thái delayed, đến giờ mới cho worker lấy.</p>
+  <ul>
+    <li>Người dùng đánh dấu xong task trước 9:30 → Task API gọi <code>DELETE /notifications/:id</code>.</li>
+    <li>Người dùng dời hạn sang 15:00 → huỷ cái cũ, tạo cái mới với Idempotency-Key khác (ví dụ <code>due-soon:t_8421:v2</code>).</li>
+  </ul>
+  <p class="muted">Job hẹn giờ nằm trong Redis. Hẹn vài giờ, vài ngày thì ổn. Với lịch hẹn rất xa (vài tháng) hoặc rất nhiều, nhiều đội chọn lưu ở database và có một tác vụ quét định kỳ đưa vào hàng khi gần đến giờ. Thông báo lặp lại (bản tin hằng ngày) thì dùng job scheduler của BullMQ.</p>
+
+  <h3>2. Template và ngôn ngữ</h3>
+  <p>Đừng bắt Task API tự viết câu chữ. Nó chỉ gửi <b>mã template</b> và <b>biến</b>, service dựng câu theo ngôn ngữ của người dùng. Sửa câu chữ không cần sửa Task API, và mọi thông báo cùng loại nói cùng một giọng.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Task API gửi</th><th>Người dùng thấy (vi)</th></tr></thead>
+    <tbody><tr><td><code>template: "task_due_soon"</code><br><code>vars: { taskTitle: "Nộp báo cáo tuần", minutes: "30" }</code></td><td><b>Sắp đến hạn: Nộp báo cáo tuần</b><br>Còn 30 phút nữa. Nhấn để mở task.</td></tr></tbody>
+  </table></div>
+
+  <h3>3. Cài đặt của người dùng và giờ yên tĩnh</h3>
+  <p>Chia thông báo thành <b>loại</b> (category): <code>reminder</code> (nhắc deadline), <code>comment</code> (có người bình luận), <code>marketing</code>. Người dùng tắt được từng loại. Thêm <b>giờ yên tĩnh</b>: thông báo không gấp rơi vào 22:00–07:00 theo giờ địa phương của người dùng thì lùi đến 07:00. Nhắc deadline được coi là gấp nên bỏ qua giờ yên tĩnh.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Giờ dự định gửi (Asia/Ho_Chi_Minh)</th><th>Giờ yên tĩnh 22 → 7</th><th>Gửi lúc</th></tr></thead>
+    <tbody>
+      <tr><td>21:30</td><td>Ngoài khung</td><td>21:30</td></tr>
+      <tr><td>23:30</td><td>Trong khung, lùi 7 giờ 30 phút</td><td>07:00 hôm sau</td></tr>
+      <tr><td>06:45</td><td>Trong khung, lùi 15 phút</td><td>07:00</td></tr>
+    </tbody>
+  </table></div>
+  <p>Chú ý múi giờ: server chạy giờ UTC, người dùng ở Việt Nam là UTC+7. Luôn lưu thời gian dạng <code>TIMESTAMPTZ</code> và chỉ đổi sang giờ địa phương khi cần so sánh.</p>
+
+  <h3>4. Chống spam: rate limit và gộp thông báo</h3>
+  <p><b>Rate limit</b>: mỗi người tối đa 10 thông báo không gấp mỗi giờ. Dùng Redis đếm: mỗi lần gửi tăng bộ đếm, bộ đếm tự hết hạn sau 1 giờ. <b>Collapse key</b>: nếu task t_8421 có 5 bình luận liên tiếp, đặt cùng một collapse key để máy chỉ giữ thông báo mới nhất thay vì hiện 5 cái.</p>
+
+  <h3>5. Topic: gửi cho rất nhiều người</h3>
+  <p>Thông báo bảo trì gửi cho mọi người dùng, không cần lặp qua hàng triệu token. Đăng ký token vào một <b>topic</b> của FCM, rồi gửi một tin tới topic. FCM lo phần fan-out.</p>
+
+  <h3><span class="kicker k-do">Làm</span>Xây từng tính năng</h3>
+  <ol class="steps">
+    <li><p class="st">Migration cho category và cài đặt</p>
+      <div class="code"><div class="file">db/003_features.sql</div><pre><code class="language-sql">ALTER TABLE notifications ADD COLUMN category TEXT NOT NULL DEFAULT 'reminder';
+
+CREATE TABLE notification_preferences (
+  user_id  TEXT    NOT NULL,
+  category TEXT    NOT NULL,              -- reminder | comment | marketing
+  enabled  BOOLEAN NOT NULL DEFAULT true,
+  PRIMARY KEY (user_id, category)
+);
+
+CREATE TABLE user_settings (
+  user_id     TEXT PRIMARY KEY,
+  timezone    TEXT NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+  quiet_start SMALLINT,                   -- ví dụ 22 (22:00); NULL = không đặt
+  quiet_end   SMALLINT                    -- ví dụ 7  (07:00)
+);</code></pre></div>
+      <p>Sau đó thêm <code>category?: string</code> vào type <code>NewNotification</code>, và cột <code>category</code> (tham số <code>$8</code>, mặc định <code>'reminder'</code>) vào câu <code>INSERT</code> trong <code>NotificationsRepository.create</code>. Bài tập nhỏ để bạn tự sửa SQL.</p>
+    </li>
+    <li><p class="st">Template: hàm thuần, không cần là provider</p>
+      <div class="code"><div class="file">src/notifications/templates.ts</div><pre><code class="language-ts">export type Locale = 'vi' | 'en';
+type Template = { title: string; body: string };
+
+const templates: Record&lt;string, Record&lt;Locale, Template&gt;&gt; = {
+  task_due_soon: {
+    vi: { title: 'Sắp đến hạn: {{taskTitle}}', body: 'Còn {{minutes}} phút nữa. Nhấn để mở task.' },
+    en: { title: 'Due soon: {{taskTitle}}', body: '{{minutes}} minutes left. Tap to open.' },
+  },
+  task_assigned: {
+    vi: { title: '{{actor}} giao cho bạn một task', body: '{{taskTitle}}' },
+    en: { title: '{{actor}} assigned you a task', body: '{{taskTitle}}' },
+  },
+};
+
+export function render(code: string, locale: Locale, vars: Record&lt;string, string&gt;): Template {
+  const t = templates[code]?.[locale] ?? templates[code]?.vi;
+  if (!t) throw new Error(`Không có template ${code}`);
+  // thay {{tên}} bằng giá trị trong vars
+  const fill = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, key: string) => vars[key] ?? '');
+  return { title: fill(t.title), body: fill(t.body) };
+}</code></pre></div>
+      <p class="muted">Không phải thứ gì cũng cần là class có <code>@Injectable()</code>. Hàm không phụ thuộc gì (không database, không cấu hình) để dạng hàm thường là gọn nhất, và test rất dễ.</p>
+    </li>
+    <li><p class="st">Giờ yên tĩnh: cũng là hàm thuần</p>
+      <div class="code"><div class="file">src/notifications/quiet-hours.ts</div><pre><code class="language-ts">export type UserSettings = { timezone: string; quiet_start: number | null; quiet_end: number | null };
+
+// Trả về số mili giây cần lùi lại. 0 nghĩa là gửi được ngay.
+export function quietDelayMs(at: Date, s: UserSettings): number {
+  if (s.quiet_start === null || s.quiet_end === null) return 0;
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: s.timezone, hour: 'numeric', minute: 'numeric', hourCycle: 'h23',
+  }).formatToParts(at);
+  const h = Number(parts.find((p) => p.type === 'hour')?.value);
+  const m = Number(parts.find((p) => p.type === 'minute')?.value);
+
+  const start = s.quiet_start;
+  const end = s.quiet_end;
+  // Khung yên tĩnh có thể vắt qua nửa đêm (22 → 7)
+  const inQuiet = start &lt; end ? h >= start &amp;&amp; h &lt; end : h >= start || h &lt; end;
+  if (!inQuiet) return 0;
+
+  const minutesLeft = (end * 60 - (h * 60 + m) + 1440) % 1440;
+  return minutesLeft * 60_000;
+}</code></pre></div>
+    </li>
+    <li><p class="st"><code>RedisModule</code>: một custom provider</p>
+      <p>Không phải class nào cũng do bạn viết. Với thư viện ngoài như <code>ioredis</code>, ta dạy Nest cách tạo nó bằng <code>useFactory</code>, đặt cho nó một "tên" (token) để inject.</p>
+      <div class="code"><pre><code class="language-bash">npm i ioredis</code></pre></div>
+      <div class="code"><div class="file">src/redis/redis.module.ts</div><pre><code class="language-ts">import { Global, Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Redis } from 'ioredis';
+
+export const REDIS = 'REDIS'; // token để inject: @Inject(REDIS)
+
+@Global()
+@Module({
+  providers: [
+    {
+      provide: REDIS,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) =>
+        new Redis({
+          host: config.get('REDIS_HOST', 'localhost'),
+          port: Number(config.get('REDIS_PORT', 6379)),
+        }),
+    },
+  ],
+  exports: [REDIS],
+})
+export class RedisModule {}</code></pre></div>
+      <p>Thêm <code>RedisModule</code> vào <code>imports</code> của <code>AppModule</code>.</p>
+    </li>
+    <li><p class="st"><code>RulesService</code>: cài đặt người dùng và rate limit</p>
+      <div class="code"><div class="file">src/notifications/rules.service.ts</div><pre><code class="language-ts">import { Inject, Injectable } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { DbService } from '../database/db.service';
+import { REDIS } from '../redis/redis.module';
+import { UserSettings } from './quiet-hours';
+
+@Injectable()
+export class RulesService {
+  constructor(
+    private readonly db: DbService,
+    @Inject(REDIS) private readonly redis: Redis, // custom provider thì phải chỉ rõ token
+  ) {}
+
+  async isCategoryEnabled(userId: string, category: string): Promise&lt;boolean&gt; {
+    const { rows } = await this.db.query(
+      'SELECT enabled FROM notification_preferences WHERE user_id = $1 AND category = $2',
+      [userId, category],
+    );
+    return rows[0]?.enabled ?? true; // chưa cài đặt gì nghĩa là đang bật
+  }
+
+  async userSettings(userId: string): Promise&lt;UserSettings&gt; {
+    const { rows } = await this.db.query&lt;UserSettings&gt;(
+      'SELECT timezone, quiet_start, quiet_end FROM user_settings WHERE user_id = $1',
+      [userId],
+    );
+    return rows[0] ?? { timezone: 'Asia/Ho_Chi_Minh', quiet_start: null, quiet_end: null };
+  }
+
+  // Cho phép tối đa `limit` thông báo mỗi `windowSec` giây cho một người
+  async allowForUser(userId: string, limit = 10, windowSec = 3600) {
+    const key = `rl:push:${userId}`;
+    const count = await this.redis.incr(key);                 // tăng bộ đếm, trả về giá trị mới
+    if (count === 1) await this.redis.expire(key, windowSec); // lần đầu: đặt hạn 1 giờ
+    return count &lt;= limit;
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.module.ts (sửa providers)</div><pre><code class="language-ts">  providers: [NotificationsService, NotificationsRepository, RulesService],</code></pre></div>
+    </li>
+    <li><p class="st">DTO mới: Task API gửi template thay vì câu chữ</p>
+      <div class="code"><div class="file">src/notifications/dto/send-notification.dto.ts (thay toàn bộ)</div><pre><code class="language-ts">import { IsIn, IsISO8601, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsStringRecord } from '../../common/is-string-record';
+import type { Locale } from '../templates';
+
+export type Category = 'reminder' | 'comment' | 'marketing';
+
+export class SendNotificationDto {
+  @IsString() @MinLength(1)
+  userId!: string;
+
+  @IsIn(['reminder', 'comment', 'marketing'])
+  category!: Category;
+
+  @IsIn(['task_due_soon', 'task_assigned'])
+  template!: string;
+
+  @IsOptional() @IsStringRecord()
+  vars: Record&lt;string, string&gt; = {};   // giá trị mặc định có hiệu lực nhờ transform: true
+
+  @IsOptional() @IsIn(['vi', 'en'])
+  locale: Locale = 'vi';
+
+  @IsOptional() @IsStringRecord()
+  data?: Record&lt;string, string&gt;;
+
+  @IsOptional() @IsISO8601({ strict: true })
+  sendAt?: string;                       // ví dụ 2026-11-19T09:30:00+07:00
+}</code></pre></div>
+    </li>
+    <li><p class="st">Ghép tất cả vào <code>NotificationsService.create</code></p>
+      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay constructor và create)</div><pre><code class="language-ts">import { ConflictException, HttpException, HttpStatus } from '@nestjs/common';
+import { render } from './templates';
+import { quietDelayMs } from './quiet-hours';
+import { RulesService } from './rules.service';
+
+  constructor(
+    private readonly repo: NotificationsRepository,
+    private readonly rules: RulesService,
+    @InjectQueue(NOTIFICATIONS_QUEUE) private readonly queue: Queue&lt;SendJob&gt;,
+  ) {}
+
+  async create(dto: SendNotificationDto, idempotencyKey: string | null) {
+    const urgent = dto.category === 'reminder';
+
+    // 1. Người dùng đã tắt loại thông báo này?
+    if (!(await this.rules.isCategoryEnabled(dto.userId, dto.category))) {
+      return { status: 'skipped', reason: 'user_opted_out', duplicate: false };
+    }
+    // 2. Quá nhiều thông báo không gấp trong 1 giờ?
+    if (!urgent &amp;&amp; !(await this.rules.allowForUser(dto.userId))) {
+      throw new HttpException('rate_limited', HttpStatus.TOO_MANY_REQUESTS); // 429
+    }
+    // 3. Dựng nội dung từ template
+    const { title, body } = render(dto.template, dto.locale, dto.vars);
+
+    // 4. Tính giờ gửi: lấy sendAt (không sớm hơn bây giờ), rồi lùi qua giờ yên tĩnh
+    const now = Date.now();
+    const base = new Date(Math.max(dto.sendAt ? Date.parse(dto.sendAt) : now, now));
+    const quiet = urgent ? 0 : quietDelayMs(base, await this.rules.userSettings(dto.userId));
+    const sendAt = new Date(base.getTime() + quiet);
+    const delay = sendAt.getTime() - now;
+
+    const n = await this.repo.create(
+      {
+        userId: dto.userId, category: dto.category, title, body, data: dto.data,
+        sendAt, status: delay > 1000 ? 'scheduled' : 'queued',
+      },
+      idempotencyKey,
+    );
+    if (n.duplicate) return n;
+
+    await this.queue.add('send', { notificationId: n.id }, { jobId: n.id, delay });
+    return { ...n, sendAt };
+  }</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.controller.ts (sửa dòng đặt status)</div><pre><code class="language-ts">    res.status(n.duplicate || n.status === 'skipped' ? 200 : 202);</code></pre></div>
+    </li>
+    <li><p class="st">Huỷ thông báo hẹn giờ</p>
+      <div class="code"><div class="file">src/notifications/notifications.repository.ts (thêm method)</div><pre><code class="language-ts">  async cancel(id: string): Promise&lt;boolean&gt; {
+    // Chỉ huỷ được khi chưa bắt đầu gửi
+    const { rowCount } = await this.db.query(
+      `UPDATE notifications SET status = 'canceled', updated_at = now()
+       WHERE id = $1 AND status IN ('scheduled', 'queued')`,
+      [id],
+    );
+    return (rowCount ?? 0) > 0;
+  }</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.service.ts (thêm method)</div><pre><code class="language-ts">  async cancel(id: string) {
+    if (!(await this.repo.cancel(id))) throw new ConflictException('cannot_cancel'); // 409
+    await this.queue.remove(id); // jobId chính là id thông báo
+  }</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.controller.ts (thêm route; nhớ import Delete)</div><pre><code class="language-ts">  @Delete(':id')
+  @HttpCode(204)
+  @UseGuards(ApiKeyGuard)
+  async cancel(@Param('id', ParseUUIDPipe) id: string) {
+    await this.notifications.cancel(id);
+  }</code></pre></div>
+      <p>Processor ở chặng 6 đã bỏ qua thông báo <code>canceled</code>. Đó là lớp bảo vệ thứ hai, phòng khi job đã rời hàng đợi đúng lúc bạn huỷ.</p>
+    </li>
+    <li><p class="st">Collapse key và topic (tham khảo)</p>
+      <div class="code"><div class="file">trong FcmService.sendToTokens: gộp các thông báo cùng task</div><pre><code class="language-ts">android: { priority: 'high', collapseKey: `task-${taskId}` },
+apns: { headers: { 'apns-collapse-id': `task-${taskId}` }, payload: { aps: { sound: 'default' } } },</code></pre></div>
+      <div class="code"><div class="file">thêm vào FcmService: topic cho thông báo toàn hệ thống</div><pre><code class="language-ts">  // Lúc đăng ký thiết bị: cho token vào topic
+  subscribe(tokens: string[], topic: string) {
+    return this.messaging.subscribeToTopic(tokens, topic);
+  }
+
+  // Gửi một lần, FCM tự phát tới mọi máy trong topic
+  sendToTopic(topic: string, title: string, body: string) {
+    return this.messaging.send({ topic, notification: { title, body } });
+  }
+
+// Dùng: await fcm.sendToTopic('announcements', 'Bảo trì hệ thống', 'TaskApp tạm dừng 23:00–23:30 tối nay.');</code></pre></div>
+    </li>
+    <li><p class="st">Thử hẹn giờ và huỷ</p>
+      <div class="code"><pre><code class="language-bash">curl -X POST http://localhost:3000/notifications \
+  -H 'X-API-Key: dev-secret-change-me' -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: due-soon:t_9001' \
+  -d '{"userId":"u_42","category":"reminder","template":"task_due_soon","vars":{"taskTitle":"Gọi khách hàng","minutes":"30"},"sendAt":"2026-11-19T09:30:00+07:00"}'</code></pre></div>
+      <p>Đổi <code>sendAt</code> thành 2 phút sau giờ hiện tại để chờ xem thông báo đến đúng giờ. Tạo một cái khác rồi gọi <code>DELETE</code> trước giờ hẹn: không có gì hiện lên.</p>
+    </li>
+  </ol>
+  <div class="callout tip"><span class="tag">Bài tập mở rộng</span><ul>
+    <li>Tạo <code>PreferencesController</code> với <code>GET /me/preferences</code> và <code>PUT /me/preferences</code> (dùng <code>JwtAuthGuard</code> và <code>@CurrentUser()</code>) để app có màn hình cài đặt thông báo.</li>
+    <li>Viết <code>GET /me/notifications?cursor=…</code> trả 20 thông báo gần nhất: bạn vừa có một "hộp thư thông báo" trong app.</li>
+  </ul></div>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="7">0/5</span></h4>
+    <ul class="checks" data-stage="7">
+      <li><label><input type="checkbox" data-k="7-1"><span>Thông báo hẹn giờ đến đúng phút đã hẹn</span></label></li>
+      <li><label><input type="checkbox" data-k="7-2"><span>Huỷ trước giờ hẹn thì không có gì hiện lên</span></label></li>
+      <li><label><input type="checkbox" data-k="7-3"><span>Đổi <code>locale</code> sang <code>en</code> thì nội dung đổi tiếng Anh</span></label></li>
+      <li><label><input type="checkbox" data-k="7-4"><span>Tính tay được giờ gửi khi rơi vào giờ yên tĩnh</span></label></li>
+      <li><label><input type="checkbox" data-k="7-5"><span>Biết khi nào dùng topic thay vì danh sách token</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ STAGE 8 ============ -->
+<section class="stage" id="chang-8">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 8 · ~2–3 buổi</p>
+    <h2>Lên production</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>service được đóng gói bằng Docker, có log và metric để biết khi nào hỏng, tắt mở không mất job, và bạn biết nó chịu được bao nhiêu tải.</span></p>
+  </div>
+
+  <h3><span class="kicker k-learn">Học</span>Kiến trúc cuối cùng</h3>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 780 410" role="img" aria-label="Kiến trúc production: app và dịch vụ nội bộ đi qua load balancer tới hai API, API ghi vào PostgreSQL và Redis, ba worker lấy job gửi tới FCM rồi tới APNs, Web Push và thiết bị">
+      <text class="m" x="10" y="30">NGƯỜI DÙNG</text>
+      <rect class="n" x="10" y="40" width="110" height="44" rx="10"/><text class="mid" x="65" y="67">App mobile</text>
+      <rect class="n" x="10" y="94" width="110" height="44" rx="10"/><text class="mid" x="65" y="121">Web app</text>
+      <text class="m" x="10" y="186">DỊCH VỤ NỘI BỘ</text>
+      <rect class="n" x="10" y="196" width="110" height="44" rx="10"/><text class="mid" x="65" y="223">Task API</text>
+      <rect class="n" x="10" y="250" width="110" height="44" rx="10"/><text class="mid" x="65" y="277">Cron job</text>
+
+      <path class="e" d="M122 62 L148 140" marker-end="url(#mk-m)"/>
+      <path class="e" d="M122 116 L148 146" marker-end="url(#mk-m)"/>
+      <path class="e" d="M122 218 L148 156" marker-end="url(#mk-m)"/>
+      <path class="e" d="M122 272 L148 162" marker-end="url(#mk-m)"/>
+      <rect class="n" x="150" y="110" width="110" height="80" rx="12"/>
+      <text class="b mid" x="205" y="145">Load balancer</text>
+      <text class="m mid" x="205" y="164">HTTPS</text>
+
+      <rect class="grp" x="272" y="84" width="128" height="128" rx="12"/>
+      <text class="m" x="280" y="78">PUSH API (stateless)</text>
+      <rect class="na" x="280" y="98" width="112" height="44" rx="10"/><text class="b mid" x="336" y="125">API #1</text>
+      <rect class="na" x="280" y="154" width="112" height="44" rx="10"/><text class="b mid" x="336" y="181">API #2</text>
+      <path class="e" d="M262 140 L278 122" marker-end="url(#mk-m)"/>
+      <path class="e" d="M262 160 L278 176" marker-end="url(#mk-m)"/>
+
+      <rect class="n" x="430" y="60" width="110" height="56" rx="10"/>
+      <text class="b mid" x="485" y="84">Redis</text>
+      <text class="m mid" x="485" y="102">hàng đợi, rate limit</text>
+      <rect class="n" x="430" y="214" width="110" height="56" rx="10"/>
+      <text class="b mid" x="485" y="238">PostgreSQL</text>
+      <text class="m mid" x="485" y="256">token, lịch sử</text>
+      <path class="e ea" d="M402 130 L428 96" marker-end="url(#mk-a)"/>
+      <path class="e" d="M402 176 L428 232" marker-end="url(#mk-m)"/>
+
+      <text class="m" x="560" y="52">WORKERS</text>
+      <rect class="n" x="560" y="60" width="90" height="38" rx="9"/><text class="mid" x="605" y="84">Worker</text>
+      <rect class="n" x="560" y="108" width="90" height="38" rx="9"/><text class="mid" x="605" y="132">Worker</text>
+      <rect class="n" x="560" y="156" width="90" height="38" rx="9"/><text class="mid" x="605" y="180">Worker</text>
+      <path class="e ea" d="M542 88 L558 79" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M542 92 L558 127" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M542 96 L558 175" marker-end="url(#mk-a)"/>
+      <path class="e" d="M566 196 L538 214" marker-end="url(#mk-m)"/>
+
+      <rect class="na" x="670" y="80" width="100" height="62" rx="12"/>
+      <text class="b mid" x="720" y="106">FCM</text>
+      <text class="m mid" x="720" y="126">Android gửi thẳng</text>
+      <path class="e ea" d="M652 79 L668 100" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M652 127 L668 112" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M652 175 L668 124" marker-end="url(#mk-a)"/>
+
+      <rect class="n" x="548" y="250" width="88" height="40" rx="9"/><text class="mid" x="592" y="275">APNs (iOS)</text>
+      <rect class="n" x="646" y="250" width="88" height="40" rx="9"/><text class="mid" x="690" y="275">Web Push</text>
+      <path class="e ea" d="M705 144 L604 248" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M712 144 L700 248" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M762 144 V338" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M592 292 V338" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M690 292 V338" marker-end="url(#mk-a)"/>
+
+      <rect class="n2" x="430" y="340" width="340" height="56" rx="12"/>
+      <text class="b mid" x="600" y="364">Điện thoại &amp; trình duyệt</text>
+      <text class="m mid" x="600" y="382">nhận và hiển thị thông báo</text>
+
+      <rect class="grp" x="10" y="330" width="390" height="66" rx="12"/>
+      <text class="b" x="26" y="356">Quan sát</text>
+      <text class="m" x="26" y="376">log có cấu trúc · metric · Bull Board · cảnh báo</text>
+    </svg>
+    </div>
+    <figcaption>API không giữ trạng thái gì trong bộ nhớ (stateless), nên chạy bao nhiêu bản cũng được. Worker cũng vậy: hàng đợi dài thì thêm worker. Mọi trạng thái nằm ở PostgreSQL và Redis.</figcaption>
+  </figure>
+
+  <h3>Ước lượng tải: bạn cần bao nhiêu máy?</h3>
+  <p>Người mới hay lo service phải "chịu tải lớn". Hãy tính thử trước khi lo:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Đại lượng</th><th class="num-col">Giá trị</th><th>Cách tính</th></tr></thead>
+    <tbody>
+      <tr><td>Người dùng hoạt động mỗi ngày</td><td class="num-col">100.000</td><td>giả định</td></tr>
+      <tr><td>Thông báo mỗi người mỗi ngày</td><td class="num-col">3</td><td>giả định</td></tr>
+      <tr><td>Thiết bị mỗi người</td><td class="num-col">1,5</td><td>giả định</td></tr>
+      <tr><td>Lượt gửi tới máy mỗi ngày</td><td class="num-col">450.000</td><td>100.000 × 3 × 1,5</td></tr>
+      <tr><td>Trung bình mỗi giây</td><td class="num-col">≈ 5</td><td>450.000 ÷ 86.400</td></tr>
+      <tr><td>Giờ cao điểm (20% lượng ngày dồn vào 1 giờ)</td><td class="num-col">≈ 25 / giây</td><td>90.000 ÷ 3.600</td></tr>
+      <tr><td>Một worker, concurrency 10, mỗi job ~200 ms</td><td class="num-col">≈ 50 job / giây</td><td>10 ÷ 0,2</td></tr>
+    </tbody>
+  </table></div>
+  <p>Kết luận: 1–2 worker là đủ cho 100.000 người dùng. Thứ cần chăm sóc là index database, dọn token chết và giám sát, không phải số lượng máy. FCM cũng có hạn mức số tin mỗi phút cho mỗi project; xem trang quota trong tài liệu Firebase trước khi gửi hàng loạt.</p>
+
+  <h3>Quan sát: làm sao biết service đang hỏng</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Công cụ</th><th>Trả lời câu hỏi</th><th>Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td><b>Log có cấu trúc</b></td><td>Chuyện gì đã xảy ra với thông báo X?</td><td>Mỗi dòng log là JSON có <code>notificationId</code>, tìm được ngay</td></tr>
+      <tr><td><b>Metric</b></td><td>Hệ thống có khoẻ không, ngay bây giờ?</td><td>Số gửi thành công/lỗi theo mã lỗi, độ dài hàng đợi, thời gian từ lúc tạo đến lúc gửi</td></tr>
+      <tr><td><b>Health check</b></td><td>Tiến trình còn sống, còn nối được database không?</td><td><code>/health/live</code>, <code>/health/ready</code></td></tr>
+      <tr><td><b>Cảnh báo</b></td><td>Khi nào cần người thức dậy?</td><td>Hàng đợi &gt; 10.000 job trong 10 phút; tỉ lệ lỗi &gt; 5%</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Bảo mật</h3>
+  <ul>
+    <li>Service account và mọi khoá nằm trong biến môi trường hoặc secret manager của nền tảng, không nằm trong image Docker.</li>
+    <li>API key dài, ngẫu nhiên, mỗi service gọi có một key riêng để thu hồi được riêng.</li>
+    <li>Chỉ <code>/devices</code> và <code>/opened</code> mở ra Internet; <code>/notifications</code> chỉ cho mạng nội bộ.</li>
+    <li>Không ghi token đầy đủ vào log. Cắt còn vài ký tự đầu.</li>
+    <li>Nội dung thông báo hiện trên màn hình khoá: đừng đưa mã OTP, số dư tài khoản, thông tin nhạy cảm vào <code>body</code>.</li>
+  </ul>
+
+  <h3><span class="kicker k-do">Làm</span>Chuẩn bị chạy thật</h3>
+  <ol class="steps">
+    <li><p class="st">Log có cấu trúc với nestjs-pino</p>
+      <div class="code"><pre><code class="language-bash">npm i nestjs-pino pino-http</code></pre></div>
+      <div class="code"><div class="file">src/app.module.ts (thêm vào imports; làm tương tự trong WorkerModule)</div><pre><code class="language-ts">import { LoggerModule } from 'nestjs-pino';
+
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env.LOG_LEVEL ?? 'info',
+        // Không bao giờ ghi khoá bí mật vào log
+        redact: ['req.headers.authorization', 'req.headers["x-api-key"]'],
+      },
+    }),</code></pre></div>
+      <div class="code"><div class="file">src/main.ts và src/worker.ts (dùng logger của pino cho cả app)</div><pre><code class="language-ts">import { Logger } from 'nestjs-pino';
+
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(Logger));</code></pre></div>
+      <div class="code"><div class="file">trong processor: truyền object trước, câu mô tả sau</div><pre><code class="language-ts">this.logger.log({ notificationId: n.id, status, sent: sentCount, total }, 'đã xử lý thông báo');</code></pre></div>
+      <div class="code"><div class="file">Một dòng log trông như sau</div><pre><code class="language-json">{"level":30,"time":1763519400123,"context":"NotificationsProcessor","notificationId":"8f0c2c1e-…","status":"sent","sent":2,"total":2,"msg":"đã xử lý thông báo"}</code></pre></div>
+      <p>Muốn ghi token vào log để gỡ lỗi thì chỉ ghi vài ký tự đầu, ví dụ <code>token.slice(0, 8) + '…'</code>.</p>
+    </li>
+    <li><p class="st">Health check thật sự kiểm tra phụ thuộc</p>
+      <div class="code"><div class="file">src/health/health.controller.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { DbService } from '../database/db.service';
+import { REDIS } from '../redis/redis.module';
+
+@Controller('health')
+export class HealthController {
+  constructor(
+    private readonly db: DbService,
+    @Inject(REDIS) private readonly redis: Redis,
+  ) {}
+
+  @Get('live') // tiến trình còn sống
+  live() {
+    return { status: 'ok' };
+  }
+
+  @Get('ready') // sẵn sàng nhận request: database và Redis đều trả lời
+  async ready() {
+    try {
+      await this.db.query('SELECT 1');
+      await this.redis.ping();
+      return { status: 'ready' };
+    } catch {
+      // 503: load balancer sẽ ngừng gửi request tới bản này
+      throw new ServiceUnavailableException({ status: 'not_ready' });
+    }
+  }
+}</code></pre></div>
+      <p class="muted">Gói <code>@nestjs/terminus</code> làm việc này bài bản hơn (kiểm tra dung lượng đĩa, bộ nhớ, nhiều database), đáng dùng khi service lớn.</p>
+    </li>
+    <li><p class="st">Tắt êm (graceful shutdown): không bỏ dở job</p>
+      <p>Khi deploy bản mới, nền tảng gửi tín hiệu <code>SIGTERM</code> cho tiến trình cũ. Bạn đã gọi <code>app.enableShutdownHooks()</code> ở cả <code>main.ts</code> và <code>worker.ts</code> từ trước, nên khi nhận tín hiệu, Nest lần lượt gọi các lifecycle hook:</p>
+      <ul>
+        <li><code>@nestjs/bullmq</code> đóng worker: ngừng nhận job mới, đợi job đang chạy xong.</li>
+        <li><code>DbService.onModuleDestroy()</code> đóng pool kết nối PostgreSQL.</li>
+      </ul>
+      <p>Bài tập: <code>RedisModule</code> đang tạo client bằng factory nên chưa có hook đóng. Hãy bọc nó trong một class có <code>onApplicationShutdown()</code> gọi <code>redis.quit()</code>.</p>
+    </li>
+    <li><p class="st">Metric và giao diện xem hàng đợi (tuỳ chọn)</p>
+      <ul>
+        <li><b>Metric:</b> gói <code>@willsoto/nestjs-prometheus</code> mở sẵn <code>/metrics</code>. Tạo một counter <code>push_results_total</code> với nhãn <code>result</code> và <code>error_code</code>, tăng nó trong processor sau mỗi lần gửi.</li>
+        <li><b>Xem hàng đợi:</b> gói <code>@bull-board/nestjs</code> cho giao diện web xem job đang chờ, job lỗi, bấm thử lại. Đặt sau một guard chỉ admin vào được.</li>
+      </ul>
+    </li>
+    <li><p class="st">Viết test: nơi DI phát huy tác dụng</p>
+      <p>CLI đã cài sẵn Jest. Hàm thuần thì test thẳng:</p>
+      <div class="code"><div class="file">src/notifications/quiet-hours.spec.ts</div><pre><code class="language-ts">import { quietDelayMs } from './quiet-hours';
+
+describe('quietDelayMs', () => {
+  const s = { timezone: 'Asia/Ho_Chi_Minh', quiet_start: 22, quiet_end: 7 };
+
+  it('21:30 không nằm trong giờ yên tĩnh', () => {
+    expect(quietDelayMs(new Date('2026-11-18T21:30:00+07:00'), s)).toBe(0);
+  });
+
+  it('23:30 phải chờ tới 07:00', () => {
+    expect(quietDelayMs(new Date('2026-11-18T23:30:00+07:00'), s)).toBe(7.5 * 3_600_000);
+  });
+});</code></pre></div>
+      <p>Với service có phụ thuộc, <code>Test.createTestingModule</code> cho phép thay database, Redis, hàng đợi bằng đồ giả. Đây chính là "quản lý bếp đổi nhà cung cấp" trong ví von ở chặng 1:</p>
+      <div class="code"><div class="file">src/notifications/notifications.service.spec.ts</div><pre><code class="language-ts">import { Test } from '@nestjs/testing';
+import { getQueueToken } from '@nestjs/bullmq';
+import { NOTIFICATIONS_QUEUE } from '../queue/queue.module';
+import { NotificationsService } from './notifications.service';
+import { NotificationsRepository } from './notifications.repository';
+import { RulesService } from './rules.service';
+import { SendNotificationDto } from './dto/send-notification.dto';
+
+describe('NotificationsService', () => {
+  it('người dùng tắt loại thông báo thì không đưa job vào hàng', async () => {
+    const queue = { add: jest.fn() };
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        NotificationsService,
+        { provide: NotificationsRepository, useValue: { create: jest.fn() } },
+        { provide: RulesService, useValue: { isCategoryEnabled: async () => false } },
+        { provide: getQueueToken(NOTIFICATIONS_QUEUE), useValue: queue },
+      ],
+    }).compile();
+
+    const service = moduleRef.get(NotificationsService);
+    const dto = Object.assign(new SendNotificationDto(), {
+      userId: 'u_42', category: 'marketing', template: 'task_assigned',
+    });
+
+    await expect(service.create(dto, null)).resolves.toMatchObject({ status: 'skipped' });
+    expect(queue.add).not.toHaveBeenCalled();
+  });
+});</code></pre></div>
+      <div class="code"><pre><code class="language-bash">npm test</code></pre></div>
+      <p>Với phần gửi FCM, dùng <code>messaging.send(message, true)</code> (dry run) trong test tích hợp để kiểm tra payload hợp lệ mà không gửi thật.</p>
+    </li>
+    <li><p class="st">Đóng gói bằng Docker</p>
+      <div class="code"><div class="file">Dockerfile</div><pre><code class="language-plaintext">FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build          # nest build: ra dist/main.js và dist/worker.js
+
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY --from=build /app/dist ./dist
+CMD ["node", "dist/main"]</code></pre></div>
+      <div class="code"><div class="file">docker-compose.yml (thêm vào services)</div><pre><code class="language-yaml">  api:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://push:push@postgres:5432/push
+      REDIS_HOST: redis
+    ports: ["3000:3000"]
+    volumes: ["./secrets:/app/secrets:ro"]
+    depends_on: [postgres, redis]
+  worker:
+    build: .
+    command: ["node", "dist/worker"]   # cùng image, khác điểm khởi động
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://push:push@postgres:5432/push
+      REDIS_HOST: redis
+    volumes: ["./secrets:/app/secrets:ro"]
+    depends_on: [postgres, redis]</code></pre></div>
+      <div class="code"><pre><code class="language-bash">docker compose up -d --build --scale worker=3</code></pre></div>
+      <p>Nếu <code>dist/main.js</code> không tồn tại mà lại thấy <code>dist/src/main.js</code>, nghĩa là <code>nest build</code> đã biên dịch lẫn thư mục <code>scripts/</code>: kiểm tra lại <code>exclude</code> trong <code>tsconfig.build.json</code> (chặng 2).</p>
+      <p>Trên production, bật chế độ lưu xuống đĩa cho Redis để job không mất khi Redis khởi động lại: <code>command: ["redis-server", "--appendonly", "yes"]</code>. BullMQ cũng khuyên đặt <code>maxmemory-policy noeviction</code> để Redis không tự xoá job khi đầy bộ nhớ.</p>
+    </li>
+  </ol>
+
+  <div class="checkbox"><h4>Tự kiểm tra trước khi lên production <span class="count" data-stage="8">0/8</span></h4>
+    <ul class="checks" data-stage="8">
+      <li><label><input type="checkbox" data-k="8-1"><span>Không có khoá bí mật nào trong Git hay trong Docker image</span></label></li>
+      <li><label><input type="checkbox" data-k="8-2"><span><code>/notifications</code> không truy cập được từ Internet</span></label></li>
+      <li><label><input type="checkbox" data-k="8-3"><span>Log là JSON, có <code>notificationId</code>, không có token đầy đủ</span></label></li>
+      <li><label><input type="checkbox" data-k="8-4"><span><code>/health/ready</code> trả 503 khi tắt PostgreSQL</span></label></li>
+      <li><label><input type="checkbox" data-k="8-5"><span>Deploy lại worker giữa lúc đang gửi mà không mất job</span></label></li>
+      <li><label><input type="checkbox" data-k="8-6"><span>Có cảnh báo khi hàng đợi dài bất thường hoặc tỉ lệ lỗi tăng</span></label></li>
+      <li><label><input type="checkbox" data-k="8-7"><span>Redis bật lưu xuống đĩa</span></label></li>
+      <li><label><input type="checkbox" data-k="8-8"><span>Tự ước lượng được tải cho số người dùng của mình</span></label></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section class="extra" id="thuat-ngu">
+  <p class="eyebrow">Phụ lục</p>
+  <h2>Thuật ngữ &amp; đọc thêm</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Thuật ngữ</th><th>Giải thích ngắn</th><th>Chặng</th></tr></thead>
+    <tbody>
+      <tr><td>Push provider</td><td>Dịch vụ của hãng giữ kết nối tới thiết bị: FCM, APNs, Web Push</td><td>0</td></tr>
+      <tr><td>Device token</td><td>Địa chỉ nhận thông báo của một app trên một máy</td><td>0</td></tr>
+      <tr><td>Service account</td><td>Danh tính của server khi gọi API Google; là file bí mật</td><td>2</td></tr>
+      <tr><td>VAPID key</td><td>Cặp khoá xác định server được phép gửi Web Push</td><td>2</td></tr>
+      <tr><td>Service worker</td><td>Script của trình duyệt chạy cả khi tab đã đóng, nhận Web Push</td><td>2</td></tr>
+      <tr><td>Notification / data message</td><td>Phần OS tự hiển thị / phần cho code của app đọc</td><td>2</td></tr>
+      <tr><td>Upsert</td><td>Thêm mới nếu chưa có, cập nhật nếu đã có</td><td>3</td></tr>
+      <tr><td>Migration</td><td>File ghi lại một lần thay đổi cấu trúc database</td><td>3</td></tr>
+      <tr><td>Module (NestJS)</td><td>Hộp gom controller, provider của một chủ đề</td><td>1</td></tr>
+      <tr><td>Provider, DI</td><td>Class Nest tự tạo và đưa vào constructor nơi cần</td><td>1</td></tr>
+      <tr><td>Decorator</td><td>Ký hiệu <code>@</code> gắn ý nghĩa cho class, hàm, tham số</td><td>1</td></tr>
+      <tr><td>DTO, ValidationPipe</td><td>Class mô tả dữ liệu hợp lệ, và bộ tự kiểm tra nó</td><td>3</td></tr>
+      <tr><td>Guard</td><td>Chạy trước controller, quyết định request có được vào</td><td>4</td></tr>
+      <tr><td>JWT</td><td>Chuỗi có chữ ký chứng minh người dùng là ai</td><td>4</td></tr>
+      <tr><td>Fan-out</td><td>Nhân một yêu cầu thành nhiều lần gửi</td><td>4</td></tr>
+      <tr><td>Queue / job / worker</td><td>Hàng đợi / việc cần làm / tiến trình lấy việc ra làm</td><td>5</td></tr>
+      <tr><td>Exponential backoff</td><td>Thử lại, mỗi lần chờ gấp đôi lần trước</td><td>5</td></tr>
+      <tr><td>At-least-once</td><td>Mỗi job chạy ít nhất một lần, có thể nhiều hơn</td><td>5</td></tr>
+      <tr><td>Idempotency</td><td>Làm một việc nhiều lần cho kết quả như làm một lần</td><td>6</td></tr>
+      <tr><td>State machine</td><td>Danh sách trạng thái và các bước chuyển được phép</td><td>6</td></tr>
+      <tr><td>Collapse key</td><td>Khoá để máy chỉ giữ thông báo mới nhất cùng loại</td><td>7</td></tr>
+      <tr><td>Topic</td><td>Nhóm token trên FCM, gửi một lần tới cả nhóm</td><td>7</td></tr>
+      <tr><td>Rate limit</td><td>Giới hạn số lần trong một khoảng thời gian</td><td>7</td></tr>
+      <tr><td>Stateless</td><td>Tiến trình không giữ dữ liệu riêng, chạy nhiều bản được</td><td>8</td></tr>
+      <tr><td>Graceful shutdown</td><td>Tắt sau khi làm xong việc đang dở</td><td>8</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Tài liệu gốc nên đọc kèm</h3>
+  <ul>
+    <li><a href="https://firebase.google.com/docs/cloud-messaging" target="_blank" rel="noopener">Firebase Cloud Messaging</a>: tài liệu chính thức, đặc biệt phần quản lý token và các loại message.</li>
+    <li><a href="https://firebase.google.com/docs/cloud-messaging/manage-tokens" target="_blank" rel="noopener">Best practices for FCM registration token management</a>: khi nào coi token là cũ, cách dọn.</li>
+    <li><a href="https://rnfirebase.io/messaging/usage" target="_blank" rel="noopener">React Native Firebase: Cloud Messaging</a>: phần client cho app React Native.</li>
+    <li><a href="https://docs.nestjs.com" target="_blank" rel="noopener">NestJS docs</a>: module, provider, guard, pipe, lifecycle; mục Techniques → Queues nói về <code>@nestjs/bullmq</code>.</li>
+    <li><a href="https://docs.bullmq.io" target="_blank" rel="noopener">BullMQ docs</a>: retry, delayed job, job scheduler, graceful shutdown.</li>
+    <li><a href="https://web.dev/articles/push-notifications-overview" target="_blank" rel="noopener">web.dev: Push notifications overview</a>: Web Push và service worker từ gốc.</li>
+    <li><a href="https://developer.apple.com/documentation/usernotifications" target="_blank" rel="noopener">Apple: User Notifications</a>: khi bạn muốn gọi APNs trực tiếp.</li>
+    <li><a href="https://www.postgresql.org/docs/current/tutorial.html" target="_blank" rel="noopener">PostgreSQL Tutorial</a>: học SQL bài bản hơn.</li>
+  </ul>
+
+  <h3>Sau lộ trình này</h3>
+  <ul>
+    <li><b>Gọi APNs và Web Push trực tiếp</b> để bớt phụ thuộc FCM: chỉ cần thay <code>sendToTokens</code> bằng một "bộ gửi" cho từng nền tảng.</li>
+    <li><b>Transactional outbox</b>: đảm bảo ghi database và đưa vào hàng đợi không bao giờ lệch nhau.</li>
+    <li><b>Đa kênh</b>: cùng một yêu cầu, gửi push, email hoặc SMS tuỳ cài đặt người dùng.</li>
+    <li><b>Kafka hoặc RabbitMQ</b>: khi hàng đợi trở thành xương sống của nhiều service.</li>
+    <li><b>A/B test nội dung</b>: hai phiên bản template, đo tỉ lệ mở bằng <code>opened_at</code>.</li>
+  </ul>
+
+  <footer>Viết cho người mới học backend. Code dùng Node.js 20+, NestJS 11, firebase-admin, BullMQ 5 (qua @nestjs/bullmq) và PostgreSQL 16; nếu thư viện ra bản mới và tên hàm đổi, tài liệu chính thức ở trên là nguồn đúng nhất.</footer>
+</section>
+
+</main>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+(function () {
+  try {
+    if (window.hljs) document.querySelectorAll('.code pre code').forEach(function (el) { window.hljs.highlightElement(el); });
+  } catch (e) {}
+
+  document.querySelectorAll('.code').forEach(function (box) {
+    var code = box.querySelector('code');
+    if (!code) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy';
+    btn.textContent = 'Sao chép';
+    btn.addEventListener('click', function () {
+      var reset = function () { setTimeout(function () { btn.textContent = 'Sao chép'; }, 1600); };
+      var fallback = function () {
+        var r = document.createRange(); r.selectNodeContents(code);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        btn.textContent = 'Đã chọn, hãy nhấn Copy'; reset();
+      };
+      try {
+        navigator.clipboard.writeText(code.innerText).then(function () { btn.textContent = 'Đã chép'; reset(); }, fallback);
+      } catch (e) { fallback(); }
+    });
+    box.appendChild(btn);
+  });
+
+  var KEY = 'push-roadmap-checks';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function refresh() {
+    document.querySelectorAll('.checks').forEach(function (list) {
+      var boxes = list.querySelectorAll('input');
+      var done = 0;
+      boxes.forEach(function (b) { if (b.checked) done++; });
+      var st = list.getAttribute('data-stage');
+      var c = document.querySelector('.count[data-stage="' + st + '"]');
+      if (c) c.textContent = done + '/' + boxes.length;
+      document.querySelectorAll('.dot[data-stage="' + st + '"]').forEach(function (d) { d.classList.toggle('full', done === boxes.length); });
+    });
+  }
+  document.querySelectorAll('.checks input').forEach(function (b) {
+    var k = b.getAttribute('data-k');
+    b.id = 'chk-' + k;
+    b.checked = !!state[k];
+    b.addEventListener('change', function () { state[k] = b.checked; save(); refresh(); });
+  });
+  refresh();
+
+  var links = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) links.forEach(function (l) { l.classList.toggle('on', l.getAttribute('href') === '#' + e.target.id); });
+      });
+    }, { rootMargin: '-35% 0px -60% 0px' });
+    document.querySelectorAll('section.stage, section.extra').forEach(function (s) { io.observe(s); });
+  }
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  if (window.mermaid) {
+    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    mermaid.initialize({ startOnLoad: true, theme: dark ? 'dark' : 'default', fontFamily: 'Inter, system-ui, sans-serif' });
+  }
+</script>
+</body>
+</html>
