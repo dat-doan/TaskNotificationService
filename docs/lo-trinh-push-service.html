@@ -240,11 +240,11 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
 
 <header class="hero">
   <div>
-    <p class="eyebrow">Tài liệu học backend · NestJS · từ số 0</p>
+    <p class="eyebrow">Tài liệu học backend · Fastify · từ số 0</p>
     <h1>Tự xây Push Notification Service, từng chặng một</h1>
     <p class="lead">Chín chặng, mỗi chặng học một nhóm khái niệm rồi viết thêm một mảnh code. Cuối lộ trình bạn có một service gửi thông báo cho Android, iOS và Web, có hàng đợi, tự thử lại khi lỗi, hẹn giờ, chống gửi trùng và lưu lịch sử.</p>
     <ul class="chips" aria-label="Công nghệ dùng trong lộ trình">
-      <li>Node.js + TypeScript</li><li>NestJS</li><li>PostgreSQL</li><li>Redis + BullMQ</li><li>Firebase Cloud Messaging</li><li>Docker</li>
+      <li>Node.js + TypeScript</li><li>Fastify</li><li>Zod</li><li>PostgreSQL</li><li>Redis + BullMQ</li><li>Firebase Cloud Messaging</li><li>Docker</li>
     </ul>
   </div>
   <div class="phone" aria-label="Ví dụ một thông báo và payload server gửi đi">
@@ -308,7 +308,7 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
     <div>
       <h4>Bạn cần cài</h4>
       <ul>
-        <li>Node.js 20 trở lên</li>
+        <li>Node.js 22 trở lên</li>
         <li>Docker Desktop (chạy PostgreSQL, Redis)</li>
         <li>Tài khoản Google để tạo Firebase project</li>
         <li>Một điện thoại thật hoặc Chrome để thử</li>
@@ -321,10 +321,10 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
   <p>Các chặng xếp theo thứ tự phụ thuộc: chặng sau dùng code của chặng trước. Thời gian là ước lượng cho người mới, mỗi buổi khoảng 2–3 giờ.</p>
   <ol class="road">
     <li><span class="n">0</span><div class="card"><span class="time">~1 buổi</span><a href="#chang-0">Bức tranh toàn cảnh</a><dl class="meta"><dt>Học</dt><dd>push vs pull, push provider, device token</dd><dt>Làm được</dt><dd>vẽ lại luồng ai gửi cho ai</dd></dl></div></li>
-    <li><span class="n">1</span><div class="card"><span class="time">1–2 buổi</span><a href="#chang-1">Server đầu tiên</a><dl class="meta"><dt>Học</dt><dd>HTTP, REST, module, controller, dependency injection</dd><dt>Làm được</dt><dd>app NestJS trả lời <code>GET /health</code></dd></dl></div></li>
+    <li><span class="n">1</span><div class="card"><span class="time">1–2 buổi</span><a href="#chang-1">Server đầu tiên</a><dl class="meta"><dt>Học</dt><dd>HTTP, REST, route, handler, truyền phụ thuộc</dd><dt>Làm được</dt><dd>app Fastify trả lời <code>GET /health</code></dd></dl></div></li>
     <li><span class="n">2</span><div class="card"><span class="time">1–2 buổi</span><a href="#chang-2">Gửi push đầu tiên</a><dl class="meta"><dt>Học</dt><dd>Firebase, service account, notification vs data</dd><dt>Làm được</dt><dd>một thông báo thật hiện trên máy bạn</dd></dl></div></li>
     <li><span class="n">3</span><div class="card"><span class="time">2 buổi</span><a href="#chang-3">Lưu device token</a><dl class="meta"><dt>Học</dt><dd>database, SQL, upsert, vòng đời token</dd><dt>Làm được</dt><dd>API <code>POST /devices</code></dd></dl></div></li>
-    <li><span class="n">4</span><div class="card"><span class="time">2 buổi</span><a href="#chang-4">API gửi thông báo</a><dl class="meta"><dt>Học</dt><dd>DTO, guard, API key, JWT, xử lý lỗi FCM</dd><dt>Làm được</dt><dd>API <code>POST /notifications</code>, tự dọn token chết</dd></dl></div></li>
+    <li><span class="n">4</span><div class="card"><span class="time">2 buổi</span><a href="#chang-4">API gửi thông báo</a><dl class="meta"><dt>Học</dt><dd>schema, hook xác thực, API key, JWT, xử lý lỗi FCM</dd><dt>Làm được</dt><dd>API <code>POST /notifications</code>, tự dọn token chết</dd></dl></div></li>
     <li><span class="n">5</span><div class="card"><span class="time">2 buổi</span><a href="#chang-5">Hàng đợi &amp; worker</a><dl class="meta"><dt>Học</dt><dd>bất đồng bộ, queue, retry, backoff</dd><dt>Làm được</dt><dd>API trả lời ngay, tiến trình worker riêng gửi ở nền</dd></dl></div></li>
     <li><span class="n">6</span><div class="card"><span class="time">2 buổi</span><a href="#chang-6">Lịch sử &amp; trạng thái</a><dl class="meta"><dt>Học</dt><dd>state machine, idempotency, sent ≠ opened</dd><dt>Làm được</dt><dd>tra cứu một thông báo đã tới máy nào</dd></dl></div></li>
     <li><span class="n">7</span><div class="card"><span class="time">2–3 buổi</span><a href="#chang-7">Tính năng thật</a><dl class="meta"><dt>Học</dt><dd>hẹn giờ, template, giờ yên tĩnh, rate limit</dd><dt>Làm được</dt><dd>nhắc deadline đúng giờ, huỷ được</dd></dl></div></li>
@@ -471,7 +471,7 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
   <div class="stage-head">
     <p class="eyebrow">Chặng 1 · ~1–2 buổi</p>
     <h2>Server đầu tiên</h2>
-    <p class="deliver"><b>Sau chặng này</b><span>bạn có một app NestJS chạy được, trả lời <code>GET /health</code>, và hiểu module, controller, provider là gì.</span></p>
+    <p class="deliver"><b>Sau chặng này</b><span>bạn có một app Fastify chạy được, trả lời <code>GET /health</code>, và hiểu route, handler, và cách nối các phần của service lại với nhau.</span></p>
   </div>
 
   <h3><span class="kicker k-learn">Học</span>Server, request và response</h3>
@@ -531,44 +531,50 @@ Content-Type: application/json
   </table></div>
 
   <h3>Biến môi trường: cấu hình nằm ngoài code</h3>
-  <p>Mật khẩu database, khoá API, đường dẫn file bí mật... khác nhau giữa máy bạn và server thật, và không được nằm trong Git. Ta để chúng trong <b>biến môi trường</b>. Lúc phát triển, ghi vào file <code>.env</code> (đã cho vào <code>.gitignore</code>), <code>ConfigModule</code> của NestJS đọc file đó khi app khởi động.</p>
+  <p>Mật khẩu database, khoá API, đường dẫn file bí mật... khác nhau giữa máy bạn và server thật, và không được nằm trong Git. Ta để chúng trong <b>biến môi trường</b>. Lúc phát triển, ghi vào file <code>.env</code> (đã cho vào <code>.gitignore</code>). File <code>src/config.ts</code> đọc file đó khi app khởi động và kiểm tra bằng Zod: thiếu biến nào thì app dừng ngay, báo rõ thiếu gì.</p>
   <div class="callout analogy"><span class="tag">Ví von</span><p>Node.js xử lý nhiều request cùng lúc giống một người phục vụ bàn giỏi: đặt món xong cho bàn 1 thì không đứng chờ bếp, mà đi nhận món bàn 2. Khi bếp báo xong (database trả kết quả) thì quay lại bàn 1. Vì thế code Node đầy <code>async/await</code>: mỗi chữ <code>await</code> là một lần "đi làm việc khác trong lúc chờ".</p></div>
 
-  <h3>NestJS: khung nhà dựng sẵn</h3>
-  <p>Express chỉ đưa bạn công cụ nhận request và trả response; chia file, chia lớp thế nào là tự bạn nghĩ. <b>NestJS</b> chạy bên trên Express nhưng đặt sẵn một cấu trúc: mỗi phần việc có một chỗ cố định. Với người mới, điều này giữ cho code gọn gàng khi service lớn dần, và mọi dự án Nest trông giống nhau nên đọc code của người khác cũng dễ.</p>
+  <h3>Fastify: bộ khung gọn nhẹ</h3>
+  <p>Node.js có sẵn module <code>http</code>, nhưng tự tách đường dẫn, tự ghép body, tự ghi log cho từng request thì rất mệt. <b>Fastify</b> lo những việc đó: bạn khai báo "đường dẫn này thì gọi hàm này", nó lo phần còn lại, kèm sẵn bộ ghi log và cách test API mà không cần mở cổng. Fastify không áp đặt cấu trúc: chia file thế nào là do bạn. Lộ trình này dùng một quy ước đơn giản, mỗi thứ một chỗ cố định:</p>
   <div class="tbl"><table>
     <thead><tr><th>Khối</th><th>Là gì</th><th>Trong service</th></tr></thead>
     <tbody>
-      <tr><td><b>Module</b></td><td>Một hộp gom các thứ liên quan tới một chủ đề</td><td><code>DevicesModule</code>, <code>NotificationsModule</code></td></tr>
-      <tr><td><b>Controller</b></td><td>Nhận request HTTP, gọi service, trả response</td><td><code>DevicesController</code> lo <code>/devices</code></td></tr>
-      <tr><td><b>Provider</b> (service, repository)</td><td>Class chứa logic; Nest tạo nó và đưa tới nơi cần</td><td><code>FcmService</code>, <code>DevicesRepository</code></td></tr>
-      <tr><td><b>Decorator</b></td><td>Ký hiệu <code>@</code> gắn thêm ý nghĩa cho class, hàm, tham số</td><td><code>@Controller('devices')</code>, <code>@Post()</code>, <code>@Body()</code></td></tr>
-      <tr><td><b>DTO + Pipe</b></td><td>Class mô tả dữ liệu hợp lệ + bộ kiểm tra tự động</td><td><code>RegisterDeviceDto</code> + <code>ValidationPipe</code></td></tr>
-      <tr><td><b>Guard</b></td><td>Người gác cửa: request có được vào không</td><td><code>ApiKeyGuard</code>, <code>JwtAuthGuard</code></td></tr>
+      <tr><td><b>Route</b></td><td>Một cặp method + đường dẫn, gắn với một hàm</td><td><code>app.post('/devices', …)</code></td></tr>
+      <tr><td><b>Handler</b></td><td>Hàm <code>async</code> nhận request, trả về dữ liệu; Fastify tự đổi thành JSON</td><td>hàm cuối cùng truyền vào <code>app.post</code></td></tr>
+      <tr><td><b>Schema</b> (Zod)</td><td>Mô tả dữ liệu hợp lệ; <code>.parse()</code> kiểm tra và trả về dữ liệu sạch</td><td><code>RegisterDevice</code>, <code>SendNotification</code></td></tr>
+      <tr><td><b>Hook</b> <code>preHandler</code></td><td>Người gác cửa, chạy trước handler</td><td><code>apiKeyAuth</code>, <code>requireUser</code></td></tr>
+      <tr><td><b>Service, repository</b></td><td>Class chứa logic và câu SQL, không biết gì về HTTP</td><td><code>NotificationsService</code>, <code>DevicesRepository</code></td></tr>
+      <tr><td><b>Điểm lắp ráp</b></td><td>File tạo mọi thứ một lần và nối chúng lại</td><td><code>main.ts</code> (API), <code>worker.ts</code> (worker)</td></tr>
     </tbody>
   </table></div>
+  <p class="muted">Sau này gặp NestJS ở công ty thì đó là một khung lớn hơn, tự tạo và nối các class giúp bạn bằng decorator <code>@</code>. Các khái niệm ở đây (route, kiểm tra dữ liệu, gác cửa, service, repository) vẫn y nguyên, chỉ khác cách viết.</p>
 
-  <h4>Dependency Injection (DI)</h4>
-  <p>Trong Nest, một class không tự <code>new</code> những thứ nó cần. Nó khai báo trong constructor "tôi cần <code>DbService</code>", Nest tạo <code>DbService</code> đúng một lần rồi đưa vào mọi nơi cần.</p>
-  <div class="code"><pre><code class="language-ts">@Injectable()
+  <h4>Truyền phụ thuộc bằng tay</h4>
+  <p>Một class không tự <code>new</code> những thứ nó cần. Nó khai báo trong constructor "tôi cần một <code>Pool</code> kết nối database". Ở một chỗ duy nhất là <code>main.ts</code>, ta tạo <code>Pool</code> đúng một lần rồi đưa vào mọi nơi cần. Kỹ thuật này gọi là <b>dependency injection</b> (DI). Không cần thư viện nào: chỉ là truyền tham số.</p>
+  <div class="code"><pre><code class="language-ts">// src/devices/devices.repository.ts
 export class DevicesRepository {
-  // Không có "new DbService()" ở đâu cả: Nest tự đưa vào
-  constructor(private readonly db: DbService) {}
-}</code></pre></div>
-  <div class="callout analogy"><span class="tag">Ví von</span><p>Đầu bếp không tự đi chợ. Đầu bếp ghi "cần cà chua, thịt bò", quản lý bếp (Nest) lo mua và đặt sẵn lên bàn. Muốn đổi nhà cung cấp, hoặc thay bằng đồ giả để tập nấu (viết test), chỉ quản lý phải đổi, đầu bếp không sửa gì. Bạn sẽ thấy lợi ích này rõ nhất ở chặng 8 khi viết test.</p></div>
+  // Không có "new Pool()" ở đây: ai dùng class này thì đưa Pool vào
+  constructor(private readonly db: Pool) {}
+}
 
-  <h4>Hành trình của một request trong NestJS</h4>
+// src/main.ts: nơi duy nhất "lắp ráp"
+const db = new Pool({ connectionString: config.DATABASE_URL });
+const devices = new DevicesRepository(db);</code></pre></div>
+  <p class="muted"><code>private readonly db: Pool</code> trong constructor là cách viết tắt của TypeScript: vừa khai báo tham số, vừa lưu nó thành <code>this.db</code>.</p>
+  <div class="callout analogy"><span class="tag">Ví von</span><p>Đầu bếp không tự đi chợ. Đầu bếp ghi "cần cà chua, thịt bò", quản lý bếp (<code>main.ts</code>) lo mua và đặt sẵn lên bàn. Muốn đổi nhà cung cấp, hoặc thay bằng đồ giả để tập nấu (viết test), chỉ quản lý phải đổi, đầu bếp không sửa gì. Bạn sẽ thấy lợi ích này rõ nhất ở chặng 8 khi viết test.</p></div>
+
+  <h4>Hành trình của một request</h4>
   <figure class="fig">
     <div class="scroll">
-    <svg class="dg" viewBox="0 0 760 210" role="img" aria-label="Request đi qua Guard, Pipe, Controller, Service, Repository; Guard trả 401, Pipe trả 400 nếu không hợp lệ; response đi ngược về client">
+    <svg class="dg" viewBox="0 0 760 210" role="img" aria-label="Request đi qua preHandler, Schema.parse, Handler, Service, Repository; preHandler trả 401, Schema.parse trả 400 nếu không hợp lệ; response đi ngược về client">
       <rect class="n2" x="6" y="30" width="104" height="56" rx="10"/>
       <text class="b mid" x="58" y="54">Request</text><text class="m mid" x="58" y="72">POST /devices</text>
       <rect class="n" x="132" y="30" width="104" height="56" rx="10"/>
-      <text class="b mid" x="184" y="54">Guard</text><text class="m mid" x="184" y="72">được vào không?</text>
+      <text class="b mid" x="184" y="54">preHandler</text><text class="m mid" x="184" y="72">được vào không?</text>
       <rect class="n" x="258" y="30" width="104" height="56" rx="10"/>
-      <text class="b mid" x="310" y="54">Pipe</text><text class="m mid" x="310" y="72">dữ liệu hợp lệ?</text>
+      <text class="b mid" x="310" y="54">Schema.parse</text><text class="m mid" x="310" y="72">dữ liệu hợp lệ?</text>
       <rect class="na" x="384" y="30" width="104" height="56" rx="10"/>
-      <text class="b mid" x="436" y="54">Controller</text><text class="m mid" x="436" y="72">nhận, điều phối</text>
+      <text class="b mid" x="436" y="54">Handler</text><text class="m mid" x="436" y="72">nhận, điều phối</text>
       <rect class="n" x="510" y="30" width="104" height="56" rx="10"/>
       <text class="b mid" x="562" y="54">Service</text><text class="m mid" x="562" y="72">logic nghiệp vụ</text>
       <rect class="n" x="636" y="30" width="104" height="56" rx="10"/>
@@ -584,110 +590,144 @@ export class DevicesRepository {
       <text x="192" y="122" style="font-size:12px;fill:var(--bad)">sai khoá → 401</text>
       <text x="318" y="122" style="font-size:12px;fill:var(--bad)">sai dữ liệu → 400</text>
       <text class="a mid" x="247" y="168" style="font-size:12px">response JSON trả về client</text>
-      <text class="m mid" x="380" y="198">Lỗi ném ra ở bất kỳ đâu (ví dụ NotFoundException) được exception filter của Nest đổi thành JSON lỗi</text>
+      <text class="m mid" x="380" y="198">Lỗi ném ra ở bất kỳ đâu (ZodError, HttpError) được error handler đổi thành JSON lỗi</text>
     </svg>
     </div>
-    <figcaption>Guard và Pipe chặn request xấu trước khi nó chạm tới code của bạn. Controller nên mỏng: nhận dữ liệu đã sạch, gọi service, trả kết quả.</figcaption>
+    <figcaption>preHandler chặn request lạ trước khi chạm tới handler. Dòng đầu tiên của handler là <code>parse()</code>, nên phần còn lại chỉ làm việc với dữ liệu sạch. Handler nên mỏng: kiểm tra dữ liệu, gọi service, trả kết quả.</figcaption>
   </figure>
 
   <h3>Đích đến: cấu trúc thư mục cuối lộ trình</h3>
-  <p>Mỗi thư mục trong <code>src/</code> là một module. Đừng lo nếu thấy nhiều, mỗi thứ được thêm vào ở đúng chặng của nó.</p>
+  <p>Mỗi thư mục trong <code>src/</code> gom code của một chủ đề. Đừng lo nếu thấy nhiều, mỗi thứ được thêm vào ở đúng chặng của nó.</p>
   <div class="code"><pre><code class="language-plaintext tree">push-service/
-├─ .env                            ← chặng 1  (không commit)
-├─ nest-cli.json, tsconfig*.json   ← chặng 1  (Nest CLI tạo sẵn)
-├─ docker-compose.yml              ← chặng 3
-├─ Dockerfile                      ← chặng 8
-├─ secrets/firebase-sa.json        ← chặng 2  (không commit!)
-├─ db/001_…, 002_…, 003_….sql      ← chặng 3, 6, 7
-├─ scripts/send-test.ts            ← chặng 2
-├─ scripts/make-jwt.ts             ← chặng 4
+├─ package.json, tsconfig.json    ← chặng 1
+├─ .env, .gitignore               ← chặng 1  (.env không commit)
+├─ docker-compose.yml             ← chặng 3
+├─ Dockerfile                     ← chặng 8
+├─ secrets/firebase-sa.json       ← chặng 2  (không commit!)
+├─ db/001_…, 002_…, 003_….sql     ← chặng 3, 6, 7
+├─ scripts/send-test.ts           ← chặng 2
+├─ scripts/make-jwt.ts            ← chặng 4
 └─ src/
-   ├─ main.ts                ← chặng 1  khởi động API
-   ├─ app.module.ts          ← chặng 1  module gốc của API
+   ├─ config.ts              ← chặng 1  đọc và kiểm tra biến môi trường
+   ├─ app.ts                 ← chặng 1  buildApp(): tạo Fastify, gắn route
+   ├─ main.ts                ← chặng 1  khởi động API, lắp ráp mọi thứ
    ├─ health/                ← chặng 1, 8
-   ├─ fcm/                   ← chặng 2  FcmModule, FcmService
-   ├─ database/              ← chặng 3  DatabaseModule, DbService
-   ├─ devices/               ← chặng 3  controller, repository, dto
-   ├─ auth/                  ← chặng 4  guard, decorator @CurrentUser
-   ├─ common/                ← chặng 4  validator dùng chung
-   ├─ notifications/         ← chặng 4–7 controller, service, repository, dto,
+   ├─ fcm/                   ← chặng 2  FcmService
+   ├─ common/                ← chặng 3  HttpError, error handler
+   ├─ devices/               ← chặng 3  routes, repository, schemas
+   ├─ auth/                  ← chặng 4  apiKeyAuth, requireUser
+   ├─ notifications/         ← chặng 4–7 routes, service, repository, schemas,
    │                                     templates, quiet-hours, rules
-   ├─ queue/                 ← chặng 5  QueueModule
-   ├─ worker/                ← chặng 5  WorkerModule, NotificationsProcessor
-   ├─ worker.ts              ← chặng 5  khởi động worker
-   └─ redis/                 ← chặng 7  RedisModule</code></pre></div>
+   ├─ queue/                 ← chặng 5  hàng đợi, kiểu SendJob
+   ├─ worker/                ← chặng 5  hàm xử lý job
+   └─ worker.ts              ← chặng 5  khởi động worker</code></pre></div>
 
-  <h3><span class="kicker k-do">Làm</span>Dựng app NestJS</h3>
+  <h3><span class="kicker k-do">Làm</span>Dựng app Fastify</h3>
   <ol class="steps">
-    <li><p class="st">Cài Nest CLI và tạo project</p>
-      <div class="code"><pre><code class="language-bash">npm i -g @nestjs/cli
-nest new push-service --package-manager npm
-cd push-service
-npm i @nestjs/config</code></pre></div>
-      <p>CLI tạo sẵn TypeScript, script chạy, Jest để test. Xoá ba file mẫu, ta sẽ tự viết:</p>
-      <div class="code"><pre><code class="language-bash">rm src/app.controller.ts src/app.service.ts src/app.controller.spec.ts</code></pre></div>
+    <li><p class="st">Tạo project và cài thư viện</p>
+      <div class="code"><pre><code class="language-bash">mkdir push-service &amp;&amp; cd push-service
+npm init -y
+npm i fastify@5 zod@4
+npm i -D typescript@7 tsx @types/node@22</code></pre></div>
+      <p><code>fastify</code> là khung web, <code>zod</code> để kiểm tra dữ liệu. Ba gói sau chỉ dùng lúc phát triển: <code>typescript</code> biên dịch code ra JavaScript, <code>tsx</code> chạy thẳng file <code>.ts</code> và tự chạy lại khi bạn sửa code, <code>@types/node</code> cho TypeScript biết các hàm có sẵn của Node.</p>
+      <p class="muted">Số sau dấu <code>@</code> giữ đúng phiên bản chính mà tài liệu này dùng, để code mẫu không bị lệch khi thư viện ra bản mới. npm có thể cảnh báo <code>allow-scripts</code> về <code>esbuild</code>: bỏ qua được, <code>tsx</code> vẫn chạy bình thường.</p>
     </li>
-    <li><p class="st">Tạo <code>.env</code> và bổ sung <code>.gitignore</code></p>
+    <li><p class="st">Cấu hình TypeScript và lệnh chạy</p>
+      <div class="code"><div class="file">tsconfig.json (tạo mới)</div><pre><code class="language-json">{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "nodenext",
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}</code></pre></div>
+      <div class="code"><div class="file">package.json (thay phần "scripts" mà npm init đã tạo)</div><pre><code class="language-json">"scripts": {
+  "dev": "tsx watch src/main.ts",
+  "build": "tsc",
+  "start": "node dist/main.js"
+}</code></pre></div>
+      <p><code>rootDir</code> và <code>outDir</code> nghĩa là: code trong <code>src/</code> được biên dịch ra <code>dist/</code> theo đúng cấu trúc thư mục, nên <code>src/main.ts</code> thành <code>dist/main.js</code>. File test (chặng 8) không cần đem lên production nên bị loại ra.</p>
+    </li>
+    <li><p class="st">Tạo <code>.env</code> và <code>.gitignore</code></p>
       <div class="code"><div class="file">.env</div><pre><code class="language-ini">PORT=3000</code></pre></div>
-      <div class="code"><div class="file">.gitignore (thêm vào cuối file CLI đã tạo)</div><pre><code class="language-plaintext">.env
+      <div class="code"><div class="file">.gitignore (tạo mới)</div><pre><code class="language-plaintext">node_modules/
+dist/
+.env
 secrets/</code></pre></div>
     </li>
-    <li><p class="st">Viết controller đầu tiên</p>
-      <p>Có thể gõ <code>nest g controller health --no-spec</code>: CLI tạo file và tự đăng ký vào module. Nội dung:</p>
-      <div class="code"><div class="file">src/health/health.controller.ts</div><pre><code class="language-ts">import { Controller, Get } from '@nestjs/common';
+    <li><p class="st">Đọc cấu hình ở một chỗ</p>
+      <div class="code"><div class="file">src/config.ts</div><pre><code class="language-ts">import { z } from 'zod';
 
-@Controller('health')          // mọi route trong class này bắt đầu bằng /health
-export class HealthController {
-  @Get()                       // GET /health
-  check() {
-    // Trả về object, Nest tự đổi thành JSON với status 200
+// Lúc phát triển, đọc biến từ file .env. Trên server thật không có file này
+// (biến do Docker hay nền tảng cấp), nên lỗi "không tìm thấy file" được bỏ qua.
+// Biến đã có sẵn trong môi trường luôn thắng giá trị trong file.
+try {
+  process.loadEnvFile();
+} catch {}
+
+// Mô tả các biến cần có. Thiếu hoặc sai thì app dừng ngay lúc khởi động, kèm thông báo rõ ràng
+const Env = z.object({
+  PORT: z.coerce.number().default(3000), // biến môi trường luôn là chuỗi: coerce đổi "3000" thành 3000
+});
+
+export const config = Env.parse(process.env);</code></pre></div>
+      <p>Mọi file khác lấy cấu hình từ đây (<code>config.PORT</code>), không đọc thẳng <code>process.env</code>. Mỗi chặng sau sẽ thêm vài dòng vào <code>z.object({ … })</code>.</p>
+    </li>
+    <li><p class="st">Viết route đầu tiên</p>
+      <div class="code"><div class="file">src/health/health.routes.ts</div><pre><code class="language-ts">import type { FastifyInstance } from 'fastify';
+
+export function healthRoutes(app: FastifyInstance) {
+  // GET /health. Handler trả về object, Fastify tự đổi thành JSON với status 200
+  app.get('/health', async () =&gt; {
     return { status: 'ok', time: new Date().toISOString() };
-  }
+  });
 }</code></pre></div>
     </li>
-    <li><p class="st">Khai báo module gốc</p>
-      <div class="code"><div class="file">src/app.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { HealthController } from './health/health.controller';
+    <li><p class="st">Tạo app</p>
+      <div class="code"><div class="file">src/app.ts</div><pre><code class="language-ts">import Fastify from 'fastify';
+import { healthRoutes } from './health/health.routes';
 
-@Module({
-  imports: [
-    // Đọc .env vào ConfigService; isGlobal: mọi module dùng được mà không cần import lại
-    ConfigModule.forRoot({ isGlobal: true }),
-  ],
-  controllers: [HealthController],
-})
-export class AppModule {}</code></pre></div>
+// Tạo app và gắn route, nhưng chưa mở cổng. main.ts lo việc mở cổng;
+// test ở chặng 8 dùng thẳng app này mà không cần cổng nào.
+export function buildApp() {
+  const app = Fastify({ logger: true }); // mỗi request ghi một dòng log JSON
+  healthRoutes(app);
+  return app;
+}</code></pre></div>
     </li>
-    <li><p class="st">Sửa <code>src/main.ts</code>: điểm khởi động</p>
-      <div class="code"><div class="file">src/main.ts</div><pre><code class="language-ts">import { NestFactory } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
-import { AppModule } from './app.module';
+    <li><p class="st">Điểm khởi động</p>
+      <div class="code"><div class="file">src/main.ts</div><pre><code class="language-ts">import { buildApp } from './app';
+import { config } from './config';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableShutdownHooks(); // nhận tín hiệu tắt để đóng kết nối gọn gàng (chặng 8)
-
-  const port = Number(app.get(ConfigService).get('PORT') ?? 3000);
-  await app.listen(port);
-  console.log(`API đang chạy ở http://localhost:${port}`);
+async function main() {
+  const app = buildApp();
+  // host 0.0.0.0: nhận kết nối từ mọi nơi (điện thoại cùng mạng, Docker),
+  // không chỉ từ chính máy này
+  await app.listen({ port: config.PORT, host: '0.0.0.0' });
 }
-bootstrap();</code></pre></div>
+main();</code></pre></div>
     </li>
     <li><p class="st">Chạy và gọi thử</p>
-      <div class="code"><pre><code class="language-bash">npm run start:dev</code></pre></div>
-      <p><code>start:dev</code> tự build lại khi bạn sửa code. Mở terminal thứ hai:</p>
+      <div class="code"><pre><code class="language-bash">npm run dev</code></pre></div>
+      <p>Terminal in ra vài dòng log JSON, trong đó có <code>Server listening at http://127.0.0.1:3000</code>. Mở terminal thứ hai:</p>
       <div class="code"><pre><code class="language-bash">curl -i http://localhost:3000/health</code></pre></div>
       <div class="code"><div class="file">Kết quả mong đợi</div><pre><code class="language-plaintext">HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
+content-type: application/json; charset=utf-8
 
 {"status":"ok","time":"2026-11-19T02:30:00.000Z"}</code></pre></div>
     </li>
   </ol>
-  <div class="callout tip"><span class="tag">Bài tập nhỏ</span><p>Gọi <code>curl -i http://localhost:3000/khong-co</code> và xem Nest trả JSON lỗi thế nào. Sau đó thêm <code>@Get('version')</code> vào <code>HealthController</code>, trả về <code>{"version":"0.1.0"}</code>.</p></div>
+  <div class="callout tip"><span class="tag">Bài tập nhỏ</span><p>Gọi <code>curl -i http://localhost:3000/khong-co</code> và xem Fastify trả JSON lỗi thế nào. Sau đó thêm route <code>GET /health/version</code> vào <code>healthRoutes</code>, trả về <code>{"version":"0.1.0"}</code>.</p></div>
   <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
-    <li><b><code>Nest can't resolve dependencies of the X (?)</code></b>: class X cần một provider mà module chưa khai báo, hoặc chưa import module chứa nó. Thông báo lỗi ghi rõ thiếu gì ở module nào, đọc kỹ là ra.</li>
-    <li><b>Đã viết controller mà gọi vẫn 404</b>: quên thêm controller vào mảng <code>controllers</code> của module (lệnh <code>nest g</code> tự làm việc này).</li>
+    <li><b><code>ZodError</code> ngay khi khởi động</b>: <code>.env</code> thiếu biến hoặc sai kiểu. Dòng <code>"path"</code> trong thông báo ghi tên biến bị thiếu.</li>
+    <li><b>Gọi được nhưng body rỗng</b>: handler quên <code>return</code>. Mỗi handler phải trả về dữ liệu, hoặc gọi <code>reply.send()</code>.</li>
+    <li><b>Máy mình gọi được, điện thoại hay Docker thì không</b>: quên <code>host: '0.0.0.0'</code> trong <code>listen</code>. Mặc định Fastify chỉ nhận kết nối từ chính máy đang chạy.</li>
     <li><b><code>EADDRINUSE</code></b>: cổng 3000 đang bị chương trình khác dùng. Tắt nó đi hoặc đổi <code>PORT</code> trong <code>.env</code>.</li>
   </ul></div>
 
@@ -849,23 +889,18 @@ messaging.onBackgroundMessage((payload) => {
     </li>
     <li><p class="st">Chạy app, cho phép thông báo, copy token từ console log</p></li>
     <li><p class="st">Cài thư viện và khai báo cấu hình</p>
-      <div class="code"><pre><code class="language-bash">npm i firebase-admin
-npm i -D tsx dotenv</code></pre></div>
+      <div class="code"><pre><code class="language-bash">npm i firebase-admin@14</code></pre></div>
       <div class="code"><div class="file">.env (thêm dòng)</div><pre><code class="language-ini">FIREBASE_CREDENTIALS=./secrets/firebase-sa.json</code></pre></div>
-      <p><code>tsx</code> dùng để chạy các script nhỏ trong thư mục <code>scripts/</code>. Để <code>nest build</code> không biên dịch lẫn thư mục này (sẽ làm lệch đường dẫn <code>dist/main.js</code>), thêm nó vào danh sách loại trừ:</p>
-      <div class="code"><div class="file">tsconfig.build.json</div><pre><code class="language-json">{
-  "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "scripts", "**/*spec.ts"]
-}</code></pre></div>
+      <div class="code"><div class="file">src/config.ts (thêm vào trong z.object({ … }))</div><pre><code class="language-ts">FIREBASE_CREDENTIALS: z.string(),      // đường dẫn tới file service account</code></pre></div>
     </li>
     <li><p class="st">Gửi thử bằng một script độc lập</p>
-      <p>Trước khi đưa vào Nest, hãy thấy kết quả ngay bằng một script ngắn gọi thẳng <code>firebase-admin</code>:</p>
-      <div class="code"><div class="file">scripts/send-test.ts</div><pre><code class="language-ts">import 'dotenv/config';
-import { readFileSync } from 'node:fs';
+      <p>Trước khi đưa vào service, hãy thấy kết quả ngay bằng một script ngắn gọi thẳng <code>firebase-admin</code>. Thư mục <code>scripts/</code> nằm ngoài <code>src/</code> nên không bị biên dịch vào <code>dist/</code>; ta chạy nó bằng <code>tsx</code>.</p>
+      <div class="code"><div class="file">scripts/send-test.ts</div><pre><code class="language-ts">import { readFileSync } from 'node:fs';
 import { cert, initializeApp } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
 
 async function main() {
+  process.loadEnvFile(); // đọc .env vào process.env
   const token = process.argv[2];
   if (!token) {
     console.error('Cách dùng: npx tsx scripts/send-test.ts &lt;device-token&gt;');
@@ -884,26 +919,19 @@ async function main() {
 main();</code></pre></div>
       <div class="code"><pre><code class="language-bash">npx tsx scripts/send-test.ts "dán-token-vào-đây"</code></pre></div>
       <div class="code"><div class="file">Kết quả mong đợi</div><pre><code class="language-plaintext">FCM đã nhận: projects/task-app-dev/messages/0:1763519400123456%31bd1c9631bd1c96</code></pre></div>
-      <p class="muted">Script này cố ý không dùng Nest. <code>tsx</code> chạy TypeScript rất nhanh nhưng không sinh metadata kiểu mà DI của Nest cần, nên script nào dựng app Nest thì phải chạy qua <code>nest start</code> hoặc code đã build.</p>
     </li>
-    <li><p class="st">Đưa vào Nest: <code>FcmModule</code> và <code>FcmService</code></p>
-      <p>Trong service, phần gửi nằm trong một provider. Mọi chỗ cần gửi push chỉ việc inject <code>FcmService</code>.</p>
-      <div class="code"><div class="file">src/fcm/fcm.service.ts</div><pre><code class="language-ts">import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { readFileSync } from 'node:fs';
+    <li><p class="st">Đưa vào service: class <code>FcmService</code></p>
+      <p>Trong service, phần gửi nằm trong một class. Nơi nào cần gửi push chỉ việc nhận một <code>FcmService</code> qua constructor.</p>
+      <div class="code"><div class="file">src/fcm/fcm.service.ts</div><pre><code class="language-ts">import { readFileSync } from 'node:fs';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
-import { getMessaging, Messaging } from 'firebase-admin/messaging';
+import { getMessaging, type Messaging } from 'firebase-admin/messaging';
 
-@Injectable()
-export class FcmService implements OnModuleInit {
-  private messaging!: Messaging;
+export class FcmService {
+  private readonly messaging: Messaging;
 
-  constructor(private readonly config: ConfigService) {}
-
-  // Lifecycle hook: Nest gọi một lần khi module đã khởi tạo xong
-  onModuleInit() {
-    const path = this.config.getOrThrow&lt;string&gt;('FIREBASE_CREDENTIALS'); // thiếu thì dừng ngay
-    const serviceAccount = JSON.parse(readFileSync(path, 'utf8'));
+  // Nhận đường dẫn file khoá từ bên ngoài, không tự đọc config: main.ts sẽ đưa vào
+  constructor(credentialsPath: string) {
+    const serviceAccount = JSON.parse(readFileSync(credentialsPath, 'utf8'));
     if (getApps().length === 0) initializeApp({ credential: cert(serviceAccount) });
     // firebase-admin lo phần khó: lấy OAuth token, gọi FCM HTTP v1 API
     this.messaging = getMessaging();
@@ -913,15 +941,7 @@ export class FcmService implements OnModuleInit {
     return this.messaging.send({ token, notification: { title, body }, data });
   }
 }</code></pre></div>
-      <div class="code"><div class="file">src/fcm/fcm.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
-import { FcmService } from './fcm.service';
-
-@Module({
-  providers: [FcmService],
-  exports: [FcmService], // cho module khác import FcmModule là dùng được FcmService
-})
-export class FcmModule {}</code></pre></div>
-      <p><code>providers</code> là những gì module tự tạo; <code>exports</code> là những gì module cho bên ngoài dùng. Chưa có ai dùng <code>FcmModule</code> lúc này, chặng 4 sẽ import nó.</p>
+      <p>Class nhận đường dẫn file khoá qua constructor thay vì tự đọc <code>config</code>, nên nó không phụ thuộc vào cách bạn cấu hình. Chưa có ai dùng <code>FcmService</code> lúc này, chặng 4 sẽ tạo nó trong <code>main.ts</code>.</p>
     </li>
     <li><p class="st">Thử nghiệm để hiểu sâu</p>
       <ul>
@@ -1056,73 +1076,36 @@ CREATE INDEX devices_user_id_idx ON devices (user_id);</code></pre></div>
       <div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push &lt; db/001_devices.sql</code></pre></div>
     </li>
     <li><p class="st">Cài thư viện và cấu hình</p>
-      <div class="code"><pre><code class="language-bash">npm i pg class-validator class-transformer
+      <div class="code"><pre><code class="language-bash">npm i pg@8
 npm i -D @types/pg</code></pre></div>
       <div class="code"><div class="file">.env (thêm dòng)</div><pre><code class="language-ini">DATABASE_URL=postgres://push:push@localhost:5432/push</code></pre></div>
-      <p class="muted">Lộ trình này viết SQL bằng tay qua thư viện <code>pg</code> để bạn hiểu từng câu lệnh. Khi đã quen, bạn có thể chuyển sang ORM như TypeORM (<code>@nestjs/typeorm</code>) hoặc Prisma; khái niệm bảng, index, upsert vẫn y nguyên.</p>
+      <div class="code"><div class="file">src/config.ts (thêm vào trong z.object({ … }))</div><pre><code class="language-ts">DATABASE_URL: z.string(),</code></pre></div>
+      <p class="muted">Lộ trình này viết SQL bằng tay qua thư viện <code>pg</code> để bạn hiểu từng câu lệnh. Khi đã quen, bạn có thể chuyển sang Drizzle hoặc Prisma; khái niệm bảng, index, upsert vẫn y nguyên.</p>
     </li>
-    <li><p class="st"><code>DatabaseModule</code>: một provider giữ kết nối, dùng chung toàn app</p>
-      <div class="code"><div class="file">src/database/db.service.ts</div><pre><code class="language-ts">import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Pool, QueryResultRow } from 'pg';
+    <li><p class="st">Schema: mô tả body hợp lệ bằng Zod</p>
+      <p><b>Schema</b> mô tả hình dạng dữ liệu đi vào: field nào bắt buộc, kiểu gì, giá trị nào được phép. Gọi <code>.parse(dữ_liệu)</code>: hợp lệ thì nhận lại dữ liệu đã đúng kiểu TypeScript; không hợp lệ thì Zod ném <code>ZodError</code> liệt kê từng chỗ sai.</p>
+      <div class="code"><div class="file">src/devices/devices.schemas.ts</div><pre><code class="language-ts">import { z } from 'zod';
 
-@Injectable()
-export class DbService implements OnModuleDestroy {
-  // Pool giữ sẵn vài kết nối để dùng lại, không mở kết nối mới cho mỗi request
-  private readonly pool: Pool;
+// strictObject: body có field lạ (không khai báo ở đây) cũng bị từ chối
+export const RegisterDevice = z.strictObject({
+  userId: z.string().min(1),               // TẠM THỜI, chặng 4 sẽ bỏ
+  token: z.string().min(20),
+  platform: z.enum(['android', 'ios', 'web']),
+  appVersion: z.string().optional(),
+});
 
-  constructor(config: ConfigService) {
-    this.pool = new Pool({ connectionString: config.getOrThrow&lt;string&gt;('DATABASE_URL'), max: 10 });
-  }
-
-  query&lt;T extends QueryResultRow = any&gt;(sql: string, params: unknown[] = []) {
-    return this.pool.query&lt;T&gt;(sql, params);
-  }
-
-  // Lifecycle hook: app tắt thì đóng hết kết nối
-  onModuleDestroy() {
-    return this.pool.end();
-  }
-}</code></pre></div>
-      <div class="code"><div class="file">src/database/database.module.ts</div><pre><code class="language-ts">import { Global, Module } from '@nestjs/common';
-import { DbService } from './db.service';
-
-@Global() // module toàn cục: mọi module inject được DbService mà không cần import
-@Module({
-  providers: [DbService],
-  exports: [DbService],
-})
-export class DatabaseModule {}</code></pre></div>
-      <p>Đừng lạm dụng <code>@Global</code>. Chỉ dùng cho thứ thật sự ai cũng cần, như kết nối database và cấu hình.</p>
-    </li>
-    <li><p class="st">DTO: mô tả body hợp lệ bằng decorator</p>
-      <p><b>DTO</b> (Data Transfer Object) là class mô tả hình dạng dữ liệu đi vào. Các decorator của <code>class-validator</code> ghi luật; <code>ValidationPipe</code> tự kiểm tra trước khi tới controller.</p>
-      <div class="code"><div class="file">src/devices/dto/register-device.dto.ts</div><pre><code class="language-ts">import { IsIn, IsOptional, IsString, MinLength } from 'class-validator';
-
-export type Platform = 'android' | 'ios' | 'web';
-
-export class RegisterDeviceDto {
-  @IsString() @MinLength(1)
-  userId!: string;                 // TẠM THỜI, chặng 4 sẽ bỏ
-
-  @IsString() @MinLength(20)
-  token!: string;
-
-  @IsIn(['android', 'ios', 'web'])
-  platform!: Platform;
-
-  @IsOptional() @IsString()
-  appVersion?: string;
-}</code></pre></div>
+// Kiểu TypeScript suy ra từ schema: luật kiểm tra và kiểu dữ liệu không bao giờ lệch nhau
+export type RegisterDevice = z.infer&lt;typeof RegisterDevice&gt;;
+export type Platform = RegisterDevice['platform'];</code></pre></div>
+      <p>Tên <code>RegisterDevice</code> được dùng cho cả hai thứ: schema (để gọi <code>.parse</code>) và kiểu (để khai báo tham số). TypeScript tự biết bạn đang dùng cái nào.</p>
     </li>
     <li><p class="st">Repository: nơi duy nhất viết SQL cho bảng <code>devices</code></p>
-      <div class="code"><div class="file">src/devices/devices.repository.ts</div><pre><code class="language-ts">import { Injectable } from '@nestjs/common';
-import { DbService } from '../database/db.service';
-import { Platform } from './dto/register-device.dto';
+      <div class="code"><div class="file">src/devices/devices.repository.ts</div><pre><code class="language-ts">import type { Pool } from 'pg';
+import type { Platform } from './devices.schemas';
 
-@Injectable()
 export class DevicesRepository {
-  constructor(private readonly db: DbService) {}
+  // Không tự mở kết nối: nhận Pool từ bên ngoài (main.ts tạo, đưa vào)
+  constructor(private readonly db: Pool) {}
 
   async upsert(userId: string, token: string, platform: Platform, appVersion?: string) {
     const { rows } = await this.db.query(
@@ -1144,7 +1127,7 @@ export class DevicesRepository {
       'SELECT token FROM devices WHERE user_id = $1',
       [userId],
     );
-    return rows.map((r) => r.token);
+    return rows.map((r) =&gt; r.token);
   }
 
   async removeTokens(tokens: string[]) {
@@ -1162,63 +1145,108 @@ export class DevicesRepository {
 }</code></pre></div>
       <p><code>EXCLUDED</code> là dòng bạn vừa định thêm vào. Câu <code>SET user_id = EXCLUDED.user_id</code> nghĩa là "lấy user_id mới ghi đè lên cái cũ".</p>
     </li>
-    <li><p class="st">Controller và module</p>
-      <div class="code"><div class="file">src/devices/devices.controller.ts</div><pre><code class="language-ts">import { Body, Controller, Delete, HttpCode, Param, Post } from '@nestjs/common';
-import { DevicesRepository } from './devices.repository';
-import { RegisterDeviceDto } from './dto/register-device.dto';
+    <li><p class="st">Error handler: một chỗ đổi lỗi thành JSON</p>
+      <p>Khi dữ liệu sai, <code>parse</code> ném lỗi. Thay vì bắt lỗi ở từng route, ta khai báo một <b>error handler</b> cho cả app: lỗi ném ra ở bất kỳ route nào cũng đi tới đây. File này có thêm <code>HttpError</code>, dùng từ chặng 4 để trả 401, 404.</p>
+      <div class="code"><div class="file">src/common/errors.ts</div><pre><code class="language-ts">import type { FastifyReply, FastifyRequest } from 'fastify';
+import { ZodError } from 'zod';
 
-@Controller('devices')
-export class DevicesController {
-  constructor(private readonly devices: DevicesRepository) {}
-
-  @Post() // POST mặc định trả 201 Created
-  register(@Body() dto: RegisterDeviceDto) {
-    // Tới được đây nghĩa là dto đã qua kiểm tra
-    return this.devices.upsert(dto.userId, dto.token, dto.platform, dto.appVersion);
+// Ném lỗi này ở bất kỳ đâu (route, service) để trả về status mong muốn.
+// Ví dụ: throw new HttpError(404, 'no_devices')
+export class HttpError extends Error {
+  constructor(
+    readonly statusCode: number,
+    message: string,
+  ) {
+    super(message);
   }
+}
 
-  @Delete(':token')
-  @HttpCode(204)
-  async remove(@Param('token') token: string) {
-    await this.devices.removeToken(token);
+// Một chỗ duy nhất đổi lỗi thành response JSON
+export function errorHandler(err: unknown, req: FastifyRequest, reply: FastifyReply) {
+  if (err instanceof ZodError) {
+    // Dữ liệu gửi lên sai: liệt kê từng field sai để người gọi biết đường sửa
+    return reply.code(400).send({
+      error: 'invalid_request',
+      issues: err.issues.map((i) =&gt; ({ field: i.path.join('.'), message: i.message })),
+    });
   }
+  // HttpError của bạn, hoặc lỗi có sẵn của Fastify (ví dụ body không phải JSON), đều có statusCode
+  if (err instanceof Error &amp;&amp; 'statusCode' in err &amp;&amp; typeof err.statusCode === 'number' &amp;&amp; err.statusCode &lt; 500) {
+    return reply.code(err.statusCode).send({ error: err.message });
+  }
+  // Còn lại là lỗi của server: ghi log đầy đủ để sửa, nhưng không lộ chi tiết ra ngoài
+  req.log.error(err);
+  return reply.code(500).send({ error: 'internal_error' });
 }</code></pre></div>
-      <div class="code"><div class="file">src/devices/devices.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
-import { DevicesController } from './devices.controller';
-import { DevicesRepository } from './devices.repository';
-
-@Module({
-  controllers: [DevicesController],
-  providers: [DevicesRepository],
-  exports: [DevicesRepository], // chặng 4 cần dùng để tìm token
-})
-export class DevicesModule {}</code></pre></div>
     </li>
-    <li><p class="st">Gắn vào app và bật kiểm tra dữ liệu toàn cục</p>
-      <div class="code"><div class="file">src/app.module.ts (sửa imports)</div><pre><code class="language-ts">import { DatabaseModule } from './database/database.module';
-import { DevicesModule } from './devices/devices.module';
+    <li><p class="st">Route cho <code>/devices</code></p>
+      <div class="code"><div class="file">src/devices/devices.routes.ts</div><pre><code class="language-ts">import type { FastifyInstance } from 'fastify';
+import type { DevicesRepository } from './devices.repository';
+import { RegisterDevice } from './devices.schemas';
 
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, DevicesModule],</code></pre></div>
-      <div class="code"><div class="file">src/main.ts (thêm sau NestFactory.create)</div><pre><code class="language-ts">import { ValidationPipe } from '@nestjs/common';
+export function devicesRoutes(app: FastifyInstance, { devices }: { devices: DevicesRepository }) {
+  app.post('/devices', async (req, reply) =&gt; {
+    // parse: đúng thì trả về dữ liệu sạch, đúng kiểu; sai thì ném ZodError, error handler trả 400
+    const body = RegisterDevice.parse(req.body);
+    const device = await devices.upsert(body.userId, body.token, body.platform, body.appVersion);
+    return reply.code(201).send(device); // 201 Created
+  });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,            // bỏ các field không khai báo trong DTO
-      forbidNonWhitelisted: true, // ... hoặc báo lỗi luôn nếu có field lạ
-      transform: true,            // biến body thành instance của class DTO
-    }),
-  );</code></pre></div>
+  // :token là tham số trên đường dẫn. Khai báo kiểu để TypeScript biết req.params có gì
+  app.delete&lt;{ Params: { token: string } }&gt;('/devices/:token', async (req, reply) =&gt; {
+    await devices.removeToken(req.params.token);
+    return reply.code(204).send(); // 204: xong, không có gì để trả
+  });
+}</code></pre></div>
+    </li>
+    <li><p class="st">Gắn vào app và lắp ráp trong <code>main.ts</code></p>
+      <div class="code"><div class="file">src/app.ts (thay toàn bộ)</div><pre><code class="language-ts">import Fastify from 'fastify';
+import { errorHandler } from './common/errors';
+import type { DevicesRepository } from './devices/devices.repository';
+import { devicesRoutes } from './devices/devices.routes';
+import { healthRoutes } from './health/health.routes';
+
+// Những thứ app cần. main.ts tạo chúng rồi đưa vào
+export type AppDeps = {
+  devices: DevicesRepository;
+};
+
+export function buildApp(deps: AppDeps) {
+  const app = Fastify({ logger: true });
+  app.setErrorHandler(errorHandler); // mọi lỗi ném ra trong route đều đi qua đây
+
+  healthRoutes(app);
+  devicesRoutes(app, deps);
+  return app;
+}</code></pre></div>
+      <div class="code"><div class="file">src/main.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Pool } from 'pg';
+import { buildApp } from './app';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+
+async function main() {
+  // Nơi duy nhất "lắp ráp": tạo mỗi thứ đúng một lần, rồi đưa tới nơi cần.
+  // Pool giữ sẵn vài kết nối để dùng lại, không mở kết nối mới cho mỗi request
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  const devices = new DevicesRepository(db);
+
+  const app = buildApp({ devices });
+  await app.listen({ port: config.PORT, host: '0.0.0.0' });
+}
+main();</code></pre></div>
+      <p>Để ý thứ tự: <code>main.ts</code> tạo <code>Pool</code>, đưa vào <code>DevicesRepository</code>, rồi đưa repository vào <code>buildApp</code>. Không file nào khác tự tạo kết nối database.</p>
     </li>
     <li><p class="st">Gọi thử và nhìn vào database</p>
       <div class="code"><pre><code class="language-bash">curl -i -X POST http://localhost:3000/devices \
   -H 'Content-Type: application/json' \
   -d '{"userId":"u_42","token":"dán-token-thật-vào-đây","platform":"android"}'</code></pre></div>
       <div class="code"><pre><code class="language-bash">docker compose exec postgres psql -U push -d push -c 'SELECT id, user_id, platform, last_seen_at FROM devices;'</code></pre></div>
-      <p>Gọi lệnh curl thêm lần nữa: vẫn chỉ có một dòng, nhưng <code>last_seen_at</code> đổi. Đó là upsert. Thử gửi <code>"platform":"windows"</code>, ValidationPipe trả lỗi mà bạn không phải viết dòng kiểm tra nào:</p>
+      <p>Gọi lệnh curl thêm lần nữa: vẫn chỉ có một dòng, nhưng <code>last_seen_at</code> đổi. Đó là upsert. Thử gửi <code>"platform":"windows"</code>: Zod trả lỗi 400 mà bạn không phải viết dòng kiểm tra nào:</p>
       <div class="code"><div class="file">Kết quả</div><pre><code class="language-json">{
-  "message": ["platform must be one of the following values: android, ios, web"],
-  "error": "Bad Request",
-  "statusCode": 400
+  "error": "invalid_request",
+  "issues": [
+    { "field": "platform", "message": "Invalid option: expected one of \"android\"|\"ios\"|\"web\"" }
+  ]
 }</code></pre></div>
     </li>
     <li><p class="st">Cho app tự gửi token lên</p>
@@ -1247,7 +1275,8 @@ export async function registerDevice() {
   <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
     <li><b><code>ECONNREFUSED 127.0.0.1:5432</code></b>: Docker chưa chạy, hoặc chưa <code>docker compose up -d</code>.</li>
     <li><b><code>relation "devices" does not exist</code></b>: chưa chạy file migration.</li>
-    <li><b>DTO không được kiểm tra</b>: quên <code>useGlobalPipes</code>, hoặc khai báo kiểu tham số là <code>any</code> thay vì class DTO. Pipe chỉ biết luật khi kiểu là một class.</li>
+    <li><b>Body không được kiểm tra</b>: dùng thẳng <code>req.body</code> mà quên gọi <code>RegisterDevice.parse()</code>. Mọi dữ liệu từ ngoài vào phải qua <code>parse</code> trước khi dùng.</li>
+    <li><b><code>415 Unsupported Media Type</code></b>: lệnh curl thiếu <code>-H 'Content-Type: application/json'</code>, nên Fastify không biết đọc body thế nào.</li>
     <li><b>App gọi API không được</b>: Android emulator không hiểu <code>localhost</code> là máy bạn. Dùng <code>10.0.2.2</code>.</li>
   </ul></div>
 
@@ -1336,114 +1365,80 @@ sequenceDiagram
   <h3><span class="kicker k-do">Làm</span>Viết API gửi</h3>
   <ol class="steps">
     <li><p class="st">Thêm khoá vào cấu hình</p>
-      <div class="code"><pre><code class="language-bash">npm i @nestjs/jwt</code></pre></div>
+      <div class="code"><pre><code class="language-bash">npm i @fastify/jwt@10</code></pre></div>
       <div class="code"><div class="file">.env (thêm dòng; production phải dùng chuỗi ngẫu nhiên dài)</div><pre><code class="language-ini">API_KEY=dev-secret-change-me
 JWT_SECRET=dev-jwt-secret-at-least-32-characters-long</code></pre></div>
+      <div class="code"><div class="file">src/config.ts (thêm vào trong z.object({ … }))</div><pre><code class="language-ts">API_KEY: z.string().min(16),
+JWT_SECRET: z.string().min(32),</code></pre></div>
+      <p><code>.min(16)</code>, <code>.min(32)</code>: khoá quá ngắn thì app không chịu khởi động, tránh lỡ tay dùng khoá yếu.</p>
     </li>
-    <li><p class="st">Viết hai guard và một decorator</p>
-      <p><b>Guard</b> là người gác cửa: Nest gọi <code>canActivate()</code> trước controller. Trả <code>true</code> thì cho vào, ném <code>UnauthorizedException</code> thì Nest trả 401.</p>
-      <div class="code"><div class="file">src/auth/api-key.guard.ts</div><pre><code class="language-ts">import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { timingSafeEqual } from 'node:crypto';
-import type { Request } from 'express';
+    <li><p class="st">Viết hai hook xác thực</p>
+      <p><b>Hook <code>preHandler</code></b> là người gác cửa: Fastify gọi nó trước handler. Hook chạy xong bình thường thì request đi tiếp; hook ném <code>HttpError(401)</code> thì request dừng lại và error handler trả 401.</p>
+      <div class="code"><div class="file">src/auth/auth.ts</div><pre><code class="language-ts">import { timingSafeEqual } from 'node:crypto';
+import type { FastifyRequest } from 'fastify';
+import { HttpError } from '../common/errors';
+
+// Báo cho TypeScript: request có thêm field userId (requireUser gán vào)
+declare module 'fastify' {
+  interface FastifyRequest {
+    userId: string;
+  }
+}
+
+// Kiểu chung của hai hook bên dưới: nhận request, không hợp lệ thì ném lỗi
+export type AuthHook = (req: FastifyRequest) =&gt; Promise&lt;void&gt;;
 
 // Cho service nội bộ: so khớp header X-API-Key
-@Injectable()
-export class ApiKeyGuard implements CanActivate {
-  private readonly expected: Buffer;
-
-  constructor(config: ConfigService) {
-    this.expected = Buffer.from(config.getOrThrow&lt;string&gt;('API_KEY'));
-  }
-
-  canActivate(ctx: ExecutionContext): boolean {
-    const req = ctx.switchToHttp().getRequest&lt;Request&gt;();
-    const given = Buffer.from(req.header('x-api-key') ?? '');
+export function apiKeyAuth(apiKey: string): AuthHook {
+  const expected = Buffer.from(apiKey);
+  return async (req) =&gt; {
+    const given = Buffer.from(String(req.headers['x-api-key'] ?? ''));
     // timingSafeEqual so sánh mất thời gian như nhau dù sai ở ký tự nào,
     // kẻ xấu không đo thời gian để đoán dần từng ký tự được
-    if (given.length !== this.expected.length || !timingSafeEqual(given, this.expected)) {
-      throw new UnauthorizedException();
+    if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
+      throw new HttpError(401, 'unauthorized');
     }
-    return true;
+  };
+}
+
+// Cho app: kiểm tra JWT do hệ thống đăng nhập phát hành.
+// req.jwtVerify() (từ @fastify/jwt) đọc header "Authorization: Bearer …",
+// kiểm tra chữ ký và hạn dùng; sai thì ném lỗi
+export const requireUser: AuthHook = async (req) =&gt; {
+  try {
+    const payload = await req.jwtVerify&lt;{ sub?: string }&gt;();
+    if (!payload.sub) throw new Error('JWT thiếu sub');
+    req.userId = payload.sub; // sub = id người dùng, gắn vào request cho handler dùng
+  } catch {
+    throw new HttpError(401, 'unauthorized');
   }
-}</code></pre></div>
-      <div class="code"><div class="file">src/auth/jwt-auth.guard.ts</div><pre><code class="language-ts">import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import type { Request } from 'express';
-
-// Cho app: kiểm tra JWT do hệ thống đăng nhập phát hành
-@Injectable()
-export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwt: JwtService) {}
-
-  async canActivate(ctx: ExecutionContext): Promise&lt;boolean&gt; {
-    const req = ctx.switchToHttp().getRequest&lt;Request &amp; { userId?: string }&gt;();
-    const header = req.header('authorization') ?? '';
-    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-    try {
-      // sai chữ ký hoặc hết hạn sẽ ném lỗi
-      const payload = await this.jwt.verifyAsync&lt;{ sub?: string }&gt;(token);
-      if (!payload.sub) throw new Error('JWT thiếu sub');
-      req.userId = payload.sub; // sub = id người dùng, gắn vào request cho controller dùng
-      return true;
-    } catch {
-      throw new UnauthorizedException();
-    }
-  }
-}</code></pre></div>
-      <div class="code"><div class="file">src/auth/current-user.decorator.ts</div><pre><code class="language-ts">import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-
-// Dùng trong controller: register(@CurrentUser() userId: string)
-export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): string => ctx.switchToHttp().getRequest().userId,
-);</code></pre></div>
-      <div class="code"><div class="file">src/auth/auth.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import { ApiKeyGuard } from './api-key.guard';
-import { JwtAuthGuard } from './jwt-auth.guard';
-
-@Module({
-  imports: [
-    // registerAsync: đợi ConfigService sẵn sàng rồi mới lấy secret
-    JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({ secret: config.getOrThrow&lt;string&gt;('JWT_SECRET') }),
-    }),
-  ],
-  providers: [ApiKeyGuard, JwtAuthGuard],
-  exports: [ApiKeyGuard, JwtAuthGuard, JwtModule],
-})
-export class AuthModule {}</code></pre></div>
-      <p class="muted">Ví dụ này dùng khoá chung HS256 cho đơn giản. Nếu hệ thống đăng nhập của bạn (Auth0, Firebase Auth, Cognito…) ký bằng RS256, cấu hình <code>JwtModule</code> với public key của họ, hoặc dùng Passport (<code>@nestjs/passport</code>) với chiến lược JWT.</p>
+};</code></pre></div>
+      <p class="muted">Ví dụ này dùng khoá chung HS256 cho đơn giản. Nếu hệ thống đăng nhập của bạn (Auth0, Firebase Auth, Cognito…) ký bằng RS256, cấu hình <code>@fastify/jwt</code> với public key của họ, hoặc dùng thêm gói <code>get-jwks</code> để tự tải khoá từ địa chỉ JWKS của họ.</p>
     </li>
     <li><p class="st">Sửa <code>/devices</code>: lấy userId từ JWT, bỏ khỏi body</p>
-      <p>Xoá field <code>userId</code> trong <code>RegisterDeviceDto</code>. Nhờ <code>forbidNonWhitelisted</code>, app nào còn gửi <code>userId</code> sẽ bị báo lỗi 400, giúp bạn phát hiện code cũ.</p>
-      <div class="code"><div class="file">src/devices/devices.controller.ts</div><pre><code class="language-ts">import { Body, Controller, Delete, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { DevicesRepository } from './devices.repository';
-import { RegisterDeviceDto } from './dto/register-device.dto';
+      <p>Xoá dòng <code>userId</code> trong schema <code>RegisterDevice</code>. Nhờ <code>z.strictObject</code>, app nào còn gửi <code>userId</code> sẽ bị báo lỗi 400, giúp bạn phát hiện code cũ.</p>
+      <div class="code"><div class="file">src/devices/devices.routes.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { FastifyInstance } from 'fastify';
+import { requireUser } from '../auth/auth';
+import type { DevicesRepository } from './devices.repository';
+import { RegisterDevice } from './devices.schemas';
 
-@Controller('devices')
-@UseGuards(JwtAuthGuard) // áp cho mọi route trong controller
-export class DevicesController {
-  constructor(private readonly devices: DevicesRepository) {}
+export function devicesRoutes(app: FastifyInstance, { devices }: { devices: DevicesRepository }) {
+  // preHandler chạy trước handler. Nó ném lỗi thì request dừng ở đó với 401
+  app.post('/devices', { preHandler: requireUser }, async (req, reply) =&gt; {
+    const body = RegisterDevice.parse(req.body);
+    const device = await devices.upsert(req.userId, body.token, body.platform, body.appVersion);
+    return reply.code(201).send(device);
+  });
 
-  @Post()
-  register(@CurrentUser() userId: string, @Body() dto: RegisterDeviceDto) {
-    return this.devices.upsert(userId, dto.token, dto.platform, dto.appVersion);
-  }
-
-  @Delete(':token')
-  @HttpCode(204)
-  async remove(@CurrentUser() userId: string, @Param('token') token: string) {
-    await this.devices.removeToken(token, userId); // chỉ xoá được token của chính mình
-  }
+  app.delete&lt;{ Params: { token: string } }&gt;(
+    '/devices/:token',
+    { preHandler: requireUser },
+    async (req, reply) =&gt; {
+      await devices.removeToken(req.params.token, req.userId); // chỉ xoá được token của chính mình
+      return reply.code(204).send();
+    },
+  );
 }</code></pre></div>
-      <div class="code"><div class="file">src/devices/devices.module.ts (thêm imports)</div><pre><code class="language-ts">import { AuthModule } from '../auth/auth.module';
-
-  imports: [AuthModule], // JwtAuthGuard cần JwtService từ AuthModule</code></pre></div>
       <p>Phía app, thay <code>userId</code> trong body bằng header <code>Authorization: `Bearer ${userJwt}`</code>.</p>
     </li>
     <li><p class="st">Nâng cấp <code>FcmService</code>: gửi theo lô và phân loại lỗi</p>
@@ -1460,8 +1455,8 @@ const RETRYABLE = new Set([
   'messaging/internal-error',
   'messaging/unknown-error',
 ]);
-export const isDeadToken = (code?: string) => !!code &amp;&amp; DEAD.has(code);
-export const isRetryable = (code?: string) => !!code &amp;&amp; RETRYABLE.has(code);
+export const isDeadToken = (code?: string) =&gt; !!code &amp;&amp; DEAD.has(code);
+export const isRetryable = (code?: string) =&gt; !!code &amp;&amp; RETRYABLE.has(code);
 
 function chunk&lt;T&gt;(items: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -1478,121 +1473,129 @@ function chunk&lt;T&gt;(items: T[], size: number): T[][] {
         android: { priority: 'high' },
         apns: { payload: { aps: { sound: 'default' } } },
       });
-      res.responses.forEach((r, i) =>
+      res.responses.forEach((r, i) =&gt;
         results.push({ token: batch[i], ok: r.success, messageId: r.messageId, errorCode: r.error?.code }),
       );
     }
     return results;
   }</code></pre></div>
     </li>
-    <li><p class="st">Validator tự viết: object mà mọi giá trị là chuỗi</p>
-      <p><code>class-validator</code> không có sẵn luật "mọi giá trị trong object phải là chuỗi", mà FCM lại bắt buộc điều đó với <code>data</code>. Ta tự tạo một decorator:</p>
-      <div class="code"><div class="file">src/common/is-string-record.ts</div><pre><code class="language-ts">import { registerDecorator, ValidationOptions } from 'class-validator';
+    <li><p class="st">Schema cho yêu cầu gửi</p>
+      <p>FCM bắt buộc mọi giá trị trong <code>data</code> là chuỗi. Nhiều thư viện kiểm tra dữ liệu bắt bạn tự viết luật này; với Zod nó chỉ là <code>z.record(z.string(), z.string())</code>.</p>
+      <div class="code"><div class="file">src/notifications/notifications.schemas.ts</div><pre><code class="language-ts">import { z } from 'zod';
 
-export function IsStringRecord(options?: ValidationOptions) {
-  return (object: object, propertyName: string) =>
-    registerDecorator({
-      name: 'isStringRecord',
-      target: object.constructor,
-      propertyName,
-      options,
-      validator: {
-        validate: (value: unknown) =>
-          typeof value === 'object' &amp;&amp;
-          value !== null &amp;&amp;
-          !Array.isArray(value) &amp;&amp;
-          Object.values(value).every((v) => typeof v === 'string'),
-        defaultMessage: () => `${propertyName} phải là object có mọi giá trị là chuỗi`,
-      },
-    });
-}</code></pre></div>
-      <div class="code"><div class="file">src/notifications/dto/send-notification.dto.ts</div><pre><code class="language-ts">import { IsOptional, IsString, Length, MinLength } from 'class-validator';
-import { IsStringRecord } from '../../common/is-string-record';
+export const SendNotification = z.strictObject({
+  userId: z.string().min(1),
+  title: z.string().min(1).max(100),
+  body: z.string().min(1).max(500),
+  // FCM bắt buộc mọi giá trị trong data là chuỗi. Với Zod, luật này chỉ là một dòng
+  data: z.record(z.string(), z.string()).optional(),
+});
 
-export class SendNotificationDto {
-  @IsString() @MinLength(1)
-  userId!: string;
-
-  @IsString() @Length(1, 100)
-  title!: string;
-
-  @IsString() @Length(1, 500)
-  body!: string;
-
-  @IsOptional() @IsStringRecord() // FCM chỉ nhận giá trị chuỗi
-  data?: Record&lt;string, string&gt;;
-}</code></pre></div>
+export type SendNotification = z.infer&lt;typeof SendNotification&gt;;</code></pre></div>
     </li>
-    <li><p class="st">Service, controller và module cho <code>/notifications</code></p>
-      <div class="code"><div class="file">src/notifications/notifications.service.ts</div><pre><code class="language-ts">import { Injectable, NotFoundException } from '@nestjs/common';
-import { DevicesRepository } from '../devices/devices.repository';
-import { FcmService, isDeadToken } from '../fcm/fcm.service';
-import { SendNotificationDto } from './dto/send-notification.dto';
+    <li><p class="st">Service, route và lắp ráp cho <code>/notifications</code></p>
+      <div class="code"><div class="file">src/notifications/notifications.service.ts</div><pre><code class="language-ts">import { HttpError } from '../common/errors';
+import type { DevicesRepository } from '../devices/devices.repository';
+import { type FcmService, isDeadToken } from '../fcm/fcm.service';
+import type { SendNotification } from './notifications.schemas';
 
-@Injectable()
 export class NotificationsService {
   constructor(
     private readonly devices: DevicesRepository,
     private readonly fcm: FcmService,
   ) {}
 
-  async send(dto: SendNotificationDto) {
-    const { userId, ...payload } = dto;
+  async send(input: SendNotification) {
+    const { userId, ...payload } = input;
     const tokens = await this.devices.tokensOf(userId);
-    if (tokens.length === 0) throw new NotFoundException('no_devices'); // Nest trả 404
+    if (tokens.length === 0) throw new HttpError(404, 'no_devices');
 
     const results = await this.fcm.sendToTokens(tokens, payload);
-    const dead = results.filter((r) => isDeadToken(r.errorCode)).map((r) => r.token);
+    const dead = results.filter((r) =&gt; isDeadToken(r.errorCode)).map((r) =&gt; r.token);
     await this.devices.removeTokens(dead); // dọn token chết ngay khi FCM báo
 
     return {
-      sent: results.filter((r) => r.ok).length,
-      failed: results.filter((r) => !r.ok).length,
+      sent: results.filter((r) =&gt; r.ok).length,
+      failed: results.filter((r) =&gt; !r.ok).length,
       removedTokens: dead.length,
     };
   }
 }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.controller.ts</div><pre><code class="language-ts">import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
-import { ApiKeyGuard } from '../auth/api-key.guard';
-import { SendNotificationDto } from './dto/send-notification.dto';
-import { NotificationsService } from './notifications.service';
+      <div class="code"><div class="file">src/notifications/notifications.routes.ts</div><pre><code class="language-ts">import type { FastifyInstance } from 'fastify';
+import type { AuthHook } from '../auth/auth';
+import { SendNotification } from './notifications.schemas';
+import type { NotificationsService } from './notifications.service';
 
-@Controller('notifications')
-export class NotificationsController {
-  constructor(private readonly notifications: NotificationsService) {}
+type Deps = { notifications: NotificationsService; requireApiKey: AuthHook };
 
-  @Post()
-  @HttpCode(200)
-  @UseGuards(ApiKeyGuard)
-  send(@Body() dto: SendNotificationDto) {
-    return this.notifications.send(dto); // controller mỏng: chỉ chuyển việc cho service
-  }
+export function notificationsRoutes(app: FastifyInstance, { notifications, requireApiKey }: Deps) {
+  app.post('/notifications', { preHandler: requireApiKey }, async (req) =&gt; {
+    const input = SendNotification.parse(req.body);
+    return notifications.send(input); // handler mỏng: kiểm tra dữ liệu xong là chuyển cho service
+  });
 }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
-import { AuthModule } from '../auth/auth.module';
-import { DevicesModule } from '../devices/devices.module';
-import { FcmModule } from '../fcm/fcm.module';
-import { NotificationsController } from './notifications.controller';
-import { NotificationsService } from './notifications.service';
+      <div class="code"><div class="file">src/app.ts (thay toàn bộ)</div><pre><code class="language-ts">import fastifyJwt from '@fastify/jwt';
+import Fastify from 'fastify';
+import { apiKeyAuth } from './auth/auth';
+import { errorHandler } from './common/errors';
+import type { DevicesRepository } from './devices/devices.repository';
+import { devicesRoutes } from './devices/devices.routes';
+import { healthRoutes } from './health/health.routes';
+import type { NotificationsService } from './notifications/notifications.service';
+import { notificationsRoutes } from './notifications/notifications.routes';
 
-@Module({
-  imports: [AuthModule, DevicesModule, FcmModule],
-  controllers: [NotificationsController],
-  providers: [NotificationsService],
-})
-export class NotificationsModule {}</code></pre></div>
-      <p>Thêm <code>NotificationsModule</code> vào mảng <code>imports</code> của <code>AppModule</code>.</p>
-    </li>
-    <li><p class="st">Script tạo JWT để thử (giả làm hệ thống đăng nhập)</p>
-      <div class="code"><div class="file">scripts/make-jwt.ts</div><pre><code class="language-ts">import 'dotenv/config';
-import { JwtService } from '@nestjs/jwt';
+export type AppDeps = {
+  apiKey: string;
+  jwtSecret: string;
+  devices: DevicesRepository;
+  notifications: NotificationsService;
+};
 
-// Tự new JwtService được vì ở đây không cần DI
-const jwt = new JwtService({ secret: process.env.JWT_SECRET });
+export function buildApp(deps: AppDeps) {
+  const app = Fastify({ logger: true });
+  app.register(fastifyJwt, { secret: deps.jwtSecret }); // thêm req.jwtVerify() cho mọi request
+  app.decorateRequest('userId', '');                      // khai báo trước field mà requireUser gán
+  app.setErrorHandler(errorHandler);
+
+  const requireApiKey = apiKeyAuth(deps.apiKey);
+  healthRoutes(app);
+  devicesRoutes(app, deps);
+  notificationsRoutes(app, { notifications: deps.notifications, requireApiKey });
+  return app;
+}</code></pre></div>
+      <div class="code"><div class="file">src/main.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Pool } from 'pg';
+import { buildApp } from './app';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+import { FcmService } from './fcm/fcm.service';
+import { NotificationsService } from './notifications/notifications.service';
 
 async function main() {
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  const devices = new DevicesRepository(db);
+  const fcm = new FcmService(config.FIREBASE_CREDENTIALS);
+  // NotificationsService cần hai thứ: đưa vào qua constructor
+  const notifications = new NotificationsService(devices, fcm);
+
+  const app = buildApp({ apiKey: config.API_KEY, jwtSecret: config.JWT_SECRET, devices, notifications });
+  await app.listen({ port: config.PORT, host: '0.0.0.0' });
+}
+main();</code></pre></div>
+      <p>Đọc <code>main.ts</code> từ trên xuống là thấy toàn bộ "ai cần gì": <code>NotificationsService</code> cần repository và <code>FcmService</code>; app cần cả hai, cộng với hai khoá.</p>
+    </li>
+    <li><p class="st">Script tạo JWT để thử (giả làm hệ thống đăng nhập)</p>
+      <div class="code"><div class="file">scripts/make-jwt.ts</div><pre><code class="language-ts">import fastifyJwt from '@fastify/jwt';
+import Fastify from 'fastify';
+
+// Dùng đúng thư viện mà service dùng để kiểm tra, nên token chắc chắn khớp
+async function main() {
+  process.loadEnvFile();
+  const app = Fastify();
+  await app.register(fastifyJwt, { secret: process.env.JWT_SECRET! });
+
   const userId = process.argv[2] ?? 'u_42';
-  console.log(await jwt.signAsync({ sub: userId }, { expiresIn: '1h' }));
+  console.log(app.jwt.sign({ sub: userId }, { expiresIn: '1h' }));
 }
 main();</code></pre></div>
     </li>
@@ -1609,7 +1612,7 @@ curl -X POST http://localhost:3000/devices \
   </ol>
   <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
     <li><b>Luôn 401</b>: header gõ sai tên, hoặc <code>.env</code> có khoảng trắng thừa sau giá trị.</li>
-    <li><b><code>Nest can't resolve dependencies of the JwtAuthGuard (?)</code></b>: module dùng guard chưa import <code>AuthModule</code>, nên không có <code>JwtService</code>.</li>
+    <li><b><code>/devices</code> luôn 401 dù JWT vừa tạo</b>: quên <code>app.register(fastifyJwt, …)</code> trong <code>buildApp</code>, hoặc <code>JWT_SECRET</code> lúc tạo token khác lúc chạy server. Muốn thấy lý do thật, tạm đổi <code>catch {</code> trong <code>requireUser</code> thành <code>catch (err) { req.log.warn(err);</code>.</li>
     <li><b>Lỗi 400 với <code>data</code></b>: Task API gửi số hoặc boolean. Chuyển thành chuỗi trước khi gửi.</li>
   </ul></div>
   <div class="callout tip"><span class="tag">Còn vấn đề gì?</span><p>API chạy được, nhưng hãy tưởng tượng: FCM chậm 3 giây thì Task API cũng chờ 3 giây. FCM lỗi 10 phút thì mọi thông báo trong 10 phút đó mất luôn. Gửi cho 50.000 người thì request bị timeout. Chặng 5 giải quyết cả ba.</p></div>
@@ -1767,22 +1770,22 @@ curl -X POST http://localhost:3000/devices \
   <div class="callout warn"><span class="tag">Sự thật khó chịu</span><p>Hàng đợi đảm bảo <b>at-least-once</b>: mỗi job chạy <i>ít nhất</i> một lần. Nếu worker gửi xong nhưng sập trước khi kịp báo "xong", job sẽ chạy lại và người dùng nhận <b>hai</b> thông báo. Chặng 6 xử lý chuyện này.</p></div>
 
   <h3>Một codebase, hai tiến trình</h3>
-  <p>Trong NestJS, API và worker dùng chung code nhưng khởi động từ hai điểm khác nhau. API chạy <code>main.ts</code> với <code>AppModule</code> và mở cổng HTTP. Worker chạy <code>worker.ts</code> với <code>WorkerModule</code>, không mở cổng nào, chỉ lấy job từ Redis. Hai bên chia sẻ các module nền.</p>
+  <p>API và worker dùng chung code nhưng khởi động từ hai file khác nhau. API chạy <code>main.ts</code>: lắp ráp các phần, gọi <code>buildApp()</code> và mở cổng HTTP. Worker chạy <code>worker.ts</code>: lắp ráp những phần nó cần, tạo một <code>Worker</code> của BullMQ, không mở cổng nào, chỉ lấy job từ Redis. Hai bên dùng chung các phần nền.</p>
   <figure class="fig">
     <div class="scroll">
-    <svg class="dg" viewBox="0 0 760 280" role="img" aria-label="AppModule cho API và WorkerModule cho worker dùng chung ConfigModule, DatabaseModule, FcmModule, QueueModule và RedisModule">
+    <svg class="dg" viewBox="0 0 760 280" role="img" aria-label="API khởi động từ main.ts, worker khởi động từ worker.ts; hai bên dùng chung config, pg Pool, FcmService, hàng đợi và Redis">
       <rect class="n" x="10" y="30" width="330" height="130" rx="14"/>
-      <text class="b" x="26" y="56">API · main.ts → AppModule</text>
-      <rect class="n2" x="26" y="72" width="140" height="34" rx="8"/><text class="mid" x="96" y="94">HealthController</text>
-      <rect class="n2" x="180" y="72" width="144" height="34" rx="8"/><text class="mid" x="252" y="94">DevicesModule</text>
-      <rect class="na" x="26" y="114" width="164" height="34" rx="8"/><text class="mid" x="108" y="136">NotificationsModule</text>
-      <rect class="n2" x="204" y="114" width="120" height="34" rx="8"/><text class="mid" x="264" y="136">AuthModule</text>
+      <text class="b" x="26" y="56">API · main.ts → buildApp()</text>
+      <rect class="n2" x="26" y="72" width="140" height="34" rx="8"/><text class="mid" x="96" y="94">health.routes</text>
+      <rect class="n2" x="180" y="72" width="144" height="34" rx="8"/><text class="mid" x="252" y="94">devices.routes</text>
+      <rect class="na" x="26" y="114" width="164" height="34" rx="8"/><text class="mid" x="108" y="136">notifications.routes</text>
+      <rect class="n2" x="204" y="114" width="120" height="34" rx="8"/><text class="mid" x="264" y="136">auth hooks</text>
 
       <rect class="n" x="420" y="30" width="330" height="130" rx="14"/>
-      <text class="b" x="436" y="56">Worker · worker.ts → WorkerModule</text>
-      <rect class="na" x="436" y="72" width="180" height="34" rx="8"/><text class="mid" x="526" y="94">NotificationsProcessor</text>
+      <text class="b" x="436" y="56">Worker · worker.ts → new Worker()</text>
+      <rect class="na" x="436" y="72" width="180" height="34" rx="8"/><text class="mid" x="526" y="94">createProcessor()</text>
       <rect class="n2" x="626" y="72" width="108" height="34" rx="8"/><text class="mid" x="680" y="94">Repositories</text>
-      <text class="m" x="436" y="136">không có controller, không mở cổng HTTP</text>
+      <text class="m" x="436" y="136">không có Fastify, không mở cổng HTTP</text>
 
       <path class="e ea" d="M342 95 H416" marker-end="url(#mk-a)"/>
       <text class="m mid" x="379" y="86">job qua Redis</text>
@@ -1793,161 +1796,153 @@ curl -X POST http://localhost:3000/devices \
       <path class="e" d="M374 200 V222" marker-end="url(#mk-m)"/>
       <path class="e" d="M511 200 V222" marker-end="url(#mk-m)"/>
       <path class="e" d="M669 200 V222" marker-end="url(#mk-m)"/>
-      <rect class="n" x="10" y="224" width="140" height="40" rx="9"/><text class="mid" x="80" y="249">ConfigModule</text>
-      <rect class="n" x="162" y="224" width="140" height="40" rx="9"/><text class="mid" x="232" y="249">DatabaseModule</text>
-      <rect class="n" x="314" y="224" width="120" height="40" rx="9"/><text class="mid" x="374" y="249">FcmModule</text>
-      <rect class="n" x="446" y="224" width="130" height="40" rx="9"/><text class="mid" x="511" y="249">QueueModule</text>
-      <rect class="n" x="588" y="224" width="162" height="40" rx="9"/><text class="mid" x="669" y="249">RedisModule (ch. 7)</text>
+      <rect class="n" x="10" y="224" width="140" height="40" rx="9"/><text class="mid" x="80" y="249">config.ts</text>
+      <rect class="n" x="162" y="224" width="140" height="40" rx="9"/><text class="mid" x="232" y="249">pg Pool</text>
+      <rect class="n" x="314" y="224" width="120" height="40" rx="9"/><text class="mid" x="374" y="249">FcmService</text>
+      <rect class="n" x="446" y="224" width="130" height="40" rx="9"/><text class="mid" x="511" y="249">queue.ts</text>
+      <rect class="n" x="588" y="224" width="162" height="40" rx="9"/><text class="mid" x="669" y="249">Redis (ch. 7)</text>
     </svg>
     </div>
-    <figcaption>Hàng dưới là các module dùng chung. Muốn thêm sức gửi, chạy thêm tiến trình worker; API không bị ảnh hưởng.</figcaption>
+    <figcaption>Hàng dưới là phần dùng chung: <code>main.ts</code> và <code>worker.ts</code> mỗi bên tự tạo bản của mình khi khởi động. Muốn thêm sức gửi, chạy thêm tiến trình worker; API không bị ảnh hưởng.</figcaption>
   </figure>
 
   <h3><span class="kicker k-do">Làm</span>Thêm hàng đợi và worker</h3>
   <ol class="steps">
-    <li><p class="st">Cài BullMQ cho Nest và cấu hình Redis</p>
-      <div class="code"><pre><code class="language-bash">npm i @nestjs/bullmq bullmq</code></pre></div>
+    <li><p class="st">Cài BullMQ và cấu hình Redis</p>
+      <div class="code"><pre><code class="language-bash">npm i bullmq@6 ioredis@6 pino@10</code></pre></div>
+      <p><code>bullmq</code> là hàng đợi; <code>ioredis</code> là thư viện nói chuyện với Redis mà BullMQ dùng bên dưới. <code>pino</code> là thư viện log mà Fastify dùng bên trong; worker không có Fastify nên dùng thẳng nó.</p>
       <div class="code"><div class="file">.env (thêm)</div><pre><code class="language-ini">REDIS_HOST=localhost
 REDIS_PORT=6379</code></pre></div>
+      <div class="code"><div class="file">src/config.ts (thêm vào trong z.object({ … }))</div><pre><code class="language-ts">REDIS_HOST: z.string().default('localhost'),
+REDIS_PORT: z.coerce.number().default(6379),</code></pre></div>
     </li>
-    <li><p class="st"><code>QueueModule</code>: kết nối Redis và khai báo hàng đợi</p>
-      <div class="code"><div class="file">src/queue/queue.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { BullModule } from '@nestjs/bullmq';
+    <li><p class="st">Khai báo hàng đợi</p>
+      <div class="code"><div class="file">src/queue/queue.ts</div><pre><code class="language-ts">import { type ConnectionOptions, Queue } from 'bullmq';
 
-export const NOTIFICATIONS_QUEUE = 'notifications';
+export const NOTIFICATIONS_QUEUE = 'notifications'; // API và worker dùng chung tên này
 export type SendJob = { userId: string; title: string; body: string; data?: Record&lt;string, string&gt; };
 
-@Module({
-  imports: [
-    BullModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        connection: {
-          host: config.get('REDIS_HOST', 'localhost'),
-          port: Number(config.get('REDIS_PORT', 6379)),
-        },
-      }),
-    }),
-    BullModule.registerQueue({
-      name: NOTIFICATIONS_QUEUE,
-      defaultJobOptions: {
-        attempts: 5,                                   // thử tối đa 5 lần
-        backoff: { type: 'exponential', delay: 2000 }, // chờ 2s, 4s, 8s, 16s
-        removeOnComplete: 1000,                        // giữ 1000 job xong gần nhất để xem
-        removeOnFail: 5000,
-      },
-    }),
-  ],
-  exports: [BullModule], // ai import QueueModule thì inject được hàng đợi
-})
-export class QueueModule {}</code></pre></div>
+export function createNotificationsQueue(connection: ConnectionOptions) {
+  return new Queue&lt;SendJob&gt;(NOTIFICATIONS_QUEUE, {
+    connection,
+    defaultJobOptions: {
+      attempts: 5,                                   // thử tối đa 5 lần
+      backoff: { type: 'exponential', delay: 2000 }, // chờ 2s, 4s, 8s, 16s
+      removeOnComplete: 1000,                        // giữ 1000 job xong gần nhất để xem
+      removeOnFail: 5000,
+    },
+  });
+}</code></pre></div>
     </li>
     <li><p class="st">API chỉ đưa job vào hàng rồi trả 202</p>
-      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Injectable } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { NOTIFICATIONS_QUEUE, SendJob } from '../queue/queue.module';
-import { SendNotificationDto } from './dto/send-notification.dto';
+      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { Queue } from 'bullmq';
+import type { SendJob } from '../queue/queue';
+import type { SendNotification } from './notifications.schemas';
 
-@Injectable()
 export class NotificationsService {
-  constructor(@InjectQueue(NOTIFICATIONS_QUEUE) private readonly queue: Queue&lt;SendJob&gt;) {}
+  constructor(private readonly queue: Queue&lt;SendJob&gt;) {}
 
-  async enqueue(dto: SendNotificationDto) {
-    const job = await this.queue.add('send', { ...dto });
+  async enqueue(input: SendNotification) {
+    const job = await this.queue.add('send', input);
     return { jobId: job.id, status: 'queued' };
   }
 }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.controller.ts (sửa handler)</div><pre><code class="language-ts">  @Post()
-  @HttpCode(202) // Accepted: đã nhận, sẽ xử lý sau
-  @UseGuards(ApiKeyGuard)
-  send(@Body() dto: SendNotificationDto) {
-    return this.notifications.enqueue(dto);
-  }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.module.ts (sửa imports)</div><pre><code class="language-ts">  imports: [AuthModule, QueueModule], // không cần DevicesModule, FcmModule nữa: worker lo việc gửi</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.routes.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { FastifyInstance } from 'fastify';
+import type { AuthHook } from '../auth/auth';
+import { SendNotification } from './notifications.schemas';
+import type { NotificationsService } from './notifications.service';
+
+type Deps = { notifications: NotificationsService; requireApiKey: AuthHook };
+
+export function notificationsRoutes(app: FastifyInstance, { notifications, requireApiKey }: Deps) {
+  app.post('/notifications', { preHandler: requireApiKey }, async (req, reply) =&gt; {
+    const input = SendNotification.parse(req.body);
+    const result = await notifications.enqueue(input);
+    return reply.code(202).send(result); // 202 Accepted: đã nhận, sẽ xử lý sau
+  });
+}</code></pre></div>
+      <div class="code"><div class="file">src/main.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Pool } from 'pg';
+import { buildApp } from './app';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+import { NotificationsService } from './notifications/notifications.service';
+import { createNotificationsQueue } from './queue/queue';
+
+async function main() {
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  const devices = new DevicesRepository(db);
+  const queue = createNotificationsQueue({ host: config.REDIS_HOST, port: config.REDIS_PORT });
+  // API không cần FcmService nữa: việc gửi giờ là của worker
+  const notifications = new NotificationsService(queue);
+
+  const app = buildApp({ apiKey: config.API_KEY, jwtSecret: config.JWT_SECRET, devices, notifications });
+  await app.listen({ port: config.PORT, host: '0.0.0.0' });
+}
+main();</code></pre></div>
     </li>
-    <li><p class="st">Viết processor: class xử lý job</p>
-      <div class="code"><div class="file">src/worker/notifications.processor.ts</div><pre><code class="language-ts">import { Logger } from '@nestjs/common';
-import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job, UnrecoverableError } from 'bullmq';
-import { NOTIFICATIONS_QUEUE, SendJob } from '../queue/queue.module';
-import { DevicesRepository } from '../devices/devices.repository';
-import { FcmService, isDeadToken, isRetryable } from '../fcm/fcm.service';
+    <li><p class="st">Viết hàm xử lý job</p>
+      <div class="code"><div class="file">src/worker/notifications.processor.ts</div><pre><code class="language-ts">import { type Job, UnrecoverableError } from 'bullmq';
+import type { DevicesRepository } from '../devices/devices.repository';
+import { type FcmService, isDeadToken, isRetryable } from '../fcm/fcm.service';
+import type { SendJob } from '../queue/queue';
 
-@Processor(NOTIFICATIONS_QUEUE, { concurrency: 10 }) // làm song song tối đa 10 job
-export class NotificationsProcessor extends WorkerHost {
-  private readonly logger = new Logger(NotificationsProcessor.name);
+type Deps = { devices: DevicesRepository; fcm: FcmService };
 
-  constructor(
-    private readonly devices: DevicesRepository,
-    private readonly fcm: FcmService,
-  ) {
-    super();
-  }
-
-  // BullMQ gọi hàm này cho mỗi job
-  async process(job: Job&lt;SendJob&gt;) {
+// Trả về hàm xử lý một job. Phụ thuộc được đưa vào từ worker.ts
+export function createProcessor({ devices, fcm }: Deps) {
+  return async (job: Job&lt;SendJob&gt;) =&gt; {
     const { userId, ...payload } = job.data;
-    const tokens = await this.devices.tokensOf(userId);
+    const tokens = await devices.tokensOf(userId);
     if (tokens.length === 0) {
       // Lỗi vĩnh viễn: thử lại cũng vô ích
       throw new UnrecoverableError(`User ${userId} chưa có thiết bị`);
     }
 
-    const results = await this.fcm.sendToTokens(tokens, payload);
-    await this.devices.removeTokens(results.filter((r) => isDeadToken(r.errorCode)).map((r) => r.token));
+    const results = await fcm.sendToTokens(tokens, payload);
+    await devices.removeTokens(results.filter((r) =&gt; isDeadToken(r.errorCode)).map((r) =&gt; r.token));
 
     // Mọi thiết bị đều lỗi tạm thời: ném lỗi để BullMQ thử lại sau
-    if (results.every((r) => isRetryable(r.errorCode))) {
+    if (results.every((r) =&gt; isRetryable(r.errorCode))) {
       throw new Error('FCM đang lỗi tạm thời');
     }
-    return { sent: results.filter((r) => r.ok).length };
-  }
-
-  @OnWorkerEvent('completed')
-  onCompleted(job: Job, result: unknown) {
-    this.logger.log(`xong job ${job.id}: ${JSON.stringify(result)}`);
-  }
-
-  @OnWorkerEvent('failed')
-  onFailed(job: Job | undefined, err: Error) {
-    this.logger.warn(`lỗi job ${job?.id}, lần ${job?.attemptsMade}: ${err.message}`);
-  }
+    return { sent: results.filter((r) =&gt; r.ok).length };
+  };
 }</code></pre></div>
+      <p><code>createProcessor</code> nhận phụ thuộc rồi trả về một hàm. BullMQ gọi hàm đó cho từng job. Hàm chạy xong là job xong; ném lỗi nghĩa là "job này hỏng, thử lại sau".</p>
     </li>
-    <li><p class="st"><code>WorkerModule</code> và điểm khởi động riêng</p>
-      <div class="code"><div class="file">src/worker/worker.module.ts</div><pre><code class="language-ts">import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from '../database/database.module';
-import { QueueModule } from '../queue/queue.module';
-import { FcmModule } from '../fcm/fcm.module';
-import { DevicesRepository } from '../devices/devices.repository';
-import { NotificationsProcessor } from './notifications.processor';
+    <li><p class="st">Điểm khởi động của worker</p>
+      <div class="code"><div class="file">src/worker.ts</div><pre><code class="language-ts">import { Worker } from 'bullmq';
+import { Pool } from 'pg';
+import { pino } from 'pino';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+import { FcmService } from './fcm/fcm.service';
+import { NOTIFICATIONS_QUEUE, type SendJob } from './queue/queue';
+import { createProcessor } from './worker/notifications.processor';
 
-@Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, QueueModule, FcmModule],
-  // Worker chỉ cần repository, không cần controller hay guard
-  providers: [NotificationsProcessor, DevicesRepository],
-})
-export class WorkerModule {}</code></pre></div>
-      <div class="code"><div class="file">src/worker.ts</div><pre><code class="language-ts">import { Logger } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { WorkerModule } from './worker/worker.module';
+const log = pino({ name: 'worker' }); // cùng thư viện log mà Fastify dùng bên trong
 
-async function bootstrap() {
-  // Application context: có đủ DI nhưng không mở cổng HTTP
-  const app = await NestFactory.createApplicationContext(WorkerModule);
-  app.enableShutdownHooks();
-  new Logger('Worker').log('Worker đã sẵn sàng, đang chờ job…');
+async function main() {
+  // Lắp ráp giống main.ts, nhưng không có Fastify: worker không mở cổng HTTP nào
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  const devices = new DevicesRepository(db);
+  const fcm = new FcmService(config.FIREBASE_CREDENTIALS);
+
+  const worker = new Worker&lt;SendJob&gt;(NOTIFICATIONS_QUEUE, createProcessor({ devices, fcm }), {
+    connection: { host: config.REDIS_HOST, port: config.REDIS_PORT },
+    concurrency: 10, // làm song song tối đa 10 job
+  });
+
+  worker.on('completed', (job, result) =&gt; log.info({ jobId: job.id, result }, 'xong job'));
+  worker.on('failed', (job, err) =&gt; {
+    log.warn({ jobId: job?.id, attempt: job?.attemptsMade, err: err.message }, 'job lỗi');
+  });
+  log.info('Worker đã sẵn sàng, đang chờ job…');
 }
-bootstrap();</code></pre></div>
-      <div class="code"><div class="file">package.json (thêm vào scripts)</div><pre><code class="language-json">"worker:dev": "nest start --watch --entryFile worker",
-"start:worker": "node dist/worker"</code></pre></div>
-      <div class="code"><div class="file">nest-cli.json (sửa)</div><pre><code class="language-json">"compilerOptions": {
-  "deleteOutDir": false
-}</code></pre></div>
-      <p>Mặc định mỗi lần build, Nest xoá thư mục <code>dist</code>. Khi API và worker cùng chạy chế độ watch, hai tiến trình sẽ xoá file của nhau, nên ta tắt tuỳ chọn này. Mở hai terminal: một chạy <code>npm run start:dev</code> (API), một chạy <code>npm run worker:dev</code>.</p>
+main();</code></pre></div>
+      <div class="code"><div class="file">package.json (thêm vào scripts)</div><pre><code class="language-json">"worker:dev": "tsx watch src/worker.ts",
+"start:worker": "node dist/worker.js"</code></pre></div>
+      <p>Mở hai terminal: một chạy <code>npm run dev</code> (API), một chạy <code>npm run worker:dev</code> (worker).</p>
     </li>
     <li><p class="st">Thí nghiệm: nhìn tận mắt hàng đợi hoạt động</p>
       <ul>
@@ -1955,13 +1950,14 @@ bootstrap();</code></pre></div>
         <li>Xem có bao nhiêu job đang chờ trong Redis:
           <div class="code"><pre><code class="language-bash">docker compose exec redis redis-cli LLEN bull:notifications:wait</code></pre></div></li>
         <li><b>Bật lại worker</b>: 3 job được xử lý ngay, 3 thông báo hiện lên máy. Không mất gì cả.</li>
-        <li><b>Giả lập FCM sập</b>: thêm <code>if (Math.random() &lt; 0.7) throw new Error('giả lập FCM sập');</code> vào đầu <code>process()</code>, gửi vài lần và đọc log để thấy các lần thử lại cách nhau 2s, 4s, 8s.</li>
+        <li><b>Giả lập FCM sập</b>: thêm <code>if (Math.random() &lt; 0.7) throw new Error('giả lập FCM sập');</code> vào đầu hàm xử lý job trong <code>createProcessor</code>, gửi vài lần và đọc log để thấy các lần thử lại cách nhau 2s, 4s, 8s.</li>
       </ul>
     </li>
   </ol>
   <div class="callout warn"><span class="tag">Lỗi hay gặp</span><ul>
-    <li><b>Job nằm im không chạy</b>: quên chạy worker, hoặc tên queue ở <code>registerQueue</code> và <code>@Processor</code> khác nhau. Dùng chung hằng số <code>NOTIFICATIONS_QUEUE</code> để tránh gõ sai.</li>
-    <li><b>API cũng xử lý job</b>: bạn lỡ thêm <code>NotificationsProcessor</code> vào module của API. Processor chỉ nằm trong <code>WorkerModule</code>.</li>
+    <li><b>Job nằm im không chạy</b>: quên chạy worker, hoặc tên hàng đợi lúc tạo <code>Queue</code> và lúc tạo <code>Worker</code> khác nhau. Dùng chung hằng số <code>NOTIFICATIONS_QUEUE</code> để tránh gõ sai.</li>
+    <li><b><code>BullMQ could not load the optional 'ioredis' package</code></b>: chưa cài <code>ioredis</code>.</li>
+    <li><b>API cũng xử lý job</b>: bạn lỡ tạo <code>new Worker(…)</code> trong <code>main.ts</code>. Worker chỉ được tạo trong <code>worker.ts</code>.</li>
     <li><b>Đọc kỹ chỗ còn hở</b>: nếu 1 trong 2 máy lỗi tạm thời, code trên không thử lại máy đó. Muốn thử lại riêng từng máy thì phải nhớ máy nào đã gửi xong, tức là cần lưu trạng thái. Đó là việc của chặng 6.</li>
   </ul></div>
 
@@ -2110,8 +2106,7 @@ CREATE TABLE deliveries (
       <div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push &lt; db/002_notifications.sql</code></pre></div>
     </li>
     <li><p class="st"><code>NotificationsRepository</code>: mọi câu SQL của hai bảng mới</p>
-      <div class="code"><div class="file">src/notifications/notifications.repository.ts</div><pre><code class="language-ts">import { Injectable } from '@nestjs/common';
-import { DbService } from '../database/db.service';
+      <div class="code"><div class="file">src/notifications/notifications.repository.ts</div><pre><code class="language-ts">import type { Pool } from 'pg';
 import type { SendResult } from '../fcm/fcm.service';
 
 export type NotificationRow = {
@@ -2124,9 +2119,8 @@ export type NewNotification = {
   sendAt?: Date; status?: 'queued' | 'scheduled'; // dùng ở chặng 7
 };
 
-@Injectable()
 export class NotificationsRepository {
-  constructor(private readonly db: DbService) {}
+  constructor(private readonly db: Pool) {}
 
   async create(n: NewNotification, idempotencyKey: string | null) {
     const { rows } = await this.db.query&lt;{ id: string; status: string }&gt;(
@@ -2159,7 +2153,7 @@ export class NotificationsRepository {
       `SELECT token FROM deliveries WHERE notification_id = $1 AND status = 'sent'`,
       [notificationId],
     );
-    return new Set(rows.map((r) => r.token));
+    return new Set(rows.map((r) =&gt; r.token));
   }
 
   async saveDelivery(notificationId: string, r: SendResult) {
@@ -2197,25 +2191,23 @@ export class NotificationsRepository {
     </li>
     <li><p class="st">Job giờ chỉ mang id</p>
       <p>Dữ liệu thật nằm ở database, job chỉ cần trỏ tới nó. Database là <b>nguồn sự thật duy nhất</b>, job không bao giờ lệch với nó.</p>
-      <div class="code"><div class="file">src/queue/queue.module.ts (sửa kiểu)</div><pre><code class="language-ts">export type SendJob = { notificationId: string };</code></pre></div>
+      <div class="code"><div class="file">src/queue/queue.ts (sửa kiểu)</div><pre><code class="language-ts">export type SendJob = { notificationId: string };</code></pre></div>
     </li>
     <li><p class="st">Service: ghi database trước, rồi đưa vào hàng đợi</p>
-      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { NOTIFICATIONS_QUEUE, SendJob } from '../queue/queue.module';
-import { SendNotificationDto } from './dto/send-notification.dto';
-import { NotificationsRepository } from './notifications.repository';
+      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { Queue } from 'bullmq';
+import { HttpError } from '../common/errors';
+import type { SendJob } from '../queue/queue';
+import type { NotificationsRepository } from './notifications.repository';
+import type { SendNotification } from './notifications.schemas';
 
-@Injectable()
 export class NotificationsService {
   constructor(
     private readonly repo: NotificationsRepository,
-    @InjectQueue(NOTIFICATIONS_QUEUE) private readonly queue: Queue&lt;SendJob&gt;,
+    private readonly queue: Queue&lt;SendJob&gt;,
   ) {}
 
-  async create(dto: SendNotificationDto, idempotencyKey: string | null) {
-    const n = await this.repo.create(dto, idempotencyKey);
+  async create(input: SendNotification, idempotencyKey: string | null) {
+    const n = await this.repo.create(input, idempotencyKey);
     if (n.duplicate) return n; // đã nhận yêu cầu này rồi, không gửi lại
     // jobId = id thông báo: BullMQ cũng bỏ qua job trùng id
     await this.queue.add('send', { notificationId: n.id }, { jobId: n.id });
@@ -2224,109 +2216,130 @@ export class NotificationsService {
 
   async detail(id: string) {
     const n = await this.repo.findById(id);
-    if (!n) throw new NotFoundException();
+    if (!n) throw new HttpError(404, 'not_found');
     return { ...n, deliveries: await this.repo.deliveriesOf(id) };
   }
-}</code></pre></div>
-    </li>
-    <li><p class="st">Controller: thêm tra cứu và báo "đã mở"</p>
-      <div class="code"><div class="file">src/notifications/notifications.controller.ts (thay toàn bộ)</div><pre><code class="language-ts">import {
-  Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post, Res, UseGuards,
-} from '@nestjs/common';
-import type { Response } from 'express';
-import { ApiKeyGuard } from '../auth/api-key.guard';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentUser } from '../auth/current-user.decorator';
-import { SendNotificationDto } from './dto/send-notification.dto';
-import { NotificationsService } from './notifications.service';
-import { NotificationsRepository } from './notifications.repository';
 
-@Controller('notifications')
-export class NotificationsController {
-  constructor(
-    private readonly notifications: NotificationsService,
-    private readonly repo: NotificationsRepository,
-  ) {}
-
-  @Post()
-  @UseGuards(ApiKeyGuard)
-  async create(
-    @Body() dto: SendNotificationDto,
-    @Headers('idempotency-key') idempotencyKey: string | undefined,
-    @Res({ passthrough: true }) res: Response, // passthrough: vẫn để Nest trả body như thường
-  ) {
-    const n = await this.notifications.create(dto, idempotencyKey ?? null);
-    res.status(n.duplicate ? 200 : 202); // trùng: 200 kèm bản cũ; mới: 202
-    return n;
-  }
-
-  @Get(':id')
-  @UseGuards(ApiKeyGuard)
-  detail(@Param('id', ParseUUIDPipe) id: string) { // id không phải UUID thì Nest trả 400
-    return this.notifications.detail(id);
-  }
-
-  @Post(':id/opened')
-  @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
-  async opened(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() userId: string) {
-    await this.repo.markOpened(id, userId);
+  markOpened(id: string, userId: string) {
+    return this.repo.markOpened(id, userId);
   }
 }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.module.ts (sửa providers)</div><pre><code class="language-ts">  providers: [NotificationsService, NotificationsRepository],</code></pre></div>
-      <div class="callout tip"><span class="tag">Nâng cao</span><p>Nếu ghi database thành công mà đưa vào hàng đợi thất bại (Redis sập đúng lúc đó), bản ghi sẽ nằm mãi ở <code>queued</code>. Cách đơn giản: một tác vụ định kỳ (<code>@nestjs/schedule</code> với <code>@Cron</code>) tìm bản ghi <code>queued</code> quá 5 phút và đưa lại vào hàng. Cách bài bản hơn có tên là <b>transactional outbox pattern</b>, đáng tìm đọc khi bạn đã vững.</p></div>
+      <div class="code"><div class="file">src/main.ts (thêm import, sửa dòng tạo NotificationsService)</div><pre><code class="language-ts">import { NotificationsRepository } from './notifications/notifications.repository';
+
+  const notifications = new NotificationsService(new NotificationsRepository(db), queue);</code></pre></div>
     </li>
-    <li><p class="st">Processor: chỉ gửi cho máy chưa nhận, ghi kết quả từng máy</p>
-      <div class="code"><div class="file">src/worker/notifications.processor.ts (thay constructor, process, onFailed)</div><pre><code class="language-ts">import { NotificationsRepository } from '../notifications/notifications.repository';
+    <li><p class="st">Route: thêm tra cứu và báo "đã mở"</p>
+      <div class="code"><div class="file">src/notifications/notifications.routes.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import { type AuthHook, requireUser } from '../auth/auth';
+import { SendNotification } from './notifications.schemas';
+import type { NotificationsService } from './notifications.service';
 
-  constructor(
-    private readonly devices: DevicesRepository,
-    private readonly notifications: NotificationsRepository,
-    private readonly fcm: FcmService,
-  ) {
-    super();
-  }
+type Deps = { notifications: NotificationsService; requireApiKey: AuthHook };
 
-  async process(job: Job&lt;SendJob&gt;) {
-    const n = await this.notifications.findById(job.data.notificationId);
-    if (!n || n.status === 'canceled') return 'skipped';
+// Tham số trên đường dẫn cũng là dữ liệu từ ngoài vào: kiểm tra luôn. Không phải UUID thì 400
+const IdParams = z.object({ id: z.uuid() });
 
-    await this.notifications.setStatus(n.id, 'processing');
-    const tokens = await this.devices.tokensOf(n.user_id);
-    const alreadySent = await this.notifications.sentTokens(n.id); // các lần thử trước đã gửi xong
-    const pending = tokens.filter((t) => !alreadySent.has(t));
+export function notificationsRoutes(app: FastifyInstance, { notifications, requireApiKey }: Deps) {
+  app.post('/notifications', { preHandler: requireApiKey }, async (req, reply) =&gt; {
+    const input = SendNotification.parse(req.body);
+    const key = req.headers['idempotency-key'];
+    const n = await notifications.create(input, typeof key === 'string' ? key : null);
+    return reply.code(n.duplicate ? 200 : 202).send(n); // trùng: 200 kèm bản cũ; mới: 202
+  });
 
-    const results = await this.fcm.sendToTokens(pending, {
+  app.get('/notifications/:id', { preHandler: requireApiKey }, async (req) =&gt; {
+    const { id } = IdParams.parse(req.params);
+    return notifications.detail(id);
+  });
+
+  app.post('/notifications/:id/opened', { preHandler: requireUser }, async (req, reply) =&gt; {
+    const { id } = IdParams.parse(req.params);
+    await notifications.markOpened(id, req.userId);
+    return reply.code(204).send();
+  });
+}</code></pre></div>
+      <div class="callout tip"><span class="tag">Nâng cao</span><p>Nếu ghi database thành công mà đưa vào hàng đợi thất bại (Redis sập đúng lúc đó), bản ghi sẽ nằm mãi ở <code>queued</code>. Cách đơn giản: một job lặp lại của BullMQ (tạo bằng <code>queue.upsertJobScheduler</code>, chạy mỗi phút) tìm bản ghi <code>queued</code> quá 5 phút và đưa lại vào hàng. Cách bài bản hơn có tên là <b>transactional outbox pattern</b>, đáng tìm đọc khi bạn đã vững.</p></div>
+    </li>
+    <li><p class="st">Hàm xử lý job: chỉ gửi cho máy chưa nhận, ghi kết quả từng máy</p>
+      <div class="code"><div class="file">src/worker/notifications.processor.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { Job } from 'bullmq';
+import type { DevicesRepository } from '../devices/devices.repository';
+import { type FcmService, isDeadToken, isRetryable } from '../fcm/fcm.service';
+import type { NotificationsRepository } from '../notifications/notifications.repository';
+import type { SendJob } from '../queue/queue';
+
+type Deps = { devices: DevicesRepository; notifications: NotificationsRepository; fcm: FcmService };
+
+export function createProcessor({ devices, notifications, fcm }: Deps) {
+  return async (job: Job&lt;SendJob&gt;) =&gt; {
+    const n = await notifications.findById(job.data.notificationId);
+    if (!n || n.status === 'canceled') return { status: 'skipped' };
+
+    await notifications.setStatus(n.id, 'processing');
+    const tokens = await devices.tokensOf(n.user_id);
+    const alreadySent = await notifications.sentTokens(n.id); // các lần thử trước đã gửi xong
+    const pending = tokens.filter((t) =&gt; !alreadySent.has(t));
+
+    const results = await fcm.sendToTokens(pending, {
       title: n.title,
       body: n.body,
       data: { ...n.data, notificationId: n.id }, // app cần id để báo "đã mở"
     });
-    for (const r of results) await this.notifications.saveDelivery(n.id, r);
-    const dead = results.filter((r) => isDeadToken(r.errorCode)).map((r) => r.token);
-    await this.devices.removeTokens(dead);
+    for (const r of results) await notifications.saveDelivery(n.id, r);
+    const dead = results.filter((r) =&gt; isDeadToken(r.errorCode)).map((r) =&gt; r.token);
+    await devices.removeTokens(dead);
 
     // Còn máy lỗi tạm thời và còn lượt: ném lỗi để thử lại (chỉ máy đó)
     const hasMoreAttempts = job.attemptsMade + 1 &lt; (job.opts.attempts ?? 1);
-    if (hasMoreAttempts &amp;&amp; results.some((r) => isRetryable(r.errorCode))) {
+    if (hasMoreAttempts &amp;&amp; results.some((r) =&gt; isRetryable(r.errorCode))) {
       throw new Error('Còn thiết bị lỗi tạm thời, sẽ thử lại');
     }
 
-    const sentCount = alreadySent.size + results.filter((r) => r.ok).length;
+    const sent = alreadySent.size + results.filter((r) =&gt; r.ok).length;
     const total = tokens.length - dead.length;
-    const status = sentCount === 0 ? 'failed' : sentCount &lt; total ? 'partially_sent' : 'sent';
-    await this.notifications.setStatus(n.id, status);
-    return status;
-  }
+    const status = sent === 0 ? 'failed' : sent &lt; total ? 'partially_sent' : 'sent';
+    await notifications.setStatus(n.id, status);
+    return { status, sent, total };
+  };
+}</code></pre></div>
+      <div class="code"><div class="file">src/worker.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Worker } from 'bullmq';
+import { Pool } from 'pg';
+import { pino } from 'pino';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+import { FcmService } from './fcm/fcm.service';
+import { NotificationsRepository } from './notifications/notifications.repository';
+import { NOTIFICATIONS_QUEUE, type SendJob } from './queue/queue';
+import { createProcessor } from './worker/notifications.processor';
 
-  // Lỗi bất ngờ ở lần cuối (mạng, database): đánh dấu failed để không kẹt ở processing
-  @OnWorkerEvent('failed')
-  async onFailed(job: Job&lt;SendJob&gt; | undefined, err: Error) {
-    this.logger.warn(`lỗi job ${job?.id}, lần ${job?.attemptsMade}: ${err.message}`);
-    if (job &amp;&amp; job.attemptsMade >= (job.opts.attempts ?? 1)) {
-      await this.notifications.setStatus(job.data.notificationId, 'failed');
+const log = pino({ name: 'worker' });
+
+async function main() {
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  const devices = new DevicesRepository(db);
+  const notifications = new NotificationsRepository(db);
+  const fcm = new FcmService(config.FIREBASE_CREDENTIALS);
+
+  const worker = new Worker&lt;SendJob&gt;(
+    NOTIFICATIONS_QUEUE,
+    createProcessor({ devices, notifications, fcm }),
+    { connection: { host: config.REDIS_HOST, port: config.REDIS_PORT }, concurrency: 10 },
+  );
+
+  // Log có cấu trúc: object trước, câu mô tả sau
+  worker.on('completed', (job, result) =&gt; {
+    log.info({ notificationId: job.data.notificationId, ...result }, 'đã xử lý thông báo');
+  });
+  worker.on('failed', (job, err) =&gt; {
+    log.warn({ jobId: job?.id, attempt: job?.attemptsMade, err: err.message }, 'job lỗi');
+    // Lỗi bất ngờ ở lần cuối (mạng, database): đánh dấu failed để không kẹt ở processing
+    if (job &amp;&amp; job.attemptsMade &gt;= (job.opts.attempts ?? 1)) {
+      notifications.setStatus(job.data.notificationId, 'failed').catch((e) =&gt; log.error(e));
     }
-  }</code></pre></div>
-      <div class="code"><div class="file">src/worker/worker.module.ts (sửa providers)</div><pre><code class="language-ts">  providers: [NotificationsProcessor, DevicesRepository, NotificationsRepository],</code></pre></div>
+  });
+  log.info('Worker đã sẵn sàng, đang chờ job…');
+}
+main();</code></pre></div>
       <p>Không còn dùng <code>UnrecoverableError</code>: user không có máy nào thì thông báo chuyển sang <code>failed</code> và được ghi lại, thay vì chỉ nằm trong danh sách job lỗi.</p>
     </li>
     <li><p class="st">Thử chống trùng và tra cứu</p>
@@ -2457,7 +2470,7 @@ CREATE TABLE user_settings (
 );</code></pre></div>
       <p>Sau đó thêm <code>category?: string</code> vào type <code>NewNotification</code>, và cột <code>category</code> (tham số <code>$8</code>, mặc định <code>'reminder'</code>) vào câu <code>INSERT</code> trong <code>NotificationsRepository.create</code>. Bài tập nhỏ để bạn tự sửa SQL.</p>
     </li>
-    <li><p class="st">Template: hàm thuần, không cần là provider</p>
+    <li><p class="st">Template: hàm thuần, không cần là class</p>
       <div class="code"><div class="file">src/notifications/templates.ts</div><pre><code class="language-ts">export type Locale = 'vi' | 'en';
 type Template = { title: string; body: string };
 
@@ -2476,10 +2489,10 @@ export function render(code: string, locale: Locale, vars: Record&lt;string, str
   const t = templates[code]?.[locale] ?? templates[code]?.vi;
   if (!t) throw new Error(`Không có template ${code}`);
   // thay {{tên}} bằng giá trị trong vars
-  const fill = (s: string) => s.replace(/\{\{(\w+)\}\}/g, (_, key: string) => vars[key] ?? '');
+  const fill = (s: string) =&gt; s.replace(/\{\{(\w+)\}\}/g, (_, key: string) =&gt; vars[key] ?? '');
   return { title: fill(t.title), body: fill(t.body) };
 }</code></pre></div>
-      <p class="muted">Không phải thứ gì cũng cần là class có <code>@Injectable()</code>. Hàm không phụ thuộc gì (không database, không cấu hình) để dạng hàm thường là gọn nhất, và test rất dễ.</p>
+      <p class="muted">Không phải thứ gì cũng cần là class. Hàm không phụ thuộc gì (không database, không cấu hình) để dạng hàm thường là gọn nhất, và test rất dễ.</p>
     </li>
     <li><p class="st">Giờ yên tĩnh: cũng là hàm thuần</p>
       <div class="code"><div class="file">src/notifications/quiet-hours.ts</div><pre><code class="language-ts">export type UserSettings = { timezone: string; quiet_start: number | null; quiet_end: number | null };
@@ -2491,58 +2504,28 @@ export function quietDelayMs(at: Date, s: UserSettings): number {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: s.timezone, hour: 'numeric', minute: 'numeric', hourCycle: 'h23',
   }).formatToParts(at);
-  const h = Number(parts.find((p) => p.type === 'hour')?.value);
-  const m = Number(parts.find((p) => p.type === 'minute')?.value);
+  const h = Number(parts.find((p) =&gt; p.type === 'hour')?.value);
+  const m = Number(parts.find((p) =&gt; p.type === 'minute')?.value);
 
   const start = s.quiet_start;
   const end = s.quiet_end;
   // Khung yên tĩnh có thể vắt qua nửa đêm (22 → 7)
-  const inQuiet = start &lt; end ? h >= start &amp;&amp; h &lt; end : h >= start || h &lt; end;
+  const inQuiet = start &lt; end ? h &gt;= start &amp;&amp; h &lt; end : h &gt;= start || h &lt; end;
   if (!inQuiet) return 0;
 
   const minutesLeft = (end * 60 - (h * 60 + m) + 1440) % 1440;
   return minutesLeft * 60_000;
 }</code></pre></div>
     </li>
-    <li><p class="st"><code>RedisModule</code>: một custom provider</p>
-      <p>Không phải class nào cũng do bạn viết. Với thư viện ngoài như <code>ioredis</code>, ta dạy Nest cách tạo nó bằng <code>useFactory</code>, đặt cho nó một "tên" (token) để inject.</p>
-      <div class="code"><pre><code class="language-bash">npm i ioredis</code></pre></div>
-      <div class="code"><div class="file">src/redis/redis.module.ts</div><pre><code class="language-ts">import { Global, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Redis } from 'ioredis';
-
-export const REDIS = 'REDIS'; // token để inject: @Inject(REDIS)
-
-@Global()
-@Module({
-  providers: [
-    {
-      provide: REDIS,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) =>
-        new Redis({
-          host: config.get('REDIS_HOST', 'localhost'),
-          port: Number(config.get('REDIS_PORT', 6379)),
-        }),
-    },
-  ],
-  exports: [REDIS],
-})
-export class RedisModule {}</code></pre></div>
-      <p>Thêm <code>RedisModule</code> vào <code>imports</code> của <code>AppModule</code>.</p>
-    </li>
     <li><p class="st"><code>RulesService</code>: cài đặt người dùng và rate limit</p>
-      <div class="code"><div class="file">src/notifications/rules.service.ts</div><pre><code class="language-ts">import { Inject, Injectable } from '@nestjs/common';
-import { Redis } from 'ioredis';
-import { DbService } from '../database/db.service';
-import { REDIS } from '../redis/redis.module';
-import { UserSettings } from './quiet-hours';
+      <div class="code"><div class="file">src/notifications/rules.service.ts</div><pre><code class="language-ts">import type { Redis } from 'ioredis';
+import type { Pool } from 'pg';
+import type { UserSettings } from './quiet-hours';
 
-@Injectable()
 export class RulesService {
   constructor(
-    private readonly db: DbService,
-    @Inject(REDIS) private readonly redis: Redis, // custom provider thì phải chỉ rõ token
+    private readonly db: Pool,
+    private readonly redis: Redis,
   ) {}
 
   async isCategoryEnabled(userId: string, category: string): Promise&lt;boolean&gt; {
@@ -2569,75 +2552,69 @@ export class RulesService {
     return count &lt;= limit;
   }
 }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.module.ts (sửa providers)</div><pre><code class="language-ts">  providers: [NotificationsService, NotificationsRepository, RulesService],</code></pre></div>
+      <p><code>RulesService</code> cần hai thứ: <code>Pool</code> để đọc cài đặt, và một client Redis để đếm. Client Redis sẽ được tạo trong <code>main.ts</code> ở bước "ghép" bên dưới (<code>ioredis</code> đã cài ở chặng 5).</p>
     </li>
-    <li><p class="st">DTO mới: Task API gửi template thay vì câu chữ</p>
-      <div class="code"><div class="file">src/notifications/dto/send-notification.dto.ts (thay toàn bộ)</div><pre><code class="language-ts">import { IsIn, IsISO8601, IsOptional, IsString, MinLength } from 'class-validator';
-import { IsStringRecord } from '../../common/is-string-record';
-import type { Locale } from '../templates';
+    <li><p class="st">Schema mới: Task API gửi template thay vì câu chữ</p>
+      <div class="code"><div class="file">src/notifications/notifications.schemas.ts (thay toàn bộ)</div><pre><code class="language-ts">import { z } from 'zod';
 
-export type Category = 'reminder' | 'comment' | 'marketing';
+const StringRecord = z.record(z.string(), z.string()); // object mà mọi giá trị là chuỗi
 
-export class SendNotificationDto {
-  @IsString() @MinLength(1)
-  userId!: string;
+export const SendNotification = z.strictObject({
+  userId: z.string().min(1),
+  category: z.enum(['reminder', 'comment', 'marketing']),
+  template: z.enum(['task_due_soon', 'task_assigned']),
+  vars: StringRecord.default({}),             // không gửi thì là {}
+  locale: z.enum(['vi', 'en']).default('vi'),
+  data: StringRecord.optional(),
+  sendAt: z.iso.datetime({ offset: true }).optional(), // ví dụ 2026-11-19T09:30:00+07:00
+});
 
-  @IsIn(['reminder', 'comment', 'marketing'])
-  category!: Category;
-
-  @IsIn(['task_due_soon', 'task_assigned'])
-  template!: string;
-
-  @IsOptional() @IsStringRecord()
-  vars: Record&lt;string, string&gt; = {};   // giá trị mặc định có hiệu lực nhờ transform: true
-
-  @IsOptional() @IsIn(['vi', 'en'])
-  locale: Locale = 'vi';
-
-  @IsOptional() @IsStringRecord()
-  data?: Record&lt;string, string&gt;;
-
-  @IsOptional() @IsISO8601({ strict: true })
-  sendAt?: string;                       // ví dụ 2026-11-19T09:30:00+07:00
-}</code></pre></div>
+export type SendNotification = z.infer&lt;typeof SendNotification&gt;;
+export type Category = SendNotification['category'];</code></pre></div>
+      <p><code>.default()</code>: thiếu field thì Zod tự điền giá trị mặc định, nên sau <code>parse</code>, <code>vars</code> và <code>locale</code> luôn có giá trị.</p>
     </li>
     <li><p class="st">Ghép tất cả vào <code>NotificationsService.create</code></p>
-      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay constructor và create)</div><pre><code class="language-ts">import { ConflictException, HttpException, HttpStatus } from '@nestjs/common';
-import { render } from './templates';
+      <div class="code"><div class="file">src/notifications/notifications.service.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { Queue } from 'bullmq';
+import { HttpError } from '../common/errors';
+import type { SendJob } from '../queue/queue';
+import type { NotificationsRepository } from './notifications.repository';
+import type { SendNotification } from './notifications.schemas';
 import { quietDelayMs } from './quiet-hours';
-import { RulesService } from './rules.service';
+import type { RulesService } from './rules.service';
+import { render } from './templates';
 
+export class NotificationsService {
   constructor(
     private readonly repo: NotificationsRepository,
     private readonly rules: RulesService,
-    @InjectQueue(NOTIFICATIONS_QUEUE) private readonly queue: Queue&lt;SendJob&gt;,
+    private readonly queue: Queue&lt;SendJob&gt;,
   ) {}
 
-  async create(dto: SendNotificationDto, idempotencyKey: string | null) {
-    const urgent = dto.category === 'reminder';
+  async create(input: SendNotification, idempotencyKey: string | null) {
+    const urgent = input.category === 'reminder';
 
     // 1. Người dùng đã tắt loại thông báo này?
-    if (!(await this.rules.isCategoryEnabled(dto.userId, dto.category))) {
+    if (!(await this.rules.isCategoryEnabled(input.userId, input.category))) {
       return { status: 'skipped', reason: 'user_opted_out', duplicate: false };
     }
     // 2. Quá nhiều thông báo không gấp trong 1 giờ?
-    if (!urgent &amp;&amp; !(await this.rules.allowForUser(dto.userId))) {
-      throw new HttpException('rate_limited', HttpStatus.TOO_MANY_REQUESTS); // 429
+    if (!urgent &amp;&amp; !(await this.rules.allowForUser(input.userId))) {
+      throw new HttpError(429, 'rate_limited');
     }
     // 3. Dựng nội dung từ template
-    const { title, body } = render(dto.template, dto.locale, dto.vars);
+    const { title, body } = render(input.template, input.locale, input.vars);
 
     // 4. Tính giờ gửi: lấy sendAt (không sớm hơn bây giờ), rồi lùi qua giờ yên tĩnh
     const now = Date.now();
-    const base = new Date(Math.max(dto.sendAt ? Date.parse(dto.sendAt) : now, now));
-    const quiet = urgent ? 0 : quietDelayMs(base, await this.rules.userSettings(dto.userId));
+    const base = new Date(Math.max(input.sendAt ? Date.parse(input.sendAt) : now, now));
+    const quiet = urgent ? 0 : quietDelayMs(base, await this.rules.userSettings(input.userId));
     const sendAt = new Date(base.getTime() + quiet);
     const delay = sendAt.getTime() - now;
 
     const n = await this.repo.create(
       {
-        userId: dto.userId, category: dto.category, title, body, data: dto.data,
-        sendAt, status: delay > 1000 ? 'scheduled' : 'queued',
+        userId: input.userId, category: input.category, title, body, data: input.data,
+        sendAt, status: delay &gt; 1000 ? 'scheduled' : 'queued',
       },
       idempotencyKey,
     );
@@ -2645,8 +2622,46 @@ import { RulesService } from './rules.service';
 
     await this.queue.add('send', { notificationId: n.id }, { jobId: n.id, delay });
     return { ...n, sendAt };
-  }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.controller.ts (sửa dòng đặt status)</div><pre><code class="language-ts">    res.status(n.duplicate || n.status === 'skipped' ? 200 : 202);</code></pre></div>
+  }
+
+  async detail(id: string) {
+    const n = await this.repo.findById(id);
+    if (!n) throw new HttpError(404, 'not_found');
+    return { ...n, deliveries: await this.repo.deliveriesOf(id) };
+  }
+
+  markOpened(id: string, userId: string) {
+    return this.repo.markOpened(id, userId);
+  }
+}</code></pre></div>
+      <div class="code"><div class="file">src/notifications/notifications.routes.ts (sửa dòng trả kết quả trong POST /notifications)</div><pre><code class="language-ts">    return reply.code(n.duplicate || n.status === 'skipped' ? 200 : 202).send(n);</code></pre></div>
+      <div class="code"><div class="file">src/main.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Redis } from 'ioredis';
+import { Pool } from 'pg';
+import { buildApp } from './app';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+import { NotificationsRepository } from './notifications/notifications.repository';
+import { NotificationsService } from './notifications/notifications.service';
+import { RulesService } from './notifications/rules.service';
+import { createNotificationsQueue } from './queue/queue';
+
+async function main() {
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  // Một client Redis dùng chung cho cả tiến trình (đếm rate limit)
+  const redis = new Redis({ host: config.REDIS_HOST, port: config.REDIS_PORT });
+  const queue = createNotificationsQueue({ host: config.REDIS_HOST, port: config.REDIS_PORT });
+
+  const devices = new DevicesRepository(db);
+  const notifications = new NotificationsService(
+    new NotificationsRepository(db),
+    new RulesService(db, redis),
+    queue,
+  );
+
+  const app = buildApp({ apiKey: config.API_KEY, jwtSecret: config.JWT_SECRET, devices, notifications });
+  await app.listen({ port: config.PORT, host: '0.0.0.0' });
+}
+main();</code></pre></div>
     </li>
     <li><p class="st">Huỷ thông báo hẹn giờ</p>
       <div class="code"><div class="file">src/notifications/notifications.repository.ts (thêm method)</div><pre><code class="language-ts">  async cancel(id: string): Promise&lt;boolean&gt; {
@@ -2656,19 +2671,18 @@ import { RulesService } from './rules.service';
        WHERE id = $1 AND status IN ('scheduled', 'queued')`,
       [id],
     );
-    return (rowCount ?? 0) > 0;
+    return (rowCount ?? 0) &gt; 0;
   }</code></pre></div>
       <div class="code"><div class="file">src/notifications/notifications.service.ts (thêm method)</div><pre><code class="language-ts">  async cancel(id: string) {
-    if (!(await this.repo.cancel(id))) throw new ConflictException('cannot_cancel'); // 409
+    if (!(await this.repo.cancel(id))) throw new HttpError(409, 'cannot_cancel');
     await this.queue.remove(id); // jobId chính là id thông báo
   }</code></pre></div>
-      <div class="code"><div class="file">src/notifications/notifications.controller.ts (thêm route; nhớ import Delete)</div><pre><code class="language-ts">  @Delete(':id')
-  @HttpCode(204)
-  @UseGuards(ApiKeyGuard)
-  async cancel(@Param('id', ParseUUIDPipe) id: string) {
-    await this.notifications.cancel(id);
-  }</code></pre></div>
-      <p>Processor ở chặng 6 đã bỏ qua thông báo <code>canceled</code>. Đó là lớp bảo vệ thứ hai, phòng khi job đã rời hàng đợi đúng lúc bạn huỷ.</p>
+      <div class="code"><div class="file">src/notifications/notifications.routes.ts (thêm route vào trong notificationsRoutes)</div><pre><code class="language-ts">  app.delete('/notifications/:id', { preHandler: requireApiKey }, async (req, reply) =&gt; {
+    const { id } = IdParams.parse(req.params);
+    await notifications.cancel(id);
+    return reply.code(204).send();
+  });</code></pre></div>
+      <p>Hàm xử lý job ở chặng 6 đã bỏ qua thông báo <code>canceled</code>. Đó là lớp bảo vệ thứ hai, phòng khi job đã rời hàng đợi đúng lúc bạn huỷ.</p>
     </li>
     <li><p class="st">Collapse key và topic (tham khảo)</p>
       <div class="code"><div class="file">trong FcmService.sendToTokens: gộp các thông báo cùng task</div><pre><code class="language-ts">android: { priority: 'high', collapseKey: `task-${taskId}` },
@@ -2694,7 +2708,7 @@ apns: { headers: { 'apns-collapse-id': `task-${taskId}` }, payload: { aps: { sou
     </li>
   </ol>
   <div class="callout tip"><span class="tag">Bài tập mở rộng</span><ul>
-    <li>Tạo <code>PreferencesController</code> với <code>GET /me/preferences</code> và <code>PUT /me/preferences</code> (dùng <code>JwtAuthGuard</code> và <code>@CurrentUser()</code>) để app có màn hình cài đặt thông báo.</li>
+    <li>Viết <code>src/preferences/preferences.routes.ts</code> với <code>GET /me/preferences</code> và <code>PUT /me/preferences</code> (dùng <code>requireUser</code> và <code>req.userId</code>) để app có màn hình cài đặt thông báo.</li>
     <li>Viết <code>GET /me/notifications?cursor=…</code> trả 20 thông báo gần nhất: bạn vừa có một "hộp thư thông báo" trong app.</li>
   </ul></div>
 
@@ -2826,114 +2840,253 @@ apns: { headers: { 'apns-collapse-id': `task-${taskId}` }, payload: { aps: { sou
 
   <h3><span class="kicker k-do">Làm</span>Chuẩn bị chạy thật</h3>
   <ol class="steps">
-    <li><p class="st">Log có cấu trúc với nestjs-pino</p>
-      <div class="code"><pre><code class="language-bash">npm i nestjs-pino pino-http</code></pre></div>
-      <div class="code"><div class="file">src/app.module.ts (thêm vào imports; làm tương tự trong WorkerModule)</div><pre><code class="language-ts">import { LoggerModule } from 'nestjs-pino';
-
-    LoggerModule.forRoot({
-      pinoHttp: {
-        level: process.env.LOG_LEVEL ?? 'info',
-        // Không bao giờ ghi khoá bí mật vào log
-        redact: ['req.headers.authorization', 'req.headers["x-api-key"]'],
-      },
-    }),</code></pre></div>
-      <div class="code"><div class="file">src/main.ts và src/worker.ts (dùng logger của pino cho cả app)</div><pre><code class="language-ts">import { Logger } from 'nestjs-pino';
-
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  app.useLogger(app.get(Logger));</code></pre></div>
-      <div class="code"><div class="file">trong processor: truyền object trước, câu mô tả sau</div><pre><code class="language-ts">this.logger.log({ notificationId: n.id, status, sent: sentCount, total }, 'đã xử lý thông báo');</code></pre></div>
-      <div class="code"><div class="file">Một dòng log trông như sau</div><pre><code class="language-json">{"level":30,"time":1763519400123,"context":"NotificationsProcessor","notificationId":"8f0c2c1e-…","status":"sent","sent":2,"total":2,"msg":"đã xử lý thông báo"}</code></pre></div>
+    <li><p class="st">Log có cấu trúc: pino đã có sẵn</p>
+      <p>Fastify ghi log bằng <code>pino</code> từ chặng 1: mỗi dòng là một object JSON. Worker cũng dùng pino từ chặng 5, và đã ghi log theo kiểu "object trước, câu mô tả sau". Việc còn lại là chỉnh được mức log qua biến môi trường, và che khoá bí mật.</p>
+      <div class="code"><div class="file">src/config.ts (thêm vào trong z.object({ … }))</div><pre><code class="language-ts">LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),</code></pre></div>
+      <div class="code"><div class="file">src/main.ts (truyền cấu hình log vào buildApp; bản đầy đủ ở bước 3)</div><pre><code class="language-ts">  const app = buildApp(
+    { apiKey: config.API_KEY, jwtSecret: config.JWT_SECRET, db, redis, devices, notifications },
+    {
+      level: config.LOG_LEVEL,
+      // Log mặc định của Fastify không ghi header. Lỡ sau này có ghi thì vẫn che khoá bí mật
+      redact: ['req.headers.authorization', 'req.headers["x-api-key"]'],
+    },
+  );</code></pre></div>
+      <div class="code"><div class="file">src/worker.ts (sửa dòng tạo logger)</div><pre><code class="language-ts">const log = pino({ name: 'worker', level: config.LOG_LEVEL });</code></pre></div>
+      <div class="code"><div class="file">Một dòng log của worker trông như sau</div><pre><code class="language-json">{"level":30,"time":1763519400123,"pid":7,"hostname":"worker-1","name":"worker","notificationId":"8f0c2c1e-…","status":"sent","sent":2,"total":2,"msg":"đã xử lý thông báo"}</code></pre></div>
       <p>Muốn ghi token vào log để gỡ lỗi thì chỉ ghi vài ký tự đầu, ví dụ <code>token.slice(0, 8) + '…'</code>.</p>
     </li>
     <li><p class="st">Health check thật sự kiểm tra phụ thuộc</p>
-      <div class="code"><div class="file">src/health/health.controller.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
-import { Redis } from 'ioredis';
-import { DbService } from '../database/db.service';
-import { REDIS } from '../redis/redis.module';
+      <div class="code"><div class="file">src/health/health.routes.ts (thay toàn bộ)</div><pre><code class="language-ts">import type { FastifyInstance } from 'fastify';
+import type { Redis } from 'ioredis';
+import type { Pool } from 'pg';
 
-@Controller('health')
-export class HealthController {
-  constructor(
-    private readonly db: DbService,
-    @Inject(REDIS) private readonly redis: Redis,
-  ) {}
+export function healthRoutes(app: FastifyInstance, { db, redis }: { db: Pool; redis: Redis }) {
+  // Tiến trình còn sống
+  app.get('/health/live', async () =&gt; ({ status: 'ok' }));
 
-  @Get('live') // tiến trình còn sống
-  live() {
-    return { status: 'ok' };
-  }
-
-  @Get('ready') // sẵn sàng nhận request: database và Redis đều trả lời
-  async ready() {
+  // Sẵn sàng nhận request: database và Redis đều trả lời
+  app.get('/health/ready', async (_req, reply) =&gt; {
     try {
-      await this.db.query('SELECT 1');
-      await this.redis.ping();
+      await db.query('SELECT 1');
+      await redis.ping();
       return { status: 'ready' };
     } catch {
       // 503: load balancer sẽ ngừng gửi request tới bản này
-      throw new ServiceUnavailableException({ status: 'not_ready' });
+      return reply.code(503).send({ status: 'not_ready' });
     }
-  }
+  });
 }</code></pre></div>
-      <p class="muted">Gói <code>@nestjs/terminus</code> làm việc này bài bản hơn (kiểm tra dung lượng đĩa, bộ nhớ, nhiều database), đáng dùng khi service lớn.</p>
+      <div class="code"><div class="file">src/app.ts (thay toàn bộ)</div><pre><code class="language-ts">import fastifyJwt from '@fastify/jwt';
+import Fastify, { type FastifyServerOptions } from 'fastify';
+import type { Redis } from 'ioredis';
+import type { Pool } from 'pg';
+import { apiKeyAuth } from './auth/auth';
+import { errorHandler } from './common/errors';
+import type { DevicesRepository } from './devices/devices.repository';
+import { devicesRoutes } from './devices/devices.routes';
+import { healthRoutes } from './health/health.routes';
+import type { NotificationsService } from './notifications/notifications.service';
+import { notificationsRoutes } from './notifications/notifications.routes';
+
+export type AppDeps = {
+  apiKey: string;
+  jwtSecret: string;
+  db: Pool;      // cho /health/ready
+  redis: Redis;  // cho /health/ready
+  devices: DevicesRepository;
+  notifications: NotificationsService;
+};
+
+// logger: main.ts truyền cấu hình log; test truyền false cho đỡ ồn
+export function buildApp(deps: AppDeps, logger: FastifyServerOptions['logger'] = true) {
+  const app = Fastify({ logger });
+  app.register(fastifyJwt, { secret: deps.jwtSecret });
+  app.decorateRequest('userId', '');
+  app.setErrorHandler(errorHandler);
+
+  const requireApiKey = apiKeyAuth(deps.apiKey);
+  healthRoutes(app, deps);
+  devicesRoutes(app, deps);
+  notificationsRoutes(app, { notifications: deps.notifications, requireApiKey });
+  return app;
+}</code></pre></div>
+      <p><code>AppDeps</code> có thêm <code>db</code> và <code>redis</code> cho health check, và <code>buildApp</code> nhận thêm cấu hình log ở tham số thứ hai.</p>
+      <p class="muted">Plugin <code>@fastify/under-pressure</code> kiểm tra thêm event loop và bộ nhớ, tự trả 503 khi tiến trình quá tải. Đáng dùng khi service lớn.</p>
     </li>
     <li><p class="st">Tắt êm (graceful shutdown): không bỏ dở job</p>
-      <p>Khi deploy bản mới, nền tảng gửi tín hiệu <code>SIGTERM</code> cho tiến trình cũ. Bạn đã gọi <code>app.enableShutdownHooks()</code> ở cả <code>main.ts</code> và <code>worker.ts</code> từ trước, nên khi nhận tín hiệu, Nest lần lượt gọi các lifecycle hook:</p>
+      <p>Khi deploy bản mới, nền tảng gửi tín hiệu <code>SIGTERM</code> cho tiến trình cũ. Fastify và BullMQ không tự bắt tín hiệu này; bạn viết vài dòng để tắt đúng thứ tự:</p>
       <ul>
-        <li><code>@nestjs/bullmq</code> đóng worker: ngừng nhận job mới, đợi job đang chạy xong.</li>
-        <li><code>DbService.onModuleDestroy()</code> đóng pool kết nối PostgreSQL.</li>
+        <li><b>API:</b> <code>app.close()</code> ngừng nhận request mới, đợi request đang chạy xong, rồi chạy hook <code>onClose</code> để đóng hàng đợi, Redis và pool PostgreSQL.</li>
+        <li><b>Worker:</b> <code>worker.close()</code> ngừng nhận job mới, đợi job đang chạy xong, rồi đóng pool.</li>
       </ul>
-      <p>Bài tập: <code>RedisModule</code> đang tạo client bằng factory nên chưa có hook đóng. Hãy bọc nó trong một class có <code>onApplicationShutdown()</code> gọi <code>redis.quit()</code>.</p>
+      <div class="code"><div class="file">src/main.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Redis } from 'ioredis';
+import { Pool } from 'pg';
+import { buildApp } from './app';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+import { NotificationsRepository } from './notifications/notifications.repository';
+import { NotificationsService } from './notifications/notifications.service';
+import { RulesService } from './notifications/rules.service';
+import { createNotificationsQueue } from './queue/queue';
+
+async function main() {
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  const redis = new Redis({ host: config.REDIS_HOST, port: config.REDIS_PORT });
+  const queue = createNotificationsQueue({ host: config.REDIS_HOST, port: config.REDIS_PORT });
+
+  const devices = new DevicesRepository(db);
+  const notifications = new NotificationsService(
+    new NotificationsRepository(db),
+    new RulesService(db, redis),
+    queue,
+  );
+
+  const app = buildApp(
+    { apiKey: config.API_KEY, jwtSecret: config.JWT_SECRET, db, redis, devices, notifications },
+    {
+      level: config.LOG_LEVEL,
+      // Log mặc định của Fastify không ghi header. Lỡ sau này có ghi thì vẫn che khoá bí mật
+      redact: ['req.headers.authorization', 'req.headers["x-api-key"]'],
+    },
+  );
+
+  // app.close() chạy hook này sau khi request cuối cùng xong: đóng kết nối gọn gàng
+  app.addHook('onClose', async () =&gt; {
+    await queue.close();
+    await redis.quit();
+    await db.end();
+  });
+
+  // Nền tảng gửi SIGTERM khi deploy bản mới; Ctrl+C gửi SIGINT
+  for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+    process.once(signal, async () =&gt; {
+      app.log.info({ signal }, 'đang tắt êm…');
+      await app.close(); // ngừng nhận request mới, đợi request đang chạy xong
+      process.exit(0);
+    });
+  }
+
+  await app.listen({ port: config.PORT, host: '0.0.0.0' });
+}
+main();</code></pre></div>
+      <div class="code"><div class="file">src/worker.ts (thay toàn bộ)</div><pre><code class="language-ts">import { Worker } from 'bullmq';
+import { Pool } from 'pg';
+import { pino } from 'pino';
+import { config } from './config';
+import { DevicesRepository } from './devices/devices.repository';
+import { FcmService } from './fcm/fcm.service';
+import { NotificationsRepository } from './notifications/notifications.repository';
+import { NOTIFICATIONS_QUEUE, type SendJob } from './queue/queue';
+import { createProcessor } from './worker/notifications.processor';
+
+const log = pino({ name: 'worker', level: config.LOG_LEVEL });
+
+async function main() {
+  const db = new Pool({ connectionString: config.DATABASE_URL, max: 10 });
+  const devices = new DevicesRepository(db);
+  const notifications = new NotificationsRepository(db);
+  const fcm = new FcmService(config.FIREBASE_CREDENTIALS);
+
+  const worker = new Worker&lt;SendJob&gt;(
+    NOTIFICATIONS_QUEUE,
+    createProcessor({ devices, notifications, fcm }),
+    { connection: { host: config.REDIS_HOST, port: config.REDIS_PORT }, concurrency: 10 },
+  );
+
+  // Log có cấu trúc: object trước, câu mô tả sau
+  worker.on('completed', (job, result) =&gt; {
+    log.info({ notificationId: job.data.notificationId, ...result }, 'đã xử lý thông báo');
+  });
+  worker.on('failed', (job, err) =&gt; {
+    log.warn({ jobId: job?.id, attempt: job?.attemptsMade, err: err.message }, 'job lỗi');
+    // Lỗi bất ngờ ở lần cuối (mạng, database): đánh dấu failed để không kẹt ở processing
+    if (job &amp;&amp; job.attemptsMade &gt;= (job.opts.attempts ?? 1)) {
+      notifications.setStatus(job.data.notificationId, 'failed').catch((e) =&gt; log.error(e));
+    }
+  });
+
+  // Nền tảng gửi SIGTERM khi deploy bản mới; Ctrl+C gửi SIGINT
+  for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+    process.once(signal, async () =&gt; {
+      log.info({ signal }, 'đang tắt êm…');
+      await worker.close(); // ngừng nhận job mới, đợi job đang chạy xong
+      await db.end();
+      process.exit(0);
+    });
+  }
+  log.info('Worker đã sẵn sàng, đang chờ job…');
+}
+main();</code></pre></div>
+      <p>Bài tập: nếu một job bị treo, <code>worker.close()</code> sẽ chờ mãi. Thêm hẹn giờ: sau 10 giây vẫn chưa tắt xong thì <code>process.exit(1)</code>.</p>
     </li>
     <li><p class="st">Metric và giao diện xem hàng đợi (tuỳ chọn)</p>
       <ul>
-        <li><b>Metric:</b> gói <code>@willsoto/nestjs-prometheus</code> mở sẵn <code>/metrics</code>. Tạo một counter <code>push_results_total</code> với nhãn <code>result</code> và <code>error_code</code>, tăng nó trong processor sau mỗi lần gửi.</li>
-        <li><b>Xem hàng đợi:</b> gói <code>@bull-board/nestjs</code> cho giao diện web xem job đang chờ, job lỗi, bấm thử lại. Đặt sau một guard chỉ admin vào được.</li>
+        <li><b>Metric:</b> plugin <code>fastify-metrics</code> (dùng <code>prom-client</code> bên dưới) mở sẵn <code>/metrics</code>. Tạo một counter <code>push_results_total</code> với nhãn <code>result</code> và <code>error_code</code>, tăng nó trong worker sau mỗi lần gửi.</li>
+        <li><b>Xem hàng đợi:</b> gói <code>@bull-board/fastify</code> cho giao diện web xem job đang chờ, job lỗi, bấm thử lại. Đặt sau một hook chỉ admin vào được.</li>
       </ul>
     </li>
-    <li><p class="st">Viết test: nơi DI phát huy tác dụng</p>
-      <p>CLI đã cài sẵn Jest. Hàm thuần thì test thẳng:</p>
-      <div class="code"><div class="file">src/notifications/quiet-hours.spec.ts</div><pre><code class="language-ts">import { quietDelayMs } from './quiet-hours';
+    <li><p class="st">Viết test: lợi ích của việc truyền phụ thuộc</p>
+      <div class="code"><pre><code class="language-bash">npm i -D vitest@5</code></pre></div>
+      <div class="code"><div class="file">package.json (thêm vào scripts)</div><pre><code class="language-json">"test": "vitest run"</code></pre></div>
+      <p>Hàm thuần thì test thẳng:</p>
+      <div class="code"><div class="file">src/notifications/quiet-hours.test.ts</div><pre><code class="language-ts">import { describe, expect, it } from 'vitest';
+import { quietDelayMs } from './quiet-hours';
 
-describe('quietDelayMs', () => {
+describe('quietDelayMs', () =&gt; {
   const s = { timezone: 'Asia/Ho_Chi_Minh', quiet_start: 22, quiet_end: 7 };
 
-  it('21:30 không nằm trong giờ yên tĩnh', () => {
+  it('21:30 không nằm trong giờ yên tĩnh', () =&gt; {
     expect(quietDelayMs(new Date('2026-11-18T21:30:00+07:00'), s)).toBe(0);
   });
 
-  it('23:30 phải chờ tới 07:00', () => {
+  it('23:30 phải chờ tới 07:00', () =&gt; {
     expect(quietDelayMs(new Date('2026-11-18T23:30:00+07:00'), s)).toBe(7.5 * 3_600_000);
   });
 });</code></pre></div>
-      <p>Với service có phụ thuộc, <code>Test.createTestingModule</code> cho phép thay database, Redis, hàng đợi bằng đồ giả. Đây chính là "quản lý bếp đổi nhà cung cấp" trong ví von ở chặng 1:</p>
-      <div class="code"><div class="file">src/notifications/notifications.service.spec.ts</div><pre><code class="language-ts">import { Test } from '@nestjs/testing';
-import { getQueueToken } from '@nestjs/bullmq';
-import { NOTIFICATIONS_QUEUE } from '../queue/queue.module';
+      <p>Service nhận mọi phụ thuộc qua constructor, nên trong test chỉ việc đưa đồ giả vào: không cần database, Redis hay thư viện nào khác. Đây chính là "quản lý bếp đổi nhà cung cấp" trong ví von ở chặng 1:</p>
+      <div class="code"><div class="file">src/notifications/notifications.service.test.ts</div><pre><code class="language-ts">import type { Queue } from 'bullmq';
+import { describe, expect, it, vi } from 'vitest';
+import type { SendJob } from '../queue/queue';
+import type { NotificationsRepository } from './notifications.repository';
+import { SendNotification } from './notifications.schemas';
 import { NotificationsService } from './notifications.service';
-import { NotificationsRepository } from './notifications.repository';
-import { RulesService } from './rules.service';
-import { SendNotificationDto } from './dto/send-notification.dto';
+import type { RulesService } from './rules.service';
 
-describe('NotificationsService', () => {
-  it('người dùng tắt loại thông báo thì không đưa job vào hàng', async () => {
-    const queue = { add: jest.fn() };
-    const moduleRef = await Test.createTestingModule({
-      providers: [
-        NotificationsService,
-        { provide: NotificationsRepository, useValue: { create: jest.fn() } },
-        { provide: RulesService, useValue: { isCategoryEnabled: async () => false } },
-        { provide: getQueueToken(NOTIFICATIONS_QUEUE), useValue: queue },
-      ],
-    }).compile();
+describe('NotificationsService', () =&gt; {
+  it('người dùng tắt loại thông báo thì không đưa job vào hàng', async () =&gt; {
+    // Đồ giả chỉ cần có đúng những hàm mà service sẽ gọi
+    const repo = { create: vi.fn() };
+    const rules = { isCategoryEnabled: async () =&gt; false };
+    const queue = { add: vi.fn() };
 
-    const service = moduleRef.get(NotificationsService);
-    const dto = Object.assign(new SendNotificationDto(), {
-      userId: 'u_42', category: 'marketing', template: 'task_assigned',
-    });
+    // "as unknown as": bảo TypeScript tin rằng đồ giả này dùng được thay đồ thật
+    const service = new NotificationsService(
+      repo as unknown as NotificationsRepository,
+      rules as unknown as RulesService,
+      queue as unknown as Queue&lt;SendJob&gt;,
+    );
+    const input = SendNotification.parse({ userId: 'u_42', category: 'marketing', template: 'task_assigned' });
 
-    await expect(service.create(dto, null)).resolves.toMatchObject({ status: 'skipped' });
+    await expect(service.create(input, null)).resolves.toMatchObject({ status: 'skipped' });
+    expect(repo.create).not.toHaveBeenCalled();
     expect(queue.add).not.toHaveBeenCalled();
+  });
+});</code></pre></div>
+      <p>Route cũng test được mà không mở cổng: <code>app.inject()</code> giả lập một request HTTP và trả về response.</p>
+      <div class="code"><div class="file">src/app.test.ts</div><pre><code class="language-ts">import { describe, expect, it } from 'vitest';
+import { type AppDeps, buildApp } from './app';
+
+describe('POST /notifications', () =&gt; {
+  it('thiếu API key thì trả 401', async () =&gt; {
+    // Request bị chặn ở preHandler, nên các phụ thuộc không bao giờ được dùng tới
+    const deps = { apiKey: 'test-api-key-123456', jwtSecret: 'x'.repeat(32) } as AppDeps;
+    const app = buildApp(deps, false);
+
+    // inject: giả lập một request HTTP mà không cần mở cổng
+    const res = await app.inject({ method: 'POST', url: '/notifications', payload: {} });
+
+    expect(res.statusCode).toBe(401);
+    expect(res.json()).toEqual({ error: 'unauthorized' });
   });
 });</code></pre></div>
       <div class="code"><pre><code class="language-bash">npm test</code></pre></div>
@@ -2945,7 +3098,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build          # nest build: ra dist/main.js và dist/worker.js
+RUN npm run build          # tsc: ra dist/main.js và dist/worker.js
 
 FROM node:22-alpine
 WORKDIR /app
@@ -2953,7 +3106,7 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
-CMD ["node", "dist/main"]</code></pre></div>
+CMD ["node", "dist/main.js"]</code></pre></div>
       <div class="code"><div class="file">docker-compose.yml (thêm vào services)</div><pre><code class="language-yaml">  api:
     build: .
     env_file: .env
@@ -2965,7 +3118,7 @@ CMD ["node", "dist/main"]</code></pre></div>
     depends_on: [postgres, redis]
   worker:
     build: .
-    command: ["node", "dist/worker"]   # cùng image, khác điểm khởi động
+    command: ["node", "dist/worker.js"]   # cùng image, khác điểm khởi động
     env_file: .env
     environment:
       DATABASE_URL: postgres://push:push@postgres:5432/push
@@ -2973,7 +3126,7 @@ CMD ["node", "dist/main"]</code></pre></div>
     volumes: ["./secrets:/app/secrets:ro"]
     depends_on: [postgres, redis]</code></pre></div>
       <div class="code"><pre><code class="language-bash">docker compose up -d --build --scale worker=3</code></pre></div>
-      <p>Nếu <code>dist/main.js</code> không tồn tại mà lại thấy <code>dist/src/main.js</code>, nghĩa là <code>nest build</code> đã biên dịch lẫn thư mục <code>scripts/</code>: kiểm tra lại <code>exclude</code> trong <code>tsconfig.build.json</code> (chặng 2).</p>
+      <p>Biến trong <code>environment</code> thắng biến trong <code>.env</code>, nên trong Docker, <code>DATABASE_URL</code> và <code>REDIS_HOST</code> trỏ tới tên container thay vì <code>localhost</code>. Image cuối chỉ chứa <code>dist/</code> và thư viện chạy, không có <code>.env</code> hay mã nguồn TypeScript.</p>
       <p>Trên production, bật chế độ lưu xuống đĩa cho Redis để job không mất khi Redis khởi động lại: <code>command: ["redis-server", "--appendonly", "yes"]</code>. BullMQ cũng khuyên đặt <code>maxmemory-policy noeviction</code> để Redis không tự xoá job khi đầy bộ nhớ.</p>
     </li>
   </ol>
@@ -3007,11 +3160,11 @@ CMD ["node", "dist/main"]</code></pre></div>
       <tr><td>Notification / data message</td><td>Phần OS tự hiển thị / phần cho code của app đọc</td><td>2</td></tr>
       <tr><td>Upsert</td><td>Thêm mới nếu chưa có, cập nhật nếu đã có</td><td>3</td></tr>
       <tr><td>Migration</td><td>File ghi lại một lần thay đổi cấu trúc database</td><td>3</td></tr>
-      <tr><td>Module (NestJS)</td><td>Hộp gom controller, provider của một chủ đề</td><td>1</td></tr>
-      <tr><td>Provider, DI</td><td>Class Nest tự tạo và đưa vào constructor nơi cần</td><td>1</td></tr>
-      <tr><td>Decorator</td><td>Ký hiệu <code>@</code> gắn ý nghĩa cho class, hàm, tham số</td><td>1</td></tr>
-      <tr><td>DTO, ValidationPipe</td><td>Class mô tả dữ liệu hợp lệ, và bộ tự kiểm tra nó</td><td>3</td></tr>
-      <tr><td>Guard</td><td>Chạy trước controller, quyết định request có được vào</td><td>4</td></tr>
+      <tr><td>Route, handler</td><td>Cặp method + đường dẫn, và hàm xử lý request tới đó</td><td>1</td></tr>
+      <tr><td>Dependency injection</td><td>Class nhận thứ nó cần qua constructor thay vì tự tạo; <code>main.ts</code> tạo và nối mọi thứ</td><td>1</td></tr>
+      <tr><td>Schema (Zod)</td><td>Mô tả dữ liệu hợp lệ; <code>parse()</code> kiểm tra và trả về dữ liệu đúng kiểu</td><td>3</td></tr>
+      <tr><td>Error handler</td><td>Một chỗ duy nhất đổi mọi lỗi thành response JSON</td><td>3</td></tr>
+      <tr><td>Hook preHandler</td><td>Chạy trước handler, quyết định request có được vào</td><td>4</td></tr>
       <tr><td>JWT</td><td>Chuỗi có chữ ký chứng minh người dùng là ai</td><td>4</td></tr>
       <tr><td>Fan-out</td><td>Nhân một yêu cầu thành nhiều lần gửi</td><td>4</td></tr>
       <tr><td>Queue / job / worker</td><td>Hàng đợi / việc cần làm / tiến trình lấy việc ra làm</td><td>5</td></tr>
@@ -3032,7 +3185,8 @@ CMD ["node", "dist/main"]</code></pre></div>
     <li><a href="https://firebase.google.com/docs/cloud-messaging" target="_blank" rel="noopener">Firebase Cloud Messaging</a>: tài liệu chính thức, đặc biệt phần quản lý token và các loại message.</li>
     <li><a href="https://firebase.google.com/docs/cloud-messaging/manage-tokens" target="_blank" rel="noopener">Best practices for FCM registration token management</a>: khi nào coi token là cũ, cách dọn.</li>
     <li><a href="https://rnfirebase.io/messaging/usage" target="_blank" rel="noopener">React Native Firebase: Cloud Messaging</a>: phần client cho app React Native.</li>
-    <li><a href="https://docs.nestjs.com" target="_blank" rel="noopener">NestJS docs</a>: module, provider, guard, pipe, lifecycle; mục Techniques → Queues nói về <code>@nestjs/bullmq</code>.</li>
+    <li><a href="https://fastify.dev/docs/latest/" target="_blank" rel="noopener">Fastify docs</a>: route, hook, logging; mục Testing nói về <code>inject()</code>.</li>
+    <li><a href="https://zod.dev" target="_blank" rel="noopener">Zod docs</a>: các kiểu kiểm tra có sẵn, <code>default</code>, <code>strictObject</code>, cách đọc lỗi.</li>
     <li><a href="https://docs.bullmq.io" target="_blank" rel="noopener">BullMQ docs</a>: retry, delayed job, job scheduler, graceful shutdown.</li>
     <li><a href="https://web.dev/articles/push-notifications-overview" target="_blank" rel="noopener">web.dev: Push notifications overview</a>: Web Push và service worker từ gốc.</li>
     <li><a href="https://developer.apple.com/documentation/usernotifications" target="_blank" rel="noopener">Apple: User Notifications</a>: khi bạn muốn gọi APNs trực tiếp.</li>
@@ -3048,7 +3202,7 @@ CMD ["node", "dist/main"]</code></pre></div>
     <li><b>A/B test nội dung</b>: hai phiên bản template, đo tỉ lệ mở bằng <code>opened_at</code>.</li>
   </ul>
 
-  <footer>Viết cho người mới học backend. Code dùng Node.js 20+, NestJS 11, firebase-admin, BullMQ 5 (qua @nestjs/bullmq) và PostgreSQL 16; nếu thư viện ra bản mới và tên hàm đổi, tài liệu chính thức ở trên là nguồn đúng nhất.</footer>
+  <footer>Viết cho người mới học backend. Code dùng Node.js 22+, TypeScript 7, Fastify 5, Zod 4, firebase-admin 14, BullMQ 6 và PostgreSQL 16; nếu thư viện ra bản mới và tên hàm đổi, tài liệu chính thức ở trên là nguồn đúng nhất.</footer>
 </section>
 
 </main>
