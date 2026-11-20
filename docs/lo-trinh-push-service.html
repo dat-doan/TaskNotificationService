@@ -220,6 +220,24 @@ td code{white-space:nowrap}
 .checks input:checked + span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
 
 .tree{font-family:var(--font-mono)}
+/* Kiến trúc tổng thể */
+.dg.arch a{cursor:pointer}
+.dg.arch a:hover > rect:first-of-type,.dg.arch a:focus-visible > rect:first-of-type{stroke:var(--accent);stroke-width:2.5}
+.dg .dim{opacity:.25}
+.dg .hl > rect:first-of-type{stroke:var(--accent);stroke-width:2.5}
+.fig.minimap{padding:12px 14px 10px}
+.fig.minimap svg.dg{min-width:480px;max-width:620px;margin:0 auto}
+.nb{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:500 11px var(--font-mono);vertical-align:1px}
+.tour{display:grid;gap:12px;margin:18px 0;padding:0;list-style:none}
+.tour > li{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;scroll-margin-top:24px}
+.tour > li:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.tour h4{margin:0 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tour .badge{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:500 12px var(--font-mono);display:grid;place-items:center;flex:none}
+.tour p{margin:4px 0;font-size:15px}
+.tour dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:10px 0 0;font-size:14px}
+.tour dt{color:var(--muted)}
+.tour dd{margin:0}
+@media (max-width:520px){.tour dl{grid-template-columns:minmax(0,1fr)}.tour dd{margin-bottom:6px}}
 footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:20px}
 </style>
 </head>
@@ -320,7 +338,7 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
   <h3>Bản đồ lộ trình</h3>
   <p>Các chặng xếp theo thứ tự phụ thuộc: chặng sau dùng code của chặng trước. Thời gian là ước lượng cho người mới, mỗi buổi khoảng 2–3 giờ.</p>
   <ol class="road">
-    <li><span class="n">0</span><div class="card"><span class="time">~1 buổi</span><a href="#chang-0">Bức tranh toàn cảnh</a><dl class="meta"><dt>Học</dt><dd>push vs pull, push provider, device token</dd><dt>Làm được</dt><dd>vẽ lại luồng ai gửi cho ai</dd></dl></div></li>
+    <li><span class="n">0</span><div class="card"><span class="time">~1 buổi</span><a href="#chang-0">Bức tranh toàn cảnh</a><dl class="meta"><dt>Học</dt><dd>push vs pull, push provider, device token</dd><dt>Làm được</dt><dd>vẽ lại luồng ai gửi cho ai và các thành phần bên trong service</dd></dl></div></li>
     <li><span class="n">1</span><div class="card"><span class="time">1–2 buổi</span><a href="#chang-1">Server đầu tiên</a><dl class="meta"><dt>Học</dt><dd>HTTP, REST, route, handler, truyền phụ thuộc</dd><dt>Làm được</dt><dd>app Fastify trả lời <code>GET /health</code></dd></dl></div></li>
     <li><span class="n">2</span><div class="card"><span class="time">1–2 buổi</span><a href="#chang-2">Gửi push đầu tiên</a><dl class="meta"><dt>Học</dt><dd>Firebase, service account, notification vs data</dd><dt>Làm được</dt><dd>một thông báo thật hiện trên máy bạn</dd></dl></div></li>
     <li><span class="n">3</span><div class="card"><span class="time">2 buổi</span><a href="#chang-3">Lưu device token</a><dl class="meta"><dt>Học</dt><dd>database, SQL, upsert, vòng đời token</dd><dt>Làm được</dt><dd>API <code>POST /devices</code></dd></dl></div></li>
@@ -337,7 +355,7 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
   <div class="stage-head">
     <p class="eyebrow">Chặng 0 · đọc hiểu · ~1 buổi</p>
     <h2>Bức tranh toàn cảnh</h2>
-    <p class="deliver"><b>Sau chặng này</b><span>bạn vẽ lại được sơ đồ ai gửi cho ai, và hiểu vì sao server không gửi thẳng tới điện thoại.</span></p>
+    <p class="deliver"><b>Sau chặng này</b><span>bạn vẽ lại được sơ đồ ai gửi cho ai, hiểu vì sao server không gửi thẳng tới điện thoại, và biết Push Service gồm những thành phần nào, mỗi cái lo việc gì.</span></p>
   </div>
 
   <h3><span class="kicker k-learn">Học</span>Push và pull khác nhau thế nào</h3>
@@ -456,12 +474,146 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
     </tbody>
   </table></div>
 
-  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="0">0/4</span></h4>
+  <h3 id="kien-truc">Bên trong Push Service: kiến trúc tổng thể</h3>
+  <p>Sơ đồ ba vai ở trên coi Push Service là một hộp đen. Đây là bên trong hộp đó, đúng như nó sẽ trông khi bạn đi hết lộ trình. Đừng cố nhớ hết ngay: mỗi chặng xây một vài ô, và đầu mỗi chặng có bản thu nhỏ của sơ đồ này, tô đậm phần sắp xây.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg arch" viewBox="0 0 760 392" role="img" aria-label="Kiến trúc tổng thể: app và Task API gọi Push API; Push API ghi PostgreSQL và đưa job vào Redis; Worker lấy job, đọc PostgreSQL, gửi qua FCM tới APNs, Web Push và thiết bị; phần quan sát theo dõi toàn bộ">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)"/>
+      <text class="a" x="420" y="32" style="font-size:12px">đẩy thông báo xuống máy</text>
+      <g><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <a href="#tp-6" aria-label="Thành phần 6"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></a>
+      <a href="#tp-1" aria-label="Thành phần 1"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></a>
+      <a href="#tp-3" aria-label="Thành phần 3"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></a>
+      <a href="#tp-4" aria-label="Thành phần 4"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></a>
+      <a href="#tp-2" aria-label="Thành phần 2"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></a>
+      <a href="#tp-5" aria-label="Thành phần 5"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></a>
+    </svg>
+    </div>
+    <figcaption>
+      <div class="legend"><span><i style="border-color:var(--reg)"></i>Đường đăng ký token</span><span><i style="border-color:var(--accent)"></i>Đường gửi thông báo</span><span><i style="border-color:var(--muted)"></i>Đọc, ghi database</span></div>
+      Khung nét đứt là Push Service, phần bạn xây. Bấm vào một thành phần có đánh số để đọc giải thích của nó.
+    </figcaption>
+  </figure>
+  <p>Hai ô bên trái nằm ngoài service, là những bên gọi vào. <b>App</b> (React Native hoặc web) gửi token lên và báo khi người dùng bấm mở thông báo. <b>Task API</b> là backend chính của TaskApp, gọi vào mỗi khi cần nhắc ai đó; nó không cần biết gì về token hay FCM.</p>
+
+  <h3>Đi một vòng qua từng thành phần</h3>
+  <ol class="tour">
+    <li id="tp-1">
+      <h4><span class="badge">1</span>Push API <span class="muted" style="font-weight:400">· Fastify</span></h4>
+      <p>Cửa vào duy nhất của service. Nhận request HTTP, kiểm tra ai đang gọi (API key cho service nội bộ, JWT cho app), kiểm tra dữ liệu, áp các luật như giờ yên tĩnh và giới hạn số lần gửi, rồi ghi database và xếp việc vào hàng đợi. Nó <b>không</b> tự gửi push.</p>
+      <dl>
+        <dt>Nếu thiếu nó</dt><dd>Người gọi phải đứng chờ FCM trả lời; FCM chậm 3 giây thì Task API cũng chậm 3 giây.</dd>
+        <dt>Trong code</dt><dd><code>src/main.ts</code>, <code>src/app.ts</code>, các file <code>*.routes.ts</code>, <code>src/auth/</code>, <code>*.service.ts</code></dd>
+        <dt>Xây ở chặng</dt><dd><a href="#chang-1">1</a>, <a href="#chang-3">3</a>, <a href="#chang-4">4</a>, <a href="#chang-6">6</a>, <a href="#chang-7">7</a></dd>
+      </dl>
+    </li>
+    <li id="tp-2">
+      <h4><span class="badge">2</span>PostgreSQL <span class="muted" style="font-weight:400">· database</span></h4>
+      <p>Trí nhớ lâu dài: token của từng người (<code>devices</code>), từng thông báo và trạng thái của nó (<code>notifications</code>), kết quả gửi tới từng máy (<code>deliveries</code>), cài đặt người dùng. Đây là <b>nguồn sự thật duy nhất</b>: job trong hàng đợi chỉ mang id trỏ về đây.</p>
+      <dl>
+        <dt>Nếu thiếu nó</dt><dd>Tắt server là quên hết token; không trả lời được câu "sao tôi không nhận được thông báo?".</dd>
+        <dt>Trong code</dt><dd><code>db/*.sql</code>, các file <code>*.repository.ts</code></dd>
+        <dt>Xây ở chặng</dt><dd><a href="#chang-3">3</a>, <a href="#chang-6">6</a>, <a href="#chang-7">7</a></dd>
+      </dl>
+    </li>
+    <li id="tp-3">
+      <h4><span class="badge">3</span>Redis <span class="muted" style="font-weight:400">· hàng đợi và bộ đếm</span></h4>
+      <p>Kho dữ liệu chạy trong bộ nhớ, rất nhanh, làm hai việc. Một là chứa <b>hàng đợi</b> BullMQ: job đang chờ, job hẹn giờ, job lỗi đang chờ thử lại. Hai là <b>bộ đếm</b> cho rate limit, tự hết hạn sau 1 giờ.</p>
+      <dl>
+        <dt>Nếu thiếu nó</dt><dd>FCM lỗi 10 phút thì mọi thông báo trong 10 phút đó mất luôn; không hẹn giờ được.</dd>
+        <dt>Trong code</dt><dd><code>src/queue/queue.ts</code>, <code>src/notifications/rules.service.ts</code></dd>
+        <dt>Xây ở chặng</dt><dd><a href="#chang-5">5</a>, <a href="#chang-7">7</a></dd>
+      </dl>
+    </li>
+    <li id="tp-4">
+      <h4><span class="badge">4</span>Worker <span class="muted" style="font-weight:400">· tiến trình gửi ở nền</span></h4>
+      <p>Một tiến trình riêng, dùng chung code với Push API nhưng không mở cổng HTTP. Lấy job từ Redis, tìm token trong PostgreSQL, gửi qua FCM, ghi kết quả từng máy, dọn token chết, ném lỗi để được thử lại khi FCM lỗi tạm thời. Hàng đợi dài thì chạy thêm worker.</p>
+      <dl>
+        <dt>Nếu thiếu nó</dt><dd>Không ai gửi những việc đã xếp hàng; muốn gửi nhanh hơn thì phải làm API chậm đi.</dd>
+        <dt>Trong code</dt><dd><code>src/worker.ts</code>, <code>src/worker/notifications.processor.ts</code></dd>
+        <dt>Xây ở chặng</dt><dd><a href="#chang-5">5</a>, <a href="#chang-6">6</a></dd>
+      </dl>
+    </li>
+    <li id="tp-5">
+      <h4><span class="badge">5</span>FcmService và FCM <span class="muted" style="font-weight:400">· bộ gửi</span></h4>
+      <p><code>FcmService</code> là lớp mỏng bọc thư viện <code>firebase-admin</code>: gửi theo lô 500 token, đọc mã lỗi để biết token nào chết, lỗi nào nên thử lại. FCM của Google nhận tin rồi tự chuyển tới APNs (iOS) và Web Push (trình duyệt).</p>
+      <dl>
+        <dt>Nếu thiếu nó</dt><dd>Mọi chỗ trong code phải biết chi tiết của FCM. Có lớp này thì đổi sang gọi APNs trực tiếp chỉ cần sửa một file.</dd>
+        <dt>Trong code</dt><dd><code>src/fcm/fcm.service.ts</code></dd>
+        <dt>Xây ở chặng</dt><dd><a href="#chang-2">2</a>, <a href="#chang-4">4</a>, <a href="#chang-7">7</a></dd>
+      </dl>
+    </li>
+    <li id="tp-6">
+      <h4><span class="badge">6</span>Quan sát <span class="muted" style="font-weight:400">· log, health, metric</span></h4>
+      <p>Không phải một tiến trình riêng mà là những thứ gắn vào cả Push API lẫn Worker: log JSON có <code>notificationId</code>, <code>/health/live</code> và <code>/health/ready</code> cho load balancer, metric về số gửi thành công hay lỗi, và cách tắt êm để không bỏ dở job.</p>
+      <dl>
+        <dt>Nếu thiếu nó</dt><dd>Service hỏng mà bạn chỉ biết khi người dùng phàn nàn.</dd>
+        <dt>Trong code</dt><dd><code>src/health/health.routes.ts</code>, cấu hình log trong <code>main.ts</code> và <code>worker.ts</code>, <code>Dockerfile</code></dd>
+        <dt>Xây ở chặng</dt><dd><a href="#chang-8">8</a></dd>
+      </dl>
+    </li>
+  </ol>
+
+  <h3>Theo chân một thông báo</h3>
+  <p>Ghép các thành phần lại, đây là hành trình của lời nhắc "Sắp đến hạn: Nộp báo cáo tuần" ở đầu trang:</p>
+  <ol class="steps">
+    <li><p><b>Đăng ký.</b> Người dùng đăng nhập app. App xin FCM một token rồi gửi lên Push API <span class="nb">1</span>, kèm JWT để chứng minh mình là ai. Push API lưu token vào PostgreSQL <span class="nb">2</span>. <span class="muted">Chặng 2–4</span></p></li>
+    <li><p><b>Yêu cầu gửi.</b> Người dùng tạo task hạn 10:00. Task API gọi <code>POST /notifications</code> với API key, hẹn gửi lúc 9:30. Push API <span class="nb">1</span> kiểm tra khoá và dữ liệu, xem người dùng có tắt loại thông báo này không, dựng nội dung từ template, ghi một dòng vào PostgreSQL <span class="nb">2</span>, đưa job hẹn giờ vào Redis <span class="nb">3</span>, rồi trả <code>202</code> trong vài chục mili giây. <span class="muted">Chặng 4–7</span></p></li>
+    <li><p><b>Gửi.</b> Đúng 9:30, Worker <span class="nb">4</span> lấy job ra, đọc thông báo và các token của người dùng từ PostgreSQL <span class="nb">2</span>, gửi qua <code>FcmService</code> <span class="nb">5</span>. FCM chuyển tiếp qua APNs hoặc Web Push và đẩy xuống từng máy. <span class="muted">Chặng 5–6</span></p></li>
+    <li><p><b>Ghi kết quả.</b> Worker ghi kết quả từng máy vào bảng <code>deliveries</code>, xoá token chết. Máy nào lỗi tạm thời thì job được thử lại sau 2s, 4s, 8s, và chỉ gửi lại cho đúng máy đó. <span class="muted">Chặng 5–6</span></p></li>
+    <li><p><b>Đã mở.</b> Người dùng bấm vào thông báo. App gọi <code>POST /notifications/:id/opened</code>, Push API ghi <code>opened_at</code>. <span class="muted">Chặng 6</span></p></li>
+    <li><p><b>Theo dõi.</b> Suốt quá trình, mỗi bước để lại một dòng log có <code>notificationId</code> <span class="nb">6</span>, nên khi có người hỏi "sao tôi không nhận được?", bạn tra ra ngay nó kẹt ở đâu. <span class="muted">Chặng 8</span></p></li>
+  </ol>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="0">0/5</span></h4>
     <ul class="checks" data-stage="0">
       <li><label><input type="checkbox" data-k="0-1"><span>Giải thích được push khác pull thế nào, bằng lời của mình</span></label></li>
       <li><label><input type="checkbox" data-k="0-2"><span>Biết device token là gì và vì sao nó có thể thay đổi</span></label></li>
       <li><label><input type="checkbox" data-k="0-3"><span>Vẽ lại được sơ đồ ba vai với các bước 1–3 và A–C trên giấy</span></label></li>
       <li><label><input type="checkbox" data-k="0-4"><span>Biết FCM chuyển tiếp sang APNs và Web Push giúp mình</span></label></li>
+      <li><label><input type="checkbox" data-k="0-5"><span>Kể được 6 thành phần của Push Service, và nói được thiếu từng cái thì hỏng gì</span></label></li>
     </ul>
   </div>
 </section>
@@ -473,6 +625,64 @@ footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid 
     <h2>Server đầu tiên</h2>
     <p class="deliver"><b>Sau chặng này</b><span>bạn có một app Fastify chạy được, trả lời <code>GET /health</code>, và hiểu route, handler, và cách nối các phần của service lại với nhau.</span></p>
   </div>
+
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: Push API">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)" opacity=".25"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="dim"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="hl"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="dim"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="dim"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="dim"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây bộ khung của Push API <span class="nb">1</span>: server Fastify đầu tiên, chưa nối với gì. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
 
   <h3><span class="kicker k-learn">Học</span>Server, request và response</h3>
   <p>Server là một chương trình chạy liên tục, lắng nghe ở một <b>cổng</b> (port, ví dụ 3000). Client gửi tới một <b>request</b>, server trả lại một <b>response</b>. Ngôn ngữ chung của hai bên là HTTP. Nhìn dưới dạng chữ thô, một request trông như sau:</p>
@@ -749,6 +959,64 @@ content-type: application/json; charset=utf-8
     <p class="deliver"><b>Sau chặng này</b><span>một thông báo thật hiện lên điện thoại hoặc trình duyệt của bạn, gửi từ một script Node chạy trên máy.</span></p>
   </div>
 
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: App, FCM">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)" opacity=".25"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)"/>
+      <text class="a" x="420" y="32" style="font-size:12px">đẩy thông báo xuống máy</text>
+      <g class="hl"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="dim"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="dim"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="dim"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="dim"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="dim"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="hl"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây đường tới FCM <span class="nb">5</span>: gửi thông báo thật đầu tiên xuống máy, rồi gói phần gửi vào <code>FcmService</code>. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
+
   <h3><span class="kicker k-learn">Học</span>Firebase project và các loại "chìa khoá"</h3>
   <p>Firebase project là nơi gom app Android, app iOS và web app của bạn lại để FCM biết chúng cùng một hệ thống. Người mới hay nhầm giữa các loại khoá, nên hãy phân biệt rõ ngay từ đầu:</p>
   <div class="tbl"><table>
@@ -978,6 +1246,64 @@ export class FcmService {
     <h2>Lưu device token</h2>
     <p class="deliver"><b>Sau chặng này</b><span>có API <code>POST /devices</code> lưu token vào PostgreSQL, và app tự gọi API này mỗi khi có token mới.</span></p>
   </div>
+
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: App, Push API, PostgreSQL">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="hl"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="dim"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="hl"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="dim"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="dim"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="hl"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây đường đăng ký: app gửi token lên Push API <span class="nb">1</span>, token được lưu vào PostgreSQL <span class="nb">2</span>. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
 
   <h3><span class="kicker k-learn">Học</span>Vì sao cần database</h3>
   <p>Ở chặng 2 bạn dán token bằng tay. Thực tế, token tới từ hàng nghìn máy vào lúc bất kỳ, và khi Task API nói "nhắc user 42", service phải tra được user 42 đang có những máy nào. Server có thể khởi động lại bất cứ lúc nào, nên thông tin này phải nằm trong một nơi bền vững: <b>database</b>.</p>
@@ -1298,6 +1624,64 @@ export async function registerDevice() {
     <h2>API gửi thông báo</h2>
     <p class="deliver"><b>Sau chặng này</b><span>Task API gọi <code>POST /notifications</code> với userId và nội dung; service gửi tới mọi máy của user đó và tự dọn token chết.</span></p>
   </div>
+
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: Task API, Push API, PostgreSQL, FCM">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="hl"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="dim"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="hl"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="dim"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="dim"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="hl"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="hl"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây đường gửi: Task API gọi Push API <span class="nb">1</span>, lấy token từ PostgreSQL <span class="nb">2</span>, gửi qua FCM <span class="nb">5</span>. Ở chặng này Push API tự gọi FCM và bắt người gọi đứng chờ; chặng 5 sẽ chuyển việc đó sang Worker. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
 
   <h3><span class="kicker k-learn">Học</span>Hợp đồng API</h3>
   <p>Trước khi code, hãy viết ra request và response trông thế nào. Đây là "hợp đồng" giữa bạn và người gọi API. Đổi hợp đồng là làm hỏng code của người khác, nên nghĩ kỹ từ đầu.</p>
@@ -1635,6 +2019,64 @@ curl -X POST http://localhost:3000/devices \
     <h2>Hàng đợi &amp; worker</h2>
     <p class="deliver"><b>Sau chặng này</b><span>API trả lời <code>202</code> trong vài mili giây; một tiến trình worker riêng gửi thông báo ở nền và tự thử lại khi FCM lỗi.</span></p>
   </div>
+
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: Push API, Redis, Worker">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)" opacity=".25"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="dim"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="hl"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="hl"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="hl"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="dim"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây Redis <span class="nb">3</span> và Worker <span class="nb">4</span>: Push API chỉ xếp việc vào hàng rồi trả lời ngay, Worker gửi ở nền và tự thử lại. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
 
   <h3><span class="kicker k-learn">Học</span>Đồng bộ và bất đồng bộ</h3>
   <p>Ý tưởng chính: tách việc <b>nhận yêu cầu</b> khỏi việc <b>thực hiện yêu cầu</b>. API chỉ ghi lại "có việc cần làm" rồi trả lời ngay. Một chương trình khác làm việc đó sau.</p>
@@ -1979,6 +2421,64 @@ main();</code></pre></div>
     <h2>Lịch sử &amp; trạng thái</h2>
     <p class="deliver"><b>Sau chặng này</b><span>mỗi thông báo có id và trạng thái tra cứu được; gọi lại cùng một yêu cầu không gửi trùng; retry chỉ gửi lại cho máy chưa nhận.</span></p>
   </div>
+
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: Push API, PostgreSQL, Worker">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="dim"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="hl"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="dim"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="hl"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="hl"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây lịch sử trong PostgreSQL <span class="nb">2</span>: Worker <span class="nb">4</span> ghi kết quả từng máy, Push API <span class="nb">1</span> chống gửi trùng và cho tra cứu. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
 
   <h3><span class="kicker k-learn">Học</span>Vì sao phải lưu lịch sử</h3>
   <ul>
@@ -2398,6 +2898,64 @@ messaging().getInitialNotification().then(handleOpen); // bấm khi app đã t�
     <p class="deliver"><b>Sau chặng này</b><span>nhắc deadline gửi đúng giờ và huỷ được; nội dung theo ngôn ngữ người dùng; tôn trọng cài đặt tắt thông báo và giờ yên tĩnh.</span></p>
   </div>
 
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: Push API, PostgreSQL, Redis">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="dim"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="hl"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="hl"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="dim"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="hl"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây luật nghiệp vụ trong Push API <span class="nb">1</span>: cài đặt người dùng lưu ở PostgreSQL <span class="nb">2</span>, hẹn giờ và rate limit nhờ Redis <span class="nb">3</span>. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
+
   <p>Chặng này gồm nhiều tính năng nhỏ, độc lập nhau. Mỗi tính năng là một quyết định nằm trên đường đi của một yêu cầu gửi:</p>
   <figure class="fig">
 <pre class="mermaid">
@@ -2731,7 +3289,66 @@ apns: { headers: { 'apns-collapse-id': `task-${taskId}` }, payload: { aps: { sou
     <p class="deliver"><b>Sau chặng này</b><span>service được đóng gói bằng Docker, có log và metric để biết khi nào hỏng, tắt mở không mất job, và bạn biết nó chịu được bao nhiêu tải.</span></p>
   </div>
 
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này xây: Push API, Worker, Quan sát">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)" opacity=".25"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="hl"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="hl"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="dim"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="hl"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="dim"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này xây phần quan sát <span class="nb">6</span> (log, health check, metric), và đóng gói Push API <span class="nb">1</span> cùng Worker <span class="nb">4</span> để chạy thật. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
+
   <h3><span class="kicker k-learn">Học</span>Kiến trúc cuối cùng</h3>
+  <p>Vẫn là <a href="#kien-truc">sơ đồ tổng thể ở chặng 0</a>, chỉ khác là mỗi thành phần giờ chạy thành nhiều bản phía sau một load balancer:</p>
   <figure class="fig">
     <div class="scroll">
     <svg class="dg" viewBox="0 0 780 410" role="img" aria-label="Kiến trúc production: app và dịch vụ nội bộ đi qua load balancer tới hai API, API ghi vào PostgreSQL và Redis, ba worker lấy job gửi tới FCM rồi tới APNs, Web Push và thiết bị">
