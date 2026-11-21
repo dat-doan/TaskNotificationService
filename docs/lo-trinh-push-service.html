@@ -227,7 +227,7 @@ td code{white-space:nowrap}
 .dg .hl > rect:first-of-type{stroke:var(--accent);stroke-width:2.5}
 .fig.minimap{padding:12px 14px 10px}
 .fig.minimap svg.dg{min-width:480px;max-width:620px;margin:0 auto}
-.nb{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:500 11px var(--font-mono);vertical-align:1px}
+span.nb{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:500 11px var(--font-mono);vertical-align:1px}
 .tour{display:grid;gap:12px;margin:18px 0;padding:0;list-style:none}
 .tour > li{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;scroll-margin-top:24px}
 .tour > li:target{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
@@ -239,6 +239,32 @@ td code{white-space:nowrap}
 .tour dd{margin:0}
 @media (max-width:520px){.tour dl{grid-template-columns:minmax(0,1fr)}.tour dd{margin-bottom:6px}}
 footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:20px}
+/* Vòng đời token: kể theo từng bước của một chiếc điện thoại */
+.lc{list-style:none;padding:0;margin:18px 0;display:grid;gap:12px}
+.lc > li{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.lc h4{margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lc h4 .badge{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:500 12px var(--font-mono);display:grid;place-items:center;flex:none}
+.lc .flow{display:grid;gap:6px;margin:10px 0 8px;padding:0;list-style:none}
+.lc .flow li{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:14px}
+.lc .who{font:600 12px var(--font-body);padding:2px 9px;border-radius:6px;min-width:60px;text-align:center}
+.lc .w-app{background:var(--accent-soft);color:var(--accent)}
+.lc .w-srv{background:var(--reg-soft);color:var(--reg)}
+.lc .w-fcm{background:var(--warn-soft);color:var(--warn)}
+.lc .w-task{background:var(--surface-2);color:var(--muted)}
+.lc .to{color:var(--muted)}
+.lc .op{display:inline-block;font:12px var(--font-mono);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 8px;margin:2px 0 0}
+.lc .tbl{margin:10px 0 0}
+.lc .tbl table{font-size:13px}
+.lc .tbl td{font-family:var(--font-mono);font-size:12.5px;padding:6px 12px}
+.lc .tbl th{padding:6px 12px}
+.lc tr.chg td{background:var(--accent-soft)}
+.lc tr.gone td:not(:last-child){text-decoration:line-through;color:var(--muted)}
+.lc .empty{font-size:13px;color:var(--muted);font-style:italic;padding:8px 12px}
+.lc .why{font-size:14.5px;color:var(--muted);margin:10px 0 0}
+.lcs{font:500 11.5px var(--font-body);padding:1px 8px;border-radius:999px;white-space:nowrap}
+.lcs-ok{background:var(--ok-soft);color:var(--ok)}
+.lcs-dead{background:var(--warn-soft);color:var(--warn)}
+.lcs-gone{background:var(--bad-soft);color:var(--bad)}
 </style>
 </head>
 <body>
@@ -1337,26 +1363,131 @@ export class FcmService {
   <p>Cả ba được xử lý bằng một câu <code>INSERT … ON CONFLICT (token) DO UPDATE</code>, gọi là <b>upsert</b> (update + insert).</p>
 
   <h3>Vòng đời của một token</h3>
+  <p>Token không sống mãi. Nó <b>sinh ra trên điện thoại</b>, được <b>dùng</b> một thời gian, rồi <b>chết</b>. Server phải theo kịp cả ba giai đoạn, nếu không bảng <code>devices</code> sẽ đầy token chết và thông báo gửi đi sẽ mất.</p>
   <figure class="fig">
-<pre class="mermaid">
-stateDiagram-v2
-    state "Mới tạo" as Moi
-    state "Đang dùng" as Dung
-    state "Đã đổi" as Doi
-    state "Gỡ khỏi user" as Go
-    state "Chết" as Chet
-    [*] --> Moi: App gọi getToken
-    Moi --> Dung: POST /devices
-    Dung --> Dung: Mở app, cập nhật last_seen_at
-    Dung --> Doi: onTokenRefresh
-    Doi --> Dung: Gửi token mới lên
-    Dung --> Go: Người dùng đăng xuất
-    Dung --> Chet: Gỡ app, FCM báo UNREGISTERED
-    Go --> [*]
-    Chet --> [*]: Server xoá token
-</pre>
-    <figcaption>Token không sống mãi. Service phải theo dõi cả lúc nó sinh ra lẫn lúc nó chết. Phần "chết" bạn sẽ xử lý ở chặng 4.</figcaption>
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 210" role="img" aria-labelledby="lc-t lc-d">
+      <title id="lc-t">Ba giai đoạn của một token</title>
+      <desc id="lc-d">Sinh ra, rồi đang dùng, rồi chết theo một trong hai kiểu: có báo trước khi đăng xuất, hoặc không báo trước khi gỡ app hay token bị thay.</desc>
+      <rect class="n" x="8" y="67" width="164" height="76" rx="12"/>
+      <text class="b" x="24" y="94">Sinh ra</text><text class="m" x="158" y="94" text-anchor="end">bước 1–2</text>
+      <text class="m" x="24" y="114">FCM cấp token, app</text>
+      <text class="m" x="24" y="130">gửi lên server</text>
+      <line class="e" x1="172" y1="105" x2="206" y2="105" marker-end="url(#mk-m)"/>
+      <rect class="na" x="210" y="67" width="194" height="76" rx="12"/>
+      <text class="b" x="226" y="94">Đang dùng</text><text class="m" x="390" y="94" text-anchor="end">bước 3–4</text>
+      <text class="m" x="226" y="114">app gửi lại mỗi lần mở,</text>
+      <text class="m" x="226" y="130">upsert chỉ cập nhật dòng</text>
+      <text class="m" x="214" y="166">Token bị đổi: token cũ chết</text>
+      <text class="m" x="214" y="182">âm thầm, token mới sinh ra lại</text>
+      <path class="e" d="M404 92 C426 92 424 55 444 55" marker-end="url(#mk-m)"/>
+      <path class="e eb" d="M404 118 C426 118 424 155 444 155" marker-end="url(#mk-b)"/>
+      <rect class="n2" x="448" y="18" width="264" height="74" rx="12"/>
+      <text class="b" x="464" y="44">Chết có báo trước</text><text class="m" x="698" y="44" text-anchor="end">bước 5</text>
+      <text class="m" x="464" y="64">Đăng xuất: app gọi DELETE /devices</text>
+      <text class="m" x="464" y="80">→ server xoá dòng ngay</text>
+      <rect class="nb" x="448" y="118" width="264" height="74" rx="12"/>
+      <text class="b" x="464" y="144">Chết không báo trước</text><text class="m" x="698" y="144" text-anchor="end">bước 6</text>
+      <text class="m" x="464" y="164">Gỡ app, token bị thay: không ai báo</text>
+      <text class="m" x="464" y="180">→ chỉ biết khi FCM trả UNREGISTERED</text>
+    </svg>
+    </div>
+    <figcaption><b>Toàn cảnh.</b> Phần dưới đi qua từng bước với một chiếc điện thoại cụ thể, kèm bảng <code>devices</code> sau mỗi bước.</figcaption>
   </figure>
+
+  <p>Theo chân điện thoại của user <code>u_42</code>. Hai câu cần trả lời ở mỗi bước: <b>ai nói với ai</b>, và <b>bảng <code>devices</code> trên server đổi gì</b>.</p>
+  <ol class="lc">
+    <li>
+      <h4><span class="badge">1</span>Cài app, mở lần đầu</h4>
+      <ul class="flow">
+        <li><span class="who w-app">App</span><span class="to">→</span><span class="who w-fcm">FCM</span><code>getToken()</code></li>
+        <li><span class="who w-fcm">FCM</span><span class="to">→</span><span class="who w-app">App</span>trả về token <code>fMEz…</code></li>
+      </ul>
+      <span class="op">Server: chưa làm gì</span>
+      <div class="tbl"><div class="empty">Bảng devices: trống</div></div>
+      <p class="why">Token sinh ra ngay trên điện thoại. Server chưa biết gì về nó.</p>
+    </li>
+    <li>
+      <h4><span class="badge">2</span>Người dùng đăng nhập</h4>
+      <ul class="flow">
+        <li><span class="who w-app">App</span><span class="to">→</span><span class="who w-srv">Server</span><code>POST /devices { userId: u_42, token: fMEz… }</code></li>
+      </ul>
+      <span class="op">Upsert: token chưa có → INSERT</span>
+      <div class="tbl"><table>
+        <thead><tr><th>user_id</th><th>token</th><th>last_seen_at</th><th>Trạng thái</th></tr></thead>
+        <tbody><tr class="chg"><td>u_42</td><td>fMEz…</td><td>08:00</td><td><span class="lcs lcs-ok">sống</span></td></tr></tbody>
+      </table></div>
+      <p class="why">Từ giờ server biết: muốn nhắc <code>u_42</code> thì gửi tới <code>fMEz…</code>.</p>
+    </li>
+    <li>
+      <h4><span class="badge">3</span>Hôm sau mở lại app</h4>
+      <ul class="flow">
+        <li><span class="who w-app">App</span><span class="to">→</span><span class="who w-srv">Server</span><code>POST /devices</code> với đúng token cũ</li>
+      </ul>
+      <span class="op">Upsert: token đã có → chỉ UPDATE last_seen_at</span>
+      <div class="tbl"><table>
+        <thead><tr><th>user_id</th><th>token</th><th>last_seen_at</th><th>Trạng thái</th></tr></thead>
+        <tbody><tr class="chg"><td>u_42</td><td>fMEz…</td><td>hôm sau 09:30</td><td><span class="lcs lcs-ok">sống</span></td></tr></tbody>
+      </table></div>
+      <p class="why">App gửi lại token mỗi lần mở. Nhờ upsert, bảng không bị trùng dòng; chỉ <code>last_seen_at</code> thay đổi.</p>
+    </li>
+    <li>
+      <h4><span class="badge">4</span>FCM tự đổi token</h4>
+      <ul class="flow">
+        <li><span class="who w-fcm">FCM</span><span class="to">→</span><span class="who w-app">App</span><code>onTokenRefresh</code>: token mới <code>aB7x…</code></li>
+        <li><span class="who w-app">App</span><span class="to">→</span><span class="who w-srv">Server</span><code>POST /devices { token: aB7x… }</code></li>
+      </ul>
+      <span class="op">Upsert: token mới → INSERT dòng mới</span>
+      <div class="tbl"><table>
+        <thead><tr><th>user_id</th><th>token</th><th>last_seen_at</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          <tr><td>u_42</td><td>fMEz…</td><td>09:30</td><td><span class="lcs lcs-dead">chết, server chưa biết</span></td></tr>
+          <tr class="chg"><td>u_42</td><td>aB7x…</td><td>10:00</td><td><span class="lcs lcs-ok">sống</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="why">FCM đôi khi thay token (khôi phục máy, xoá dữ liệu app, hoặc tự xoay vòng). Với server, token mới chỉ là một dòng mới. Token cũ đã chết nhưng không ai báo, nên dòng của nó vẫn nằm đó cho tới bước 6.</p>
+    </li>
+    <li>
+      <h4><span class="badge">5</span>Người dùng đăng xuất: chết có báo trước</h4>
+      <ul class="flow">
+        <li><span class="who w-app">App</span><span class="to">→</span><span class="who w-srv">Server</span><code>DELETE /devices/aB7x…</code></li>
+      </ul>
+      <span class="op">DELETE dòng aB7x…</span>
+      <div class="tbl"><table>
+        <thead><tr><th>user_id</th><th>token</th><th>last_seen_at</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          <tr><td>u_42</td><td>fMEz…</td><td>09:30</td><td><span class="lcs lcs-dead">chết, server chưa biết</span></td></tr>
+          <tr class="chg gone"><td>u_42</td><td>aB7x…</td><td>10:00</td><td><span class="lcs lcs-gone">đã xoá</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="why">App vẫn đang chạy nên kịp báo cho server. Đây là cách chết dễ xử lý nhất.</p>
+    </li>
+    <li>
+      <h4><span class="badge">6</span>Server gửi nhắc việc, FCM báo token chết</h4>
+      <ul class="flow">
+        <li><span class="who w-task">Task API</span><span class="to">→</span><span class="who w-srv">Server</span>"nhắc u_42"</li>
+        <li><span class="who w-srv">Server</span><span class="to">→</span><span class="who w-fcm">FCM</span>gửi tới <code>fMEz…</code></li>
+        <li><span class="who w-fcm">FCM</span><span class="to">→</span><span class="who w-srv">Server</span>lỗi <code>UNREGISTERED</code></li>
+      </ul>
+      <span class="op">removeTokens([fMEz…]) → DELETE</span>
+      <div class="tbl"><table>
+        <thead><tr><th>user_id</th><th>token</th><th>last_seen_at</th><th>Trạng thái</th></tr></thead>
+        <tbody>
+          <tr class="chg gone"><td>u_42</td><td>fMEz…</td><td>09:30</td><td><span class="lcs lcs-gone">đã xoá</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="why">Token bị thay (bước 4) hoặc người dùng gỡ app: app không thể báo gì. Server chỉ phát hiện khi thử gửi và FCM trả lỗi, rồi xoá dòng đó. Phần này bạn làm ở <a href="#chang-4">chặng 4</a>.</p>
+    </li>
+  </ol>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Kiểu chết</th><th>Khi nào</th><th>Server biết bằng cách nào</th><th>Xử lý</th></tr></thead>
+    <tbody>
+      <tr><td>Có báo trước</td><td>Đăng xuất</td><td>App gọi <code>DELETE /devices/:token</code></td><td>Xoá dòng ngay (chặng này)</td></tr>
+      <tr><td>Không báo trước</td><td>Gỡ app, token bị FCM thay</td><td>Chỉ khi gửi và FCM trả <code>UNREGISTERED</code></td><td><code>removeTokens()</code> (chặng 4)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Một trường hợp không phải "chết": người khác đăng nhập trên cùng máy. Token vẫn sống, upsert chỉ đổi <code>user_id</code> của dòng đó sang người mới (xem mục Upsert ở trên).</p>
 
   <h3>Tham số hoá câu SQL: chống SQL injection</h3>
   <p>Đừng bao giờ ghép chuỗi người dùng gửi vào câu SQL. Nếu ai đó gửi token là <code>x'; DROP TABLE devices; --</code>, câu lệnh ghép chuỗi sẽ xoá bảng của bạn. Thay vào đó dùng <b>tham số</b> <code>$1, $2</code>; thư viện <code>pg</code> gửi giá trị riêng, database không bao giờ hiểu nhầm nó là lệnh.</p>
