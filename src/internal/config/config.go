@@ -11,6 +11,7 @@ import (
 
 type Config struct {
 	Port int
+	FirebaseCredentials string
 }
 
 type loader struct {
@@ -48,9 +49,13 @@ func (l *loader) required(key string, minLen int) string {
 func Load() (Config, error) {
 	_ = godotenv.Load()
 	loader := &loader{}
+	cfg := Config {
+		Port: loader.integer("PORT", 3000),
+		FirebaseCredentials: loader.required("FIREBASE_CREDENTIALS", 1),
+	}
+
 	if len(loader.errors) > 0 {
 		return Config{}, fmt.Errorf("cấu hình sai:\n - %s", strings.Join(loader.errors, "\n - "))
 	}
-	port := loader.integer("PORT", 3000)
-	return Config{Port: port}, nil
+	return cfg, nil
 }
