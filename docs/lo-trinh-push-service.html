@@ -2441,7 +2441,143 @@ export async function registerDevice() {
       <p>Gọi <code>registerDevice()</code> sau khi người dùng đăng nhập. Khi đăng xuất, gọi <code>DELETE /devices/:token</code>.</p>
     </li>
   </ol></div>
-<div class="lang lang-go"><h3><span class="kicker k-do">Làm</span>Lưu token vào PostgreSQL</h3>
+<div class="lang lang-go">
+  <h3 id="go-loi"><span class="kicker k-learn">Học</span>Lỗi đi đâu? Hiểu <code>httpx</code> trước khi gõ code</h3>
+  <p><b>Ý chính trong một câu:</b> handler và middleware chỉ việc <b><code>return err</code></b>; một mình <code>httpx.Handle</code> lo việc đổi lỗi đó thành response.</p>
+
+  <h4>1. Vì sao phải làm vậy?</h4>
+  <p>Nếu không có chỗ xử lý chung, handler nào cũng phải tự trả lời từng lỗi:</p>
+  <div class="code"><div class="file">Cách làm KHÔNG có xử lý lỗi chung</div><pre><code class="language-go">d, err := h.repo.Upsert(ctx, ...)
+if err != nil {
+	w.WriteHeader(500)
+	w.Write([]byte(err.Error())) // lộ chi tiết database ra ngoài
+	// quên "return" ở đây: code bên dưới vẫn chạy tiếp
+}
+httpx.WriteJSON(w, 201, d)</code></pre></div>
+  <div class="code"><div class="file">Cách của lộ trình</div><pre><code class="language-go">d, err := h.repo.Upsert(ctx, ...)
+if err != nil {
+	return err // xong. Handle lo phần còn lại
+}
+httpx.WriteJSON(w, http.StatusCreated, d)
+return nil</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Vấn đề</th><th>Mỗi handler tự xử lý</th><th>Một chỗ xử lý chung</th></tr></thead>
+    <tbody>
+      <tr><td>Định dạng lỗi</td><td>Mỗi nơi một kiểu, app khó đọc</td><td>Luôn là <code>{"error": …}</code></td></tr>
+      <tr><td>Bảo mật</td><td>Dễ lỡ gửi lỗi database cho client</td><td>Lỗi lạ luôn thành <code>internal_error</code></td></tr>
+      <tr><td>Ghi log</td><td>Chỗ nhớ, chỗ quên</td><td>Mọi lỗi không lường trước được <code>return</code> đều được ghi</td></tr>
+      <tr><td>Số dòng code</td><td>Mỗi chỗ lỗi phải chọn status, viết body, ghi log</td><td>Mỗi chỗ lỗi chỉ cần <code>return err</code></td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout analogy"><span class="tag">Hình dung</span><p>Nhà hàng: đầu bếp hết nguyên liệu thì không tự chạy ra xin lỗi khách. Họ chỉ báo ngược lại "hết cá". Một người quản lý (<code>Handle</code>) đứng ở cửa bếp nghe mọi lời báo, rồi nói với khách bằng lời lẽ thống nhất, không kể chuyện nội bộ trong bếp.</p></div>
+
+  <h4>2. Bốn cái tên, đừng nhầm</h4>
+  <p>Go có sẵn <code>http.Handler</code>, và hàm của nó <b>không trả về gì cả</b>, nên không có đường nào để <code>return err</code>. Vì vậy ta tự đặt ra một kiểu handler có trả lỗi, rồi cần một "đầu chuyển" để <code>mux</code> chịu nhận nó.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Tên</th><th>Nhận → trả</th><th>Vai trò</th></tr></thead>
+    <tbody>
+      <tr><td><code>HandlerFunc</code></td><td>Là một kiểu: <code>func(w, r) error</code></td><td>Handler của ta, <b>được phép trả lỗi</b></td></tr>
+      <tr><td><code>Middleware</code></td><td><code>HandlerFunc</code> → <code>HandlerFunc</code></td><td>Người gác cửa, ví dụ <code>requireUser</code> (chặng 4). Vẫn trả lỗi được</td></tr>
+      <tr><td><code>Handle</code></td><td><code>HandlerFunc</code> → <code>http.Handler</code></td><td><b>Đầu chuyển</b> và là nơi duy nhất đổi lỗi thành JSON. Về kiểu thì nó không phải <code>Middleware</code></td></tr>
+      <tr><td><code>LogRequests</code></td><td><code>http.Handler</code> → <code>http.Handler</code></td><td>Middleware vòng ngoài cùng, bọc cả app để ghi log</td></tr>
+    </tbody>
+  </table></div>
+  <p>Cả ba hàm đều dùng chung một mẹo là <b>bọc</b>: nhận một handler, trả về handler mới làm thêm việc trước hoặc sau. Khác nhau ở loại handler đầu vào và đầu ra.</p>
+
+  <h4>3. Các lớp bọc nhau như thế nào</h4>
+  <p>Dòng đăng ký route ở chặng 4 được đọc <b>từ ngoài vào trong</b>:</p>
+  <div class="code"><pre><code class="language-go">mux.Handle("POST /devices", httpx.Handle(requireUser(devicesH.Register)))
+// ...
+return httpx.LogRequests(deps.Log, mux)</code></pre></div>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 268" role="img" aria-label="Các lớp lồng nhau từ ngoài vào trong: LogRequests, mux, httpx.Handle, requireUser, Register">
+      <rect class="n" x="8" y="8" width="704" height="250" rx="14"/>
+      <text x="24" y="33"><tspan class="b">LogRequests</tspan><tspan class="m" dx="10">bấm giờ, ghi một dòng log</tspan></text>
+      <rect class="n2" x="32" y="48" width="656" height="200" rx="12"/>
+      <text x="48" y="73"><tspan class="b">mux</tspan><tspan class="m" dx="10">chọn route theo method và đường dẫn</tspan></text>
+      <rect class="na" x="56" y="88" width="608" height="150" rx="12"/>
+      <text x="72" y="113"><tspan class="b">httpx.Handle</tspan><tspan class="m" dx="10">nhận error, đổi thành JSON</tspan></text>
+      <rect class="nw" x="80" y="128" width="560" height="100" rx="10"/>
+      <text x="96" y="153"><tspan class="b">requireUser</tspan><tspan class="m" dx="10">được vào không? (thêm ở chặng 4)</tspan></text>
+      <rect class="nok" x="104" y="168" width="512" height="48" rx="10"/>
+      <text x="120" y="197"><tspan class="b">Register</tspan><tspan class="m" dx="10">đọc body → validate → lưu database</tspan></text>
+    </svg>
+    </div>
+    <figcaption><b>Hình củ hành.</b> Request đi từ vỏ vào lõi. Kết quả đi từ lõi ra vỏ. <code>/health</code> không đi qua <code>Handle</code> và <code>requireUser</code>, chỉ qua <code>LogRequests</code> và <code>mux</code>. Ở chặng 3 chưa có lớp <code>requireUser</code>.</figcaption>
+  </figure>
+
+  <h4>4. Theo chân một request bị lỗi</h4>
+  <p>App gửi <code>POST /devices</code> với JWT đúng nhưng <code>token</code> quá ngắn:</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 372" role="img" aria-label="Request đi từ Client qua LogRequests, Handle, requireUser tới Register. validate sai nên Register trả err ngược qua requireUser về Handle. Handle trả 400 JSON cho client, sau đó LogRequests ghi log status 400">
+      <g><rect class="n2" x="8" y="8" width="100" height="32" rx="8"/><rect class="n" x="136" y="8" width="112" height="32" rx="8"/><rect class="na" x="276" y="8" width="112" height="32" rx="8"/><rect class="nw" x="416" y="8" width="112" height="32" rx="8"/><rect class="nok" x="582" y="8" width="112" height="32" rx="8"/></g>
+      <text class="b mid" x="58" y="29">Client</text><text class="b mid" x="192" y="29">LogRequests</text><text class="b mid" x="332" y="29">Handle</text><text class="b mid" x="472" y="29">requireUser</text><text class="b mid" x="638" y="29">Register</text>
+      <path class="e dash" d="M58 40V360M192 40V360M332 40V360M472 40V360M638 40V360"/>
+      <line class="e ea" x1="58" y1="76" x2="190" y2="76" marker-end="url(#mk-a)"/><text class="m mid" x="125" y="69">① request</text>
+      <line class="e ea" x1="192" y1="104" x2="330" y2="104" marker-end="url(#mk-a)"/><text class="m mid" x="262" y="97">② qua mux</text>
+      <line class="e ea" x1="332" y1="132" x2="470" y2="132" marker-end="url(#mk-a)"/><text class="m mid" x="402" y="125">③ h(w, r)</text>
+      <line class="e ea" x1="472" y1="160" x2="636" y2="160" marker-end="url(#mk-a)"/><text class="m mid" x="555" y="153">④ JWT ổn: next</text>
+      <rect class="nb" x="568" y="174" width="140" height="30" rx="8"/><text class="mid" x="638" y="194">⑤ validate() sai</text>
+      <line class="e eb" x1="638" y1="228" x2="474" y2="228" marker-end="url(#mk-b)"/><text class="m mid" x="555" y="221">⑥ return err</text>
+      <line class="e eb" x1="472" y1="256" x2="334" y2="256" marker-end="url(#mk-b)"/><text class="m mid" x="402" y="249">⑦ chuyển tiếp err</text>
+      <rect class="na" x="262" y="268" width="140" height="30" rx="8"/><text class="mid" x="332" y="288">⑧ err → JSON</text>
+      <line class="e eb" x1="332" y1="322" x2="60" y2="322" marker-end="url(#mk-b)"/><text class="m mid" x="125" y="315">⑨ 400 + issues</text>
+      <rect class="n" x="136" y="334" width="150" height="30" rx="8"/><text class="mid" x="211" y="354">⑩ log: status 400</text>
+    </svg>
+    </div>
+    <figcaption>Mũi tên xanh là <b>đi vào</b> (gọi hàm). Mũi tên đỏ là <b>đi ra</b> (hàm trả về). Lỗi không "nhảy" thẳng tới <code>Handle</code>: nó được trả về qua từng lớp, giống mọi giá trị <code>return</code> bình thường.</figcaption>
+  </figure>
+  <p><code>LogRequests</code> biết status là 400 nhờ <code>statusRecorder</code>: nó đưa cho các lớp bên trong một <code>ResponseWriter</code> có "trí nhớ". Khi <code>Handle</code> gọi <code>WriteHeader(400)</code>, số 400 được ghi lại.</p>
+  <p>Client nhận được:</p>
+  <div class="code"><pre><code class="language-json">{"error":"invalid_request","issues":[{"field":"token","message":"tối thiểu 20 ký tự"}]}</code></pre></div>
+
+  <h4>5. Bốn kịch bản cần thuộc</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>Kịch bản</th><th>Dừng ở đâu</th><th><code>Register</code> có chạy?</th><th>Trả về</th><th>Client nhận</th></tr></thead>
+    <tbody>
+      <tr><td>Mọi thứ đúng</td><td>Chạy hết</td><td>Có</td><td><code>nil</code></td><td><b>201</b> (do <code>Register</code> tự ghi)</td></tr>
+      <tr><td>JWT sai hoặc thiếu</td><td><code>requireUser</code>, không gọi <code>next</code></td><td><b>Không</b></td><td><code>*Error</code> 401</td><td><b>401</b> <code>unauthorized</code></td></tr>
+      <tr><td>Dữ liệu sai</td><td><code>DecodeJSON</code> hoặc <code>validate()</code></td><td>Có, dừng trước database</td><td><code>*ValidationError</code></td><td><b>400</b> kèm <code>issues</code></td></tr>
+      <tr><td>Database hỏng</td><td><code>repo.Upsert</code></td><td>Có</td><td>lỗi thường</td><td><b>500</b> <code>internal_error</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>6. Bên trong <code>Handle</code>: chỉ là ba câu hỏi</h4>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 304" role="img" aria-label="Handle hỏi lần lượt: err bằng nil thì không làm gì; là ValidationError thì trả 400 kèm issues; là Error thì trả status đã chọn; còn lại ghi log và trả 500">
+      <rect class="na" x="8" y="8" width="290" height="44" rx="10"/><text class="b mid" x="153" y="35">① err == nil ?</text>
+      <rect class="na" x="8" y="88" width="290" height="44" rx="10"/><text class="b mid" x="153" y="115">② là *ValidationError ?</text>
+      <rect class="na" x="8" y="168" width="290" height="44" rx="10"/><text class="b mid" x="153" y="195">③ là *Error ?</text>
+      <rect class="nb" x="8" y="248" width="290" height="48" rx="10"/><text class="b mid" x="153" y="277">Còn lại: lỗi không lường trước</text>
+      <path class="e" d="M153 52V86" marker-end="url(#mk-m)"/><path class="e" d="M153 132V166" marker-end="url(#mk-m)"/><path class="e" d="M153 212V246" marker-end="url(#mk-m)"/>
+      <text class="m" x="163" y="74">không</text><text class="m" x="163" y="154">không</text><text class="m" x="163" y="234">không</text>
+      <path class="e" d="M298 30H418" marker-end="url(#mk-m)"/><path class="e" d="M298 110H418" marker-end="url(#mk-m)"/><path class="e" d="M298 190H418" marker-end="url(#mk-m)"/><path class="e" d="M298 272H418" marker-end="url(#mk-m)"/>
+      <text class="m mid" x="358" y="23">đúng</text><text class="m mid" x="358" y="103">đúng</text><text class="m mid" x="358" y="183">đúng</text>
+      <rect class="nok" x="422" y="8" width="290" height="44" rx="10"/><text class="mid" x="567" y="35">Không làm gì: response đã ghi rồi</text>
+      <rect class="nw" x="422" y="88" width="290" height="44" rx="10"/><text class="mid" x="567" y="115">400 + danh sách chỗ sai</text>
+      <rect class="nw" x="422" y="168" width="290" height="44" rx="10"/><text class="mid" x="567" y="195">Status và message bạn đã chọn</text>
+      <rect class="nb" x="422" y="248" width="290" height="48" rx="10"/><text class="mid" x="567" y="269">Ghi log chi tiết, trả 500</text><text class="m mid" x="567" y="287">client chỉ thấy internal_error</text>
+    </svg>
+    </div>
+    <figcaption><b>Nguyên tắc mặc định an toàn:</b> chỉ lỗi bạn <b>chủ động</b> tạo ra mới được nói cho client. Mọi lỗi khác đều bị giấu.</figcaption>
+  </figure>
+  <p><code>errors.As(err, &amp;herr)</code> nghĩa là: "trong <code>err</code> có lỗi nào kiểu <code>*Error</code> không? Có thì gán vào <code>herr</code>". Nó tìm được cả khi lỗi đã bị gói thêm ngữ cảnh bằng <code>fmt.Errorf("lưu thiết bị: %w", err)</code>, còn so kiểu trực tiếp thì không.</p>
+
+  <h4>7. Bốn cái bẫy</h4>
+  <div class="callout warn"><span class="tag">Cẩn thận</span><ul>
+    <li><b>Chọn một trong hai:</b> tự ghi response rồi <code>return nil</code>, hoặc không ghi gì và <code>return err</code>. Đã ghi rồi mà còn trả lỗi thì <code>Handle</code> ghi thêm lần nữa: client vẫn nhận status cũ, body bị nối thêm JSON thứ hai, còn <code>statusRecorder</code> lại ghi vào log status mới, tức là log sai.</li>
+    <li><b>Middleware chặn request</b> bằng cách <code>return</code> lỗi mà <b>không gọi</b> <code>next</code>. Khi cho đi tiếp, viết <code>return next(w, r)</code> để lỗi từ bên trong không bị mất.</li>
+    <li><b><code>Handle</code> không bắt <code>panic</code>.</b> Nó chỉ xử lý lỗi được <code>return</code>. Gặp panic, <code>net/http</code> ngắt kết nối: client không nhận JSON, và <code>LogRequests</code> trong tài liệu cũng không ghi được dòng log của request đó.</li>
+    <li><b>Sai đường dẫn hoặc sai method</b> thì <code>mux</code> tự trả 404 hoặc 405 dạng chữ thường, không đi qua <code>Handle</code>.</li>
+  </ul></div>
+
+  <div class="callout tip"><span class="tag">Câu để nhớ</span><p><b>Vào từ ngoài, ra từ trong. Bên trong chỉ <code>return err</code>, bên ngoài mới trả lời.</b></p>
+  <p>Tự kiểm tra: nếu bỏ gọi <code>next</code> trong <code>requireUser</code> và <code>return nil</code> thì client nhận gì? <span class="muted">(200 với body rỗng: <code>Register</code> không chạy, còn <code>Handle</code> tưởng mọi thứ đã xong.)</span></p></div>
+
+  <h3><span class="kicker k-do">Làm</span>Lưu token vào PostgreSQL</h3>
   <ol class="steps">
     <li><p class="st">Chạy PostgreSQL và Redis bằng Docker (Redis dùng từ chặng 5)</p>
       <div class="code"><div class="file">docker-compose.yml</div><pre><code class="language-yaml">services:
@@ -2561,6 +2697,7 @@ func nullable(s string) any {
       <div class="callout tip"><span class="tag">Ba thứ mới trong file này</span><ul><li><b><code>ctx context.Context</code></b> luôn là tham số đầu của hàm chạm tới database hay mạng. Nó mang theo hạn chót và tín hiệu huỷ: khi client ngắt kết nối, <code>r.Context()</code> bị huỷ và câu SQL đang chạy dở dừng theo, không tốn công vô ích.</li><li><b><code>.Scan(&amp;d.ID, …)</code></b> điền kết quả của dòng SQL vào các biến, theo đúng thứ tự cột. Dấu <code>&amp;</code> là "địa chỉ của biến".</li><li><b><code>nullable</code></b>: Go không có <code>null</code> cho chuỗi. Muốn lưu NULL vào database thì truyền <code>nil</code>.</li></ul></div>
     </li>
     <li><p class="st">Lỗi và kiểm tra dữ liệu: package <code>httpx</code></p>
+      <p class="muted">Chưa rõ vì sao viết như vậy? Đọc <a href="#go-loi">Lỗi đi đâu?</a> trước, có sơ đồ luồng request.</p>
       <p>Khi dữ liệu sai, handler cần trả 400; khi không tìm thấy, 404. Thay vì mỗi handler tự viết <code>w.WriteHeader(…)</code>, ta cho handler <b>trả về <code>error</code></b>, và một hàm duy nhất, <code>httpx.Handle</code>, đổi lỗi thành response JSON. Đây là phiên bản Go của "error handler" trong Fastify.</p>
       <div class="code"><div class="file">internal/httpx/errors.go</div><pre><code class="language-go">package httpx
 
