@@ -251,6 +251,11 @@ span.nb{display:inline-grid;place-items:center;width:18px;height:18px;border-rad
 .tour dt{color:var(--muted)}
 .tour dd{margin:0}
 @media (max-width:520px){.tour dl{grid-template-columns:minmax(0,1fr)}.tour dd{margin-bottom:6px}}
+/* Chặng 9: bản TypeScript ẩn các bước chỉ dành cho Go nên số bước cuối đánh khác */
+ol.steps.steps-retain{counter-reset:s 8}
+html:not([data-lang="go"]) ol.steps.steps-retain{counter-reset:s 4}
+main details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:10px 0}
+main summary{cursor:pointer;font-weight:600;font-size:15px}
 footer{margin-top:64px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line);padding-top:20px}
 /* Vòng đời token: kể theo từng bước của một chiếc điện thoại */
 .lc{list-style:none;padding:0;margin:18px 0;display:grid;gap:12px}
@@ -350,6 +355,7 @@ try {
     <a href="#chang-6"><span class="num">6</span>Lịch sử &amp; trạng thái<i class="dot" data-stage="6"></i></a>
     <a href="#chang-7"><span class="num">7</span>Tính năng thật<i class="dot" data-stage="7"></i></a>
     <a href="#chang-8"><span class="num">8</span>Lên production<i class="dot" data-stage="8"></i></a>
+    <a href="#chang-9"><span class="num">9</span>Theo dõi cho admin<i class="dot" data-stage="9"></i></a>
     <a href="#thuat-ngu"><span class="num">·</span>Thuật ngữ &amp; đọc thêm</a>
   </nav>
 </aside>
@@ -396,6 +402,7 @@ try {
     <li><span class="n">6</span><div class="card"><span class="time">2 buổi</span><a href="#chang-6">Lịch sử &amp; trạng thái</a><dl class="meta"><dt>Học</dt><dd>state machine, idempotency, sent ≠ opened</dd><dt>Làm được</dt><dd>tra cứu một thông báo đã tới máy nào</dd></dl></div></li>
     <li><span class="n">7</span><div class="card"><span class="time">2–3 buổi</span><a href="#chang-7">Tính năng thật</a><dl class="meta"><dt>Học</dt><dd>hẹn giờ, template, giờ yên tĩnh, rate limit</dd><dt>Làm được</dt><dd>nhắc deadline đúng giờ, huỷ được</dd></dl></div></li>
     <li><span class="n">8</span><div class="card"><span class="time">2–3 buổi</span><a href="#chang-8">Lên production</a><dl class="meta"><dt>Học</dt><dd>log, metric, Docker, bảo mật, ước lượng tải</dd><dt>Làm được</dt><dd>service đóng gói, chạy ổn định, scale được</dd></dl></div></li>
+    <li><span class="n">9</span><div class="card"><span class="time">4 buổi</span><a href="#chang-9">Theo dõi cho admin</a><dl class="meta"><dt>Học</dt><dd>đọc số liệu gửi, view chỉ đọc, lần theo log, gom lỗi, điều tra sự cố</dd><dt>Làm được</dt><dd>Dashboard Grafana<span class="lang lang-go">, <code>asynqmon</code>, Sentry</span></dd></dl></div></li>
   </ol>
 </section>
 
@@ -2570,7 +2577,7 @@ return httpx.LogRequests(deps.Log, mux)</code></pre></div>
   <div class="callout warn"><span class="tag">Cẩn thận</span><ul>
     <li><b>Chọn một trong hai:</b> tự ghi response rồi <code>return nil</code>, hoặc không ghi gì và <code>return err</code>. Đã ghi rồi mà còn trả lỗi thì <code>Handle</code> ghi thêm lần nữa: client vẫn nhận status cũ, body bị nối thêm JSON thứ hai, còn <code>statusRecorder</code> lại ghi vào log status mới, tức là log sai.</li>
     <li><b>Middleware chặn request</b> bằng cách <code>return</code> lỗi mà <b>không gọi</b> <code>next</code>. Khi cho đi tiếp, viết <code>return next(w, r)</code> để lỗi từ bên trong không bị mất.</li>
-    <li><b><code>Handle</code> không bắt <code>panic</code>.</b> Nó chỉ xử lý lỗi được <code>return</code>. Gặp panic, <code>net/http</code> ngắt kết nối: client không nhận JSON, và <code>LogRequests</code> trong tài liệu cũng không ghi được dòng log của request đó.</li>
+    <li><b><code>Handle</code> không bắt <code>panic</code>.</b> Nó chỉ xử lý lỗi được <code>return</code>. Gặp panic, <code>net/http</code> ngắt kết nối: client không nhận JSON, và <code>LogRequests</code> trong tài liệu cũng không ghi được dòng log của request đó. <a href="#chang-9">Chặng 9</a> thêm middleware <code>Recover</code> cho việc này.</li>
     <li><b>Sai đường dẫn hoặc sai method</b> thì <code>mux</code> tự trả 404 hoặc 405 dạng chữ thường, không đi qua <code>Handle</code>.</li>
   </ul></div>
 
@@ -7513,7 +7520,7 @@ CMD ["node", "dist/main.js"]</code></pre></div>
 <div class="lang lang-go"><h3><span class="kicker k-do">Làm</span>Chuẩn bị chạy thật</h3>
   <ol class="steps">
     <li><p class="st">Log có cấu trúc: <code>log/slog</code> đã có sẵn</p>
-      <p>Thư viện chuẩn của Go có <code>log/slog</code> ghi log dạng JSON, đúng thứ ta dùng từ chặng 1. Việc còn lại là chỉnh mức log qua biến môi trường. Log request của ta (<code>httpx.LogRequests</code>) chỉ ghi method, đường dẫn, status và thời gian, <b>không ghi header</b>, nên khoá API và JWT không bao giờ vào log.</p>
+      <p>Thư viện chuẩn của Go có <code>log/slog</code> ghi log dạng JSON, đúng thứ ta dùng từ chặng 1. Việc còn lại là chỉnh mức log qua biến môi trường. Log request của ta (<code>httpx.LogRequests</code>) chỉ ghi method, đường dẫn, status và thời gian, <b>không ghi header</b>, nên khoá API và JWT không bao giờ vào log. Tuy vậy, đường dẫn của <code>DELETE /devices/{token}</code> chứa token thật: <a href="#chang-9">chặng 9</a> sửa chỗ này.</p>
       <div class="code"><div class="file">internal/config/config.go</div><pre><code class="language-go">// thêm vào struct Config:
 LogLevel string
 
@@ -7733,7 +7740,7 @@ func run() error {
     <li><p class="st">Metric và giao diện xem hàng đợi (tuỳ chọn)</p>
       <ul>
         <li><b>Metric:</b> gói <code>github.com/prometheus/client_golang</code> mở sẵn <code>/metrics</code> bằng <code>promhttp.Handler()</code>. Tạo một counter <code>push_results_total</code> với nhãn <code>result</code> và <code>error_code</code>, tăng nó trong <code>HandleSend</code> sau mỗi lần gửi.</li>
-        <li><b>Xem hàng đợi:</b> <code>asynqmon</code> cho giao diện web xem job đang chờ, job lỗi, bấm thử lại. Đặt sau một middleware chỉ admin vào được.</li>
+        <li><b>Xem hàng đợi:</b> <code>asynqmon</code> cho giao diện web xem job đang chờ, job lỗi, bấm thử lại. Đặt sau một middleware chỉ admin vào được, hoặc không mở ra ngoài. Cách làm từng bước ở <a href="#chang-9">chặng 9</a>.</li>
       </ul>
     </li>
     <li><p class="st">Viết test: lợi ích của việc truyền phụ thuộc</p>
@@ -7918,6 +7925,1369 @@ CMD ["/api"]</code></pre></div>
   </div>
 </section>
 
+<!-- ============ CHẶNG 9 ============ -->
+<section class="stage" id="chang-9">
+  <div class="stage-head">
+    <p class="eyebrow">Chặng 9 · ~4 buổi</p>
+    <h2>Theo dõi cho admin</h2>
+    <p class="deliver"><b>Sau chặng này</b><span>khi ai đó hỏi "sao tôi không nhận được thông báo?", bạn tìm ra câu trả lời trong vài phút. Bạn có dashboard số liệu gửi<span class="lang lang-go">, giao diện xem hàng đợi, log lần theo được và lỗi code được gom trên Sentry</span>.</span></p>
+  </div>
+
+  <div class="lang lang-ts">
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này nhìn vào: PostgreSQL, Redis và Quan sát">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)" opacity=".25"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="hl"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="dim"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">Fastify · main.ts</text>
+      <text class="m" x="198" y="218">route · auth · schema</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="hl"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="dim"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">worker.ts</text>
+      <text class="m" x="488" y="218">createProcessor</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="hl"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua FcmService</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này không thêm cách gửi mới. Nó xây phần quan sát <span class="nb">6</span> để nhìn vào những gì đã được ghi ở PostgreSQL <span class="nb">2</span>, Redis <span class="nb">3</span> và log. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
+  </div><div class="lang lang-go">
+  <figure class="fig minimap">
+    <div class="scroll">
+    <svg class="dg arch mini" viewBox="0 0 760 392" role="img" aria-label="Sơ đồ kiến trúc thu nhỏ, tô đậm phần chặng này nhìn vào: PostgreSQL, Redis và Quan sát">
+      <rect class="grp" x="170" y="110" width="446" height="270" rx="14"/>
+      <text class="m" x="272" y="132">PUSH SERVICE · PHẦN BẠN XÂY</text>
+      <path class="e er" d="M152 64 H259 V146" marker-end="url(#mk-r)" opacity=".25"/>
+      <path class="e ea" d="M152 188 H182" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M334 198 H350" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M456 198 H472" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e" d="M259 248 V296" marker-end="url(#mk-m)" opacity=".25"/>
+      <path class="e" d="M520 248 V296" marker-end="url(#mk-m)" marker-start="url(#mk-m)" opacity=".25"/>
+      <path class="e ea" d="M604 182 H636" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea" d="M695 216 V246" marker-end="url(#mk-a)" opacity=".25"/>
+      <path class="e ea dash" d="M720 148 V16 H100 V26" marker-end="url(#mk-a)" opacity=".25"/>
+      <text class="a" x="420" y="32" style="font-size:12px" opacity=".25">đẩy thông báo xuống máy</text>
+      <g class="dim"><rect class="n" x="10" y="30" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="54">App mobile / Web</text>
+      <text class="m mid" x="80" y="72">gửi token, báo đã mở</text></g>
+      <g class="dim"><rect class="n" x="10" y="160" width="140" height="56" rx="12"/>
+      <text class="b mid" x="80" y="184">Task API</text>
+      <text class="m mid" x="80" y="202">gọi POST /notifications</text></g>
+      <g class="hl"><rect class="grp" x="10" y="296" width="140" height="64" rx="12"/>
+      <circle class="bga" cx="30" cy="318" r="10"/><text class="bgt" x="30" y="318">6</text>
+      <text class="b" x="46" y="322">Quan sát</text>
+      <text class="m" x="22" y="346">log · health · metric</text></g>
+      <g class="dim"><rect class="na" x="186" y="150" width="146" height="96" rx="12"/>
+      <circle class="bga" cx="204" cy="170" r="10"/><text class="bgt" x="204" y="170">1</text>
+      <text class="b" x="220" y="174">Push API</text>
+      <text class="m" x="198" y="200">net/http · cmd/api</text>
+      <text class="m" x="198" y="218">route · middleware</text>
+      <text class="m" x="198" y="236">service · repository</text></g>
+      <g class="hl"><rect class="n" x="354" y="160" width="100" height="76" rx="12"/>
+      <circle class="bga" cx="372" cy="180" r="10"/><text class="bgt" x="372" y="180">3</text>
+      <text class="b" x="388" y="184">Redis</text>
+      <text class="m" x="366" y="206">hàng đợi</text>
+      <text class="m" x="366" y="224">rate limit</text></g>
+      <g class="dim"><rect class="na" x="476" y="150" width="126" height="96" rx="12"/>
+      <circle class="bga" cx="494" cy="170" r="10"/><text class="bgt" x="494" y="170">4</text>
+      <text class="b" x="510" y="174">Worker</text>
+      <text class="m" x="488" y="200">cmd/worker</text>
+      <text class="m" x="488" y="218">asynq handler</text>
+      <text class="m" x="488" y="236">gửi, thử lại</text></g>
+      <g class="hl"><rect class="n" x="250" y="300" width="290" height="56" rx="12"/>
+      <circle class="bga" cx="268" cy="320" r="10"/><text class="bgt" x="268" y="320">2</text>
+      <text class="b" x="284" y="324">PostgreSQL</text>
+      <text class="m" x="264" y="344">devices · notifications · deliveries</text></g>
+      <g class="dim"><rect class="na" x="640" y="150" width="110" height="64" rx="12"/>
+      <circle class="bga" cx="658" cy="170" r="10"/><text class="bgt" x="658" y="170">5</text>
+      <text class="b" x="674" y="174">FCM</text>
+      <text class="m" x="652" y="200">qua package fcm</text>
+      <rect class="n" x="640" y="250" width="110" height="50" rx="10"/>
+      <text class="mid" x="695" y="271" style="font-size:12px">APNs (iOS)</text>
+      <text class="mid" x="695" y="289" style="font-size:12px">Web Push</text></g>
+    </svg>
+    </div>
+    <figcaption><b>Bạn đang ở đây.</b> Chặng này không thêm cách gửi mới. Nó xây phần quan sát <span class="nb">6</span> để nhìn vào những gì đã được ghi ở PostgreSQL <span class="nb">2</span>, Redis <span class="nb">3</span> và log. <a href="#kien-truc">Xem sơ đồ đầy đủ</a></figcaption>
+  </figure>
+  </div>
+<div class="lang lang-ts">
+  <div class="callout warn"><span class="tag">Lưu ý cho bản TypeScript</span><p>Phần khái niệm, view PostgreSQL, Grafana, quy trình điều tra và xoá dữ liệu cũ dùng chung cho cả hai bản. <b>Code mẫu cho hàng đợi, <code>request_id</code> và Sentry hiện mới có cho bản Go.</b> Công cụ tương ứng bên TypeScript: Bull Board cho hàng đợi, <code>genReqId</code> của Fastify cho mã request, <code>@sentry/node</code> cho Sentry. Đường dẫn <code>DELETE /devices/:token</code> chứa token thật, hãy kiểm tra log của bạn và che nó đi.</p></div>
+</div>
+  <h3>Chia buổi học</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Buổi</th><th>Nội dung</th><th>Cần có trước</th><th>Kết thúc buổi bạn có</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Đọc phần Học, chưa gõ code</td><td>Đã làm chặng 7</td><td>Hiểu mỗi công cụ trả lời câu hỏi nào</td></tr>
+      <tr><td>2</td><td>Phần A, bước 1–5</td><td>Bảng của chặng 6 và 7</td><td><span class="lang lang-go"><code>asynqmon</code> và </span>dashboard Grafana</td></tr>
+      <tr><td>3</td><td><span class="lang lang-go">Phần B, bước 6–7</span><span class="lang lang-ts">Quy trình điều tra, diễn tập</span></td><td><span class="lang lang-go">Code ở cuối chặng 8</span><span class="lang lang-ts">Xong phần A</span></td><td><span class="lang lang-go">Lần theo được một thông báo qua log</span><span class="lang lang-ts">Biết cách tìm nguyên nhân</span></td></tr>
+      <tr><td>4</td><td><span class="lang lang-go">Sentry (bước 8), </span>dọn dữ liệu, diễn tập, bảo mật</td><td>Xong buổi 3</td><td>Hoàn thành checklist cuối chặng</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Phần A <b>không sửa code</b>, nên làm được ngay sau chặng 7, trước cả chặng 8.</p>
+  <h3><span class="kicker k-learn">Học</span>Vì sao cần theo dõi</h3>
+  <p>Sáng thứ Hai, người dùng <code>u_42</code> nhắn: "Hôm qua tôi không được nhắc việc." Bạn trả lời thế nào?</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Không có theo dõi</th><th>Có theo dõi</th></tr></thead>
+    <tbody>
+      <tr><td>Mở database, đoán xem bảng nào liên quan, viết SQL lúc đang bị giục</td><td>Nhập <code>u_42</code> vào dashboard, thấy ngay các thông báo của họ</td></tr>
+      <tr><td>Không biết thông báo có được tạo không</td><td>Thấy trạng thái <code>failed</code>, bấm tiếp ra mã lỗi theo từng máy</td></tr>
+      <tr><td>"Chắc do mạng", rồi chờ lỗi xảy ra lần nữa</td><td>Có bằng chứng: lúc nào, máy nào, lỗi gì, còn ai bị giống vậy</td></tr>
+    </tbody>
+  </table></div>
+  <p>Theo dõi <b>không làm service ít lỗi hơn</b>. Nó rút ngắn thời gian từ lúc có lỗi đến lúc bạn biết nguyên nhân. Hai nhu cầu khác nhau:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Câu hỏi</th><th>Ví dụ</th><th>Cần loại dữ liệu</th></tr></thead>
+    <tbody>
+      <tr><td><b>Tổng quan:</b> hệ thống có ổn không?</td><td>Tỉ lệ lỗi hôm nay tăng từ lúc mấy giờ?</td><td>Số đếm theo thời gian</td></tr>
+      <tr><td><b>Điều tra:</b> chuyện gì xảy ra với trường hợp này?</td><td>Thông báo của <code>u_42</code> lúc 9 giờ đi đâu?</td><td>Bản ghi chi tiết có mã định danh</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Admin hỏi gì, câu trả lời nằm ở đâu</h3>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 332" role="img" aria-label="API và worker tạo ra bốn nguồn dữ liệu. PostgreSQL được xem bằng Grafana, Redis bằng asynqmon, log JSON bằng lệnh jq, và lỗi gửi lên Sentry được xem trên trang web Sentry">
+      <rect class="na" x="8" y="8" width="150" height="316" rx="14"/><text class="b mid" x="83" y="158">API + worker</text><text class="m mid" x="83" y="178">code của bạn</text>
+      <path class="e" d="M158 44H262M158 128H262M158 212H262M158 296H262" marker-end="url(#mk-m)"/>
+      <text class="m mid" x="210" y="36">kết quả gửi</text><text class="m mid" x="210" y="120">job</text><text class="m mid" x="210" y="204">stdout</text><text class="m mid" x="210" y="288">lỗi nặng</text>
+      <rect class="n" x="266" y="14" width="200" height="60" rx="10"/><text class="b mid" x="366" y="39">PostgreSQL</text><text class="m mid" x="366" y="58">notifications, deliveries</text>
+      <rect class="n" x="266" y="98" width="200" height="60" rx="10"/><text class="b mid" x="366" y="123">Redis</text><text class="m mid" x="366" y="142">hàng đợi asynq</text>
+      <rect class="n" x="266" y="182" width="200" height="60" rx="10"/><text class="b mid" x="366" y="207">Log JSON</text><text class="m mid" x="366" y="226">slog</text>
+      <rect class="n2" x="266" y="266" width="200" height="60" rx="10"/><text class="b mid" x="366" y="291">Sentry</text><text class="m mid" x="366" y="310">dịch vụ bên ngoài</text>
+      <path class="e ea" d="M466 44H538M466 128H538M466 212H538M466 296H538" marker-end="url(#mk-a)"/>
+      <rect class="nok" x="542" y="14" width="170" height="60" rx="10"/><text class="b mid" x="627" y="39">Grafana</text><text class="m mid" x="627" y="58">bao nhiêu? lỗi gì?</text>
+      <rect class="nok" x="542" y="98" width="170" height="60" rx="10"/><text class="b mid" x="627" y="123">asynqmon</text><text class="m mid" x="627" y="142">job nào đang kẹt?</text>
+      <rect class="nok" x="542" y="182" width="170" height="60" rx="10"/><text class="b mid" x="627" y="207">jq</text><text class="m mid" x="627" y="226">chuyện gì đã xảy ra?</text>
+      <rect class="nok" x="542" y="266" width="170" height="60" rx="10"/><text class="b mid" x="627" y="291">Web Sentry</text><text class="m mid" x="627" y="310">code hỏng ở đâu?</text>
+    </svg>
+    </div>
+    <figcaption><b>Bốn nguồn, bốn cách xem.</b> Mỗi công cụ trả lời một loại câu hỏi. Không công cụ nào thay được cả ba cái còn lại. <span class="lang lang-ts">Bản TypeScript: hàng đợi là BullMQ (xem bằng Bull Board), log do pino ghi.</span></figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Nguồn</th><th>Trả lời tốt</th><th>Không trả lời được</th><th>Mất khi nào</th></tr></thead>
+    <tbody>
+      <tr><td><b>PostgreSQL</b>: sổ ghi hàng gửi</td><td>Gửi cho ai, kết quả từng máy, đã mở chưa</td><td>Request bị từ chối; chuyện xảy ra trong code</td><td>Khi bạn xoá (xem "Dọn dữ liệu cũ")</td></tr>
+      <tr><td><b>Redis</b>: băng chuyền đang chạy</td><td>Việc nào đang chờ, đang thử lại, đã hỏng hẳn</td><td>Lịch sử lâu dài</td><td><span class="lang lang-go">Job xong bị xoá sau 24 giờ (<code>asynq.Retention</code>)</span><span class="lang lang-ts">Theo cấu hình giữ job của BullMQ</span></td></tr>
+      <tr><td><b>Log</b>: camera ghi lại mọi việc</td><td>Trình tự từng bước, kể cả request bị từ chối</td><td>Đếm và vẽ biểu đồ lâu dài (khi chỉ dùng file)</td><td>Khi file bị xoay vòng hoặc xoá</td></tr>
+      <tr><td><b>Sentry</b>: chuông báo cháy</td><td>Code hỏng ở đâu, bao nhiêu lần, mới xuất hiện từ khi nào</td><td>Thông báo nào gửi thành công</td><td>Theo gói dịch vụ bạn dùng</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Ba loại "thành công" rất khác nhau</h3>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 176" role="img" aria-label="API nhận request, rồi FCM nhận tin, rồi người dùng bấm vào. Request bị 400 hoặc 401 dừng ngay ở API và không được ghi vào database">
+      <rect class="n" x="8" y="12" width="196" height="64" rx="10"/><text class="b mid" x="106" y="39">1. API nhận request</text><text class="m mid" x="106" y="59">HTTP 201 hoặc 202</text>
+      <line class="e" x1="204" y1="44" x2="260" y2="44" marker-end="url(#mk-m)"/>
+      <rect class="na" x="264" y="12" width="196" height="64" rx="10"/><text class="b mid" x="362" y="39">2. FCM nhận tin</text><text class="m mid" x="362" y="59">deliveries.status = sent</text>
+      <line class="e" x1="460" y1="44" x2="516" y2="44" marker-end="url(#mk-m)"/>
+      <rect class="nok" x="520" y="12" width="192" height="64" rx="10"/><text class="b mid" x="616" y="39">3. Người dùng bấm</text><text class="m mid" x="616" y="59">notifications.opened_at</text>
+      <line class="e eb" x1="106" y1="76" x2="106" y2="108" marker-end="url(#mk-b)"/>
+      <rect class="nb" x="8" y="112" width="260" height="56" rx="10"/><text class="mid" x="138" y="136">Bị chặn: 400, 401, 429</text><text class="m mid" x="138" y="155">không có trong bảng nào, chỉ có log</text>
+    </svg>
+    </div>
+    <figcaption>Giữa bước 2 và 3 còn một khoảng không nhìn thấy: FCM nhận tin <b>chưa chắc</b> điện thoại đã hiện thông báo.</figcaption>
+  </figure>
+  <div class="callout warn"><span class="tag">Đọc số cho đúng</span><ul>
+    <li><b>Đếm theo thiết bị.</b> Một thông báo gửi tới 3 máy là 3 dòng trong <code>deliveries</code>.</li>
+    <li><b>Chỉ giữ kết quả mới nhất.</b> Mỗi cặp (thông báo, token) một dòng; thử lại thì ghi đè và tăng <code>attempts</code>.</li>
+    <li class="lang lang-go"><b>"Thành công" trong <code>asynqmon</code> không phải là gửi thành công.</b> Nếu mọi thiết bị đều lỗi nhưng không còn gì để thử lại, <code>HandleSend</code> vẫn trả <code>nil</code>: job được tính là <i>completed</i>, Sentry không nhận gì, còn database ghi <code>failed</code>.</li>
+    <li><b>Cả lô lỗi</b> (ví dụ database hỏng giữa chừng) có thể không để lại dòng nào trong <code>deliveries</code>. Vì vậy dashboard có thêm bảng đếm theo <code>notifications.status</code>.</li>
+  </ul></div>
+  <h3>Trạng thái của một thông báo</h3>
+  <p>Muốn đọc dashboard thì phải hiểu cột <code>status</code>. Đây là các đường đi:</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 268" role="img" aria-label="Yêu cầu gửi đi vào scheduled hoặc queued, sang processing, rồi kết thúc ở sent, partially_sent hoặc failed. Thông báo scheduled hoặc queued có thể bị huỷ. Yêu cầu bị bỏ qua hoặc bị từ chối không được ghi vào database">
+      <rect class="n2" x="8" y="24" width="130" height="48" rx="10"/><text class="b mid" x="73" y="53">Yêu cầu gửi</text>
+      <path class="e " d="M138 48H190" marker-end="url(#mk-m)"/>
+      <rect class="na" x="194" y="24" width="130" height="48" rx="10"/><text class="b mid" x="259" y="45">scheduled</text><text class="m mid" x="259" y="64">chờ tới giờ</text>
+      <path class="e " d="M73 72V140H190" marker-end="url(#mk-m)"/>
+      <text class="m mid" x="134" y="132">gửi ngay</text>
+      <rect class="na" x="194" y="116" width="130" height="48" rx="10"/><text class="b mid" x="259" y="137">queued</text><text class="m mid" x="259" y="156">chờ worker</text>
+      <path class="e " d="M324 48H445V112" marker-end="url(#mk-m)"/>
+      <text class="m mid" x="385" y="40">tới giờ</text>
+      <path class="e " d="M324 140H376" marker-end="url(#mk-m)"/>
+      <rect class="nw" x="380" y="116" width="130" height="48" rx="10"/><text class="b mid" x="445" y="137">processing</text><text class="m mid" x="445" y="156">đang gửi</text>
+      <path class="e " d="M510 128C540 128 536 48 572 48" marker-end="url(#mk-m)"/>
+      <path class="e " d="M510 140H572" marker-end="url(#mk-m)"/>
+      <path class="e eb" d="M510 152C540 152 536 232 572 232" marker-end="url(#mk-b)"/>
+      <rect class="nok" x="576" y="24" width="136" height="48" rx="10"/><text class="b mid" x="644" y="45">sent</text><text class="m mid" x="644" y="64">mọi máy nhận</text>
+      <rect class="nw" x="576" y="116" width="136" height="48" rx="10"/><text class="b mid" x="644" y="137">partially_sent</text><text class="m mid" x="644" y="156">một phần nhận</text>
+      <rect class="nb" x="576" y="208" width="136" height="48" rx="10"/><text class="b mid" x="644" y="229">failed</text><text class="m mid" x="644" y="248">không máy nào</text>
+      <path class="e " d="M300 164V204" marker-end="url(#mk-m)"/>
+      <rect class="n2" x="194" y="208" width="160" height="48" rx="10"/><text class="b mid" x="274" y="229">canceled</text><text class="m mid" x="274" y="248">từ scheduled, queued</text>
+      <rect class="nb" x="8" y="208" width="150" height="48" rx="10"/><text class="b mid" x="83" y="229">Không ghi DB</text><text class="m mid" x="83" y="248">skipped, 400, 401, 429</text>
+      <path class="e eb" d="M40 72V204" marker-end="url(#mk-b)"/>
+
+    </svg>
+    </div>
+    <figcaption><b>Chú ý ô đỏ bên trái:</b> những yêu cầu này không hề xuất hiện trong database. Đã lọc khắp dashboard mà không thấy thì phải tìm trong log. Worker đang thử lại thì trạng thái vẫn là <code>processing</code>.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>status</th><th>Nghĩa là</th><th>Admin nên làm gì</th></tr></thead>
+    <tbody>
+      <tr><td><code>scheduled</code></td><td>Hẹn giờ, hoặc bị lùi vì giờ yên tĩnh</td><td>Xem <code>send_at</code>. Chưa tới giờ thì không có gì sai</td></tr>
+      <tr><td><code>queued</code></td><td>Đã vào hàng, chờ worker</td><td>Quá vài phút sau <code>send_at</code>: kiểm tra worker</td></tr>
+      <tr><td><code>processing</code></td><td>Đang gửi hoặc đang chờ thử lại</td><td>Kéo dài: xem hàng đợi</td></tr>
+      <tr><td><code>sent</code></td><td>FCM nhận cho mọi máy còn sống</td><td>Người dùng vẫn không thấy: lỗi ở phía điện thoại hoặc app</td></tr>
+      <tr><td><code>partially_sent</code></td><td>Có máy nhận, có máy không</td><td>Xem mã lỗi của máy hỏng</td></tr>
+      <tr><td><code>failed</code></td><td>Không máy nào nhận, hoặc job hỏng hẳn</td><td>Xem có dòng delivery không (quy trình điều tra bên dưới)</td></tr>
+      <tr><td><code>canceled</code></td><td>Bị huỷ qua <code>DELETE /notifications/{id}</code></td><td>Hỏi bên gọi API</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Grafana: vẽ số liệu từ câu SQL</h3>
+  <p><b>Grafana</b> là một ứng dụng web chạy riêng. Nó không lưu dữ liệu của bạn: mỗi lần mở trang, nó chạy câu SQL trên PostgreSQL rồi vẽ kết quả. Cần nhớ năm khái niệm:</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 180" role="img" aria-label="Data source nối Grafana tới database. Một dashboard có biến, khoảng thời gian và nhiều panel; mỗi panel là một câu SQL">
+      <rect class="n" x="8" y="60" width="140" height="60" rx="10"/><text class="b mid" x="78" y="87">Data source</text><text class="m mid" x="78" y="106">nối tới database</text>
+      <path class="e " d="M148 90H196" marker-end="url(#mk-m)"/>
+      <rect class="grp" x="200" y="8" width="512" height="164" rx="12"/><text class="b" x="214" y="32">Dashboard</text>
+      <rect class="n2" x="214" y="44" width="230" height="34" rx="10"/><text class="b mid" x="329" y="66">Biến: userId, …</text>
+      <rect class="n2" x="466" y="44" width="232" height="34" rx="10"/><text class="b mid" x="582" y="66">Time range: 7 ngày gần nhất</text>
+      <rect class="na" x="214" y="92" width="154" height="66" rx="10"/><text class="b mid" x="291" y="122">Panel</text><text class="m mid" x="291" y="141">1 câu SQL, 1 hình</text>
+      <rect class="na" x="379" y="92" width="154" height="66" rx="10"/><text class="b mid" x="456" y="122">Panel</text><text class="m mid" x="456" y="141">biểu đồ</text>
+      <rect class="na" x="544" y="92" width="154" height="66" rx="10"/><text class="b mid" x="621" y="122">Panel</text><text class="m mid" x="621" y="141">bảng</text>
+
+    </svg>
+    </div>
+    <figcaption>Đổi time range hoặc biến thì Grafana chạy lại câu SQL của các panel dùng chúng.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Khái niệm</th><th>Nghĩa là</th><th>Trong chặng này</th></tr></thead>
+    <tbody>
+      <tr><td>Data source</td><td>Địa chỉ và tài khoản để Grafana đọc dữ liệu</td><td><code>push-db.yml</code>, đăng nhập bằng <code>grafana_ro</code></td></tr>
+      <tr><td>Dashboard</td><td>Một trang gồm nhiều ô</td><td>"Push Service: theo dõi"</td></tr>
+      <tr><td>Panel</td><td>Một ô: một câu SQL và cách vẽ (số lớn, biểu đồ, bảng)</td><td>7 panel</td></tr>
+      <tr><td>Time range</td><td>Khoảng thời gian chọn ở góc trên</td><td>Mặc định 7 ngày</td></tr>
+      <tr><td>Variable</td><td>Ô nhập để người xem lọc</td><td><code>userId</code>, <code>notificationId</code></td></tr>
+    </tbody>
+  </table></div>
+  <h3>Vì sao Grafana không được đọc bảng thật</h3>
+  <p>Ai dùng được Grafana đều có thể gửi câu SQL tới data source. Nếu Grafana đăng nhập bằng tài khoản <code>push</code>, một người "chỉ xem biểu đồ" có thể đọc hết token hoặc xoá bảng. Ta áp dụng <b>quyền tối thiểu</b>: cấp đúng những gì cần, không hơn. Giống như nhân viên chăm sóc khách hàng xem được đơn hàng nhưng chỉ thấy 4 số cuối của thẻ.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 196" role="img" aria-label="Grafana đăng nhập bằng grafana_ro, chỉ đọc được hai view trong schema admin. View đọc bảng gốc. grafana_ro đi thẳng vào bảng gốc thì bị từ chối">
+      <rect class="na" x="8" y="62" width="120" height="56" rx="10"/><text class="b mid" x="68" y="95">Grafana</text>
+      <path class="e ea" d="M128 90H186" marker-end="url(#mk-a)"/>
+      <rect class="nw" x="190" y="62" width="132" height="56" rx="10"/><text class="b mid" x="256" y="87">grafana_ro</text><text class="m mid" x="256" y="106">chỉ đọc</text>
+      <path class="e ea" d="M322 90H380" marker-end="url(#mk-a)"/>
+      <rect class="grp" x="384" y="20" width="146" height="140" rx="12"/><text class="b mid" x="457" y="44">view (admin)</text>
+      <rect class="nok" x="394" y="58" width="126" height="38" rx="10"/><text class="b mid" x="457" y="82">notifications</text>
+      <rect class="nok" x="394" y="108" width="126" height="38" rx="10"/><text class="b mid" x="457" y="132">deliveries</text>
+      <path class="e " d="M530 90H570" marker-end="url(#mk-m)"/>
+      <rect class="grp" x="574" y="20" width="138" height="140" rx="12"/><text class="b mid" x="643" y="44">bảng gốc</text>
+      <rect class="n" x="584" y="58" width="118" height="38" rx="10"/><text class="b mid" x="643" y="82">notifications</text>
+      <rect class="n" x="584" y="108" width="118" height="38" rx="10"/><text class="b mid" x="643" y="132">deliveries</text>
+      <path class="e eb" d="M256 118V186H643V164" marker-end="url(#mk-b)"/>
+      <text class="m mid" x="450" y="180">đi thẳng vào bảng gốc: permission denied</text>
+
+    </svg>
+    </div>
+    <figcaption>View là "cửa sổ" nhìn vào bảng: chỉ lộ những cột bạn chọn, và có thể biến đổi chúng (ví dụ cắt ngắn token).</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Cột trong bảng gốc</th><th>Trong view</th><th>Lý do</th></tr></thead>
+    <tbody>
+      <tr><td><code>title</code>, <code>body</code>, <code>data</code></td><td>Không có</td><td>Nội dung thông báo có thể nhạy cảm</td></tr>
+      <tr><td><code>token</code></td><td><code>token_prefix</code>: 8 ký tự đầu</td><td>Có token đầy đủ là gửi được tới máy đó nếu có thêm khoá server</td></tr>
+      <tr><td><code>idempotency_key</code>, <code>fcm_message_id</code></td><td>Không có</td><td>Dashboard không cần</td></tr>
+      <tr><td><code>user_id</code>, <code>status</code>, thời gian, mã lỗi</td><td>Giữ nguyên</td><td>Cần để điều tra</td></tr>
+    </tbody>
+  </table></div>
+<div class="lang lang-go">
+  <h3>Hàng đợi nhìn từ phía admin</h3>
+  <p><b><code>asynqmon</code></b> là giao diện web có sẵn đọc thẳng Redis. Bạn đã học hàng đợi ở <a href="#chang-5">chặng 5</a>; ở đây chỉ cần nhìn ra job đang nằm ở ngăn nào:</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 200" role="img" aria-label="Job hẹn giờ ở scheduled, tới giờ sang pending, worker lấy thì active. Handler trả nil thì completed. Trả lỗi và còn lượt thì retry rồi quay lại pending. Hết lượt thì archived">
+      <rect class="n" x="8" y="64" width="112" height="56" rx="10"/><text class="b mid" x="64" y="89">scheduled</text><text class="m mid" x="64" y="108">hẹn giờ</text>
+      <path class="e " d="M120 92H152" marker-end="url(#mk-m)"/>
+      <rect class="na" x="156" y="64" width="112" height="56" rx="10"/><text class="b mid" x="212" y="89">pending</text><text class="m mid" x="212" y="108">chờ worker</text>
+      <path class="e " d="M268 92H300" marker-end="url(#mk-m)"/>
+      <rect class="nw" x="304" y="64" width="112" height="56" rx="10"/><text class="b mid" x="360" y="89">active</text><text class="m mid" x="360" y="108">đang chạy</text>
+      <path class="e " d="M416 80C470 80 470 34 540 34" marker-end="url(#mk-m)"/>
+      <text class="m mid" x="466" y="28">return nil</text>
+      <rect class="nok" x="544" y="8" width="168" height="52" rx="10"/><text class="b mid" x="628" y="31">completed</text><text class="m mid" x="628" y="50">giữ 24 giờ</text>
+      <path class="e eb" d="M416 104C470 104 470 160 540 160" marker-end="url(#mk-b)"/>
+      <text class="m mid" x="466" y="176">hết lượt</text>
+      <rect class="nb" x="544" y="134" width="168" height="52" rx="10"/><text class="b mid" x="628" y="157">archived</text><text class="m mid" x="628" y="176">hỏng hẳn, chờ bạn</text>
+      <rect class="nw" x="240" y="142" width="130" height="48" rx="10"/><text class="b mid" x="305" y="163">retry</text><text class="m mid" x="305" y="182">chờ thử lại</text>
+      <path class="e eb" d="M340 120C340 132 320 132 314 138" marker-end="url(#mk-b)"/>
+      <text class="m" x="392" y="138">lỗi, còn lượt</text>
+      <path class="e " d="M240 166C212 166 212 140 212 124" marker-end="url(#mk-m)"/>
+
+    </svg>
+    </div>
+    <figcaption>Ba dấu hiệu đáng lo: <b>pending tăng mãi</b> (worker chết hoặc quá tải), <b>retry nhiều</b> (một phụ thuộc đang hỏng), <b>archived khác 0</b> (có việc đã bị bỏ).</figcaption>
+  </figure>
+</div>
+  <h3>Log tốt trông thế nào</h3>
+  <p>Log dạng câu chữ đọc được bằng mắt nhưng khó lọc. <b>Log có cấu trúc</b> ghi mỗi sự kiện thành một object JSON, mỗi thông tin một trường:</p>
+<div class="code"><div class="file">Khó lọc</div><pre><code class="language-plaintext">Gửi thông báo cho u_42 bị lỗi sau 12ms</code></pre></div>
+<div class="code"><div class="file">Lọc được theo từng trường</div><pre><code class="language-json">{"level":"ERROR","msg":"request","method":"POST","route":"POST /notifications","status":500,"ms":12,"requestId":"U5W7ROC7…"}</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Mức</th><th>Dùng khi</th><th>Ví dụ trong service</th></tr></thead>
+    <tbody>
+      <tr><td><code>DEBUG</code></td><td>Chi tiết chỉ cần lúc gỡ lỗi; bình thường tắt</td><td>Chưa dùng</td></tr>
+      <tr><td><code>INFO</code></td><td>Chuyện bình thường đáng ghi lại</td><td>Request thành công, "đã nhận thông báo", "đã xử lý thông báo"</td></tr>
+      <tr><td><code>WARN</code></td><td>Bất thường nhưng service tự lo được, hoặc lỗi của người gọi</td><td>Request 4xx, <code>job lỗi</code> còn được thử lại</td></tr>
+      <tr><td><code>ERROR</code></td><td>Service làm hỏng việc, cần người xem</td><td>Request 5xx, <code>panic</code></td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Mã tương quan</b> (correlation ID) là chuỗi giống nhau trên mọi dòng log thuộc cùng một việc. Không có nó, khi 100 request chạy cùng lúc, bạn không biết dòng nào của ai. Ta dùng hai mã: <code>requestId</code> cho một request HTTP, <code>notificationId</code> cho cả đời một thông báo.</p>
+  <div class="callout danger"><span class="tag">Không bao giờ ghi vào log</span><p>Token đầy đủ, JWT, API key, nội dung thông báo, mật khẩu trong chuỗi kết nối database. Log thường được chép đi nhiều nơi và nhiều người đọc được.</p></div>
+  <h3>Theo dõi lỗi (error tracking) khác gì log</h3>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Log</th><th>Error tracking (Sentry)</th></tr></thead>
+    <tbody>
+      <tr><td>Cách dùng</td><td>Bạn chủ động đi tìm</td><td>Nó chủ động báo cho bạn</td></tr>
+      <tr><td>1.000 lần cùng một lỗi</td><td>1.000 dòng</td><td>Một mục (issue) kèm số đếm 1.000</td></tr>
+      <tr><td>Nội dung</td><td>Mọi sự kiện</td><td>Chỉ lỗi, kèm stack trace và tag</td></tr>
+      <tr><td>Hợp với</td><td>"Chuyện gì đã xảy ra với thông báo X?"</td><td>"Bản deploy mới có làm hỏng gì không?"</td></tr>
+    </tbody>
+  </table></div>
+  <p>Nguyên tắc chọn lỗi để gửi: <b>chỉ gửi thứ cần người sửa code hoặc sửa hệ thống</b>. Gửi cả lỗi 400 của người gọi thì chuông kêu suốt ngày, và bạn sẽ thôi để ý.</p>
+  <h3>Làm theo ba nấc</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Nấc</th><th>Công cụ</th><th>Khi nào</th><th>Trong chặng này</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><span class="lang lang-go">Grafana trên PostgreSQL, <code>asynqmon</code>, <code>slog</code> với <code>request_id</code></span><span class="lang lang-ts">Grafana trên PostgreSQL, Bull Board, pino</span></td><td>Ngay bây giờ</td><td><span class="lang lang-go">Bước 1–7</span><span class="lang lang-ts">Bước 1, 3–5</span></td></tr>
+      <tr><td>2</td><td>Sentry</td><td>Khi chạy thật</td><td><span class="lang lang-go">Bước 8</span><span class="lang lang-ts">Chưa có code mẫu</span></td></tr>
+      <tr><td>3</td><td>Prometheus, Loki và Grafana Alloy</td><td>Khi lượng dùng lớn hơn</td><td>Chỉ giới thiệu ở cuối chặng</td></tr>
+    </tbody>
+  </table></div>
+  <p>Vì sao chưa tự viết trang admin? Grafana cho biểu đồ và bảng tra cứu chỉ bằng SQL. Chỉ nên tự viết (ví dụ <code>html/template</code> và htmx) khi admin cần <b>thao tác</b> trên dữ liệu mà các công cụ này không làm được, và khi đó bạn phải tự lo cả đăng nhập, phân quyền, phân trang.</p>
+  <h3><span class="kicker k-do">Làm</span>Phần A: xem số liệu, không sửa code</h3>
+  <p>Mọi lệnh chạy ở thư mục chứa <code>docker-compose.yml</code>. Sau phần này, dự án có thêm:</p>
+<div class="code"><div class="file">Cây thư mục sau phần A</div><pre><code class="language-plaintext">docker-compose.yml            ← thêm asynqmon, grafana
+.env                          ← thêm 2 mật khẩu
+db/
+  004_admin_views.sql         ← view và tài khoản chỉ đọc
+  retention.sql               ← xoá dữ liệu cũ (cuối chặng)
+grafana/provisioning/
+  datasources/push-db.yml     ← Grafana nối database thế nào
+  dashboards/provider.yml     ← tìm dashboard ở đâu
+  dashboards/push-admin.json  ← nội dung dashboard</code></pre></div>
+  <ol class="steps">
+    <li><p class="st">Thêm hai mật khẩu vào <code>.env</code></p>
+      <p><b>Mục tiêu:</b> có mật khẩu cho trang đăng nhập Grafana và cho tài khoản database của Grafana.<br><b>Vì sao:</b> hai mật khẩu khác nhau thì lộ cái này không kéo theo cái kia. Để trong <code>.env</code> thì không bị đưa vào Git.</p>
+      <p>Chạy lệnh dưới <b>hai lần</b> để lấy hai chuỗi ngẫu nhiên. Chuỗi chỉ có chữ và số nên không vướng ký tự đặc biệt.</p>
+<div class="code"><pre><code class="language-bash">openssl rand -hex 16</code></pre></div>
+<div class="code"><div class="file">.env (thêm)</div><pre><code class="language-ini">GRAFANA_ADMIN_PASSWORD=dán_chuỗi_thứ_nhất
+GRAFANA_DB_PASSWORD=dán_chuỗi_thứ_hai</code></pre></div>
+      <p>Mở <code>.gitignore</code> và chắc chắn có dòng <code>.env</code>.</p>
+    </li>
+    <li class="lang lang-go"><p class="st">Xem hàng đợi bằng <code>asynqmon</code></p>
+      <p><b>Mục tiêu:</b> mở được trang web xem hàng đợi.<br><b>Vì sao:</b> đây là cách nhanh nhất để biết worker có đang làm việc không, mà không phải viết dòng code nào.</p>
+<div class="code"><div class="file">docker-compose.yml (thêm vào services)</div><pre><code class="language-yaml">  asynqmon:
+    image: hibiken/asynqmon:0.7
+    platform: linux/amd64   # image này không có bản arm64 (Mac chip M)
+    command: ["--redis-addr=redis:6379"]
+    ports: ["127.0.0.1:8081:8080"]
+    depends_on: [redis]</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Dòng</th><th>Ý nghĩa</th></tr></thead>
+    <tbody>
+      <tr><td><code>platform: linux/amd64</code></td><td>Image không có bản arm64. Trên Mac chip M, Docker chạy bản amd64 qua giả lập</td></tr>
+      <tr><td><code>--redis-addr=redis:6379</code></td><td><code>redis</code> là tên service trong Compose, không phải <code>localhost</code></td></tr>
+      <tr><td><code>127.0.0.1:8081:8080</code></td><td>Chỉ máy này truy cập được, qua cổng 8081 (cổng trong container là 8080)</td></tr>
+      <tr><td><code>depends_on</code></td><td>Khởi động Redis trước</td></tr>
+    </tbody>
+  </table></div>
+<div class="code"><pre><code class="language-bash">docker compose up -d asynqmon</code></pre></div>
+<div class="code"><pre><code class="language-bash">docker compose logs asynqmon</code></pre></div>
+<div class="code"><div class="file">Phải thấy</div><pre><code class="language-plaintext">asynqmon-1  | Asynq Monitoring WebUI server is listening on port 8080</code></pre></div>
+      <p>Mở <code>http://localhost:8081</code>. Trang <b>Queues</b> có hàng <code>notifications</code> (hàng đợi chỉ xuất hiện sau khi đã có ít nhất một job).</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Ngăn</th><th>Nghĩa là</th><th>Bạn làm gì</th></tr></thead>
+    <tbody>
+      <tr><td>scheduled</td><td>Hẹn giờ, chưa tới lúc</td><td>Không cần làm gì</td></tr>
+      <tr><td>pending, active</td><td>Đang chờ hoặc đang chạy</td><td>pending tăng mãi: worker chết hoặc quá tải</td></tr>
+      <tr><td>retry</td><td>Lỗi, đang chờ thử lại</td><td>Mở job xem thông báo lỗi</td></tr>
+      <tr><td>archived</td><td><b>Hỏng hẳn</b>, hết lượt thử</td><td>Sửa nguyên nhân, rồi quyết định có chạy lại không</td></tr>
+      <tr><td>completed</td><td>Handler trả <code>nil</code></td><td>Chưa chắc đã gửi được (xem "Đọc số cho đúng")</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn"><span class="tag">Trước khi bấm chạy lại job archived</span><p>Job chạy lại sẽ <b>gửi thật</b> tới người dùng. Nhắc việc đã quá cũ thì nên bỏ. Chỉ muốn xem, không cho ai thao tác: thêm <code>"--read-only"</code> vào <code>command</code>.</p></div>
+    </li>
+    <li><p class="st">Tạo view và tài khoản chỉ đọc cho Grafana</p>
+      <p><b>Mục tiêu:</b> tạo hai view và một tài khoản chỉ đọc được hai view đó.<br><b>Vì sao:</b> đây là hàng rào bảo vệ dữ liệu. Làm trước khi Grafana tồn tại, để Grafana chưa bao giờ phải dùng tài khoản mạnh.</p>
+<div class="code"><div class="file">db/004_admin_views.sql</div><pre><code class="language-sql">-- Chạy một lần. Mật khẩu đưa vào qua biến grafana_password, không viết trong file.
+-- BEGIN … COMMIT: một lệnh lỗi thì huỷ hết, không để lại schema làm dở.
+BEGIN;
+
+-- Grafana chỉ được nhìn các view trong schema admin, không đọc bảng gốc.
+CREATE SCHEMA admin;
+
+-- Không có title, body, data: nội dung thông báo có thể nhạy cảm.
+CREATE VIEW admin.notifications AS
+SELECT id, user_id, category, status, send_at, opened_at, created_at, updated_at
+FROM public.notifications;
+
+-- Token bị cắt còn 8 ký tự đầu.
+CREATE VIEW admin.deliveries AS
+SELECT notification_id, left(token, 8) || '…' AS token_prefix,
+       status, error_code, attempts, updated_at
+FROM public.deliveries;
+
+CREATE ROLE grafana_ro LOGIN PASSWORD :'grafana_password';
+-- Câu truy vấn chạy quá 15 giây thì bị huỷ, để dashboard không làm nghẽn database.
+ALTER ROLE grafana_ro SET statement_timeout = '15s';
+ALTER ROLE grafana_ro SET default_transaction_read_only = on;
+GRANT USAGE ON SCHEMA admin TO grafana_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA admin TO grafana_ro;
+
+COMMIT;</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Câu lệnh</th><th>Làm gì</th></tr></thead>
+    <tbody>
+      <tr><td><code>BEGIN … COMMIT</code></td><td>Gói tất cả vào một <b>transaction</b>: lỗi ở giữa thì PostgreSQL huỷ hết, bạn sửa rồi chạy lại từ đầu</td></tr>
+      <tr><td><code>CREATE SCHEMA admin</code></td><td>Schema là một "thư mục" trong database, để tách phần admin được xem</td></tr>
+      <tr><td><code>left(token, 8) || '…'</code></td><td>Lấy 8 ký tự đầu rồi nối thêm dấu ba chấm</td></tr>
+      <tr><td><code>:'grafana_password'</code></td><td>Biến của <code>psql</code>, được thay bằng giá trị truyền qua <code>-v</code> và tự bọc nháy</td></tr>
+      <tr><td><code>statement_timeout</code></td><td>Câu SQL chạy quá 15 giây bị huỷ</td></tr>
+      <tr><td><code>default_transaction_read_only</code></td><td>Lớp bảo vệ phụ: mặc định chỉ đọc. Hàng rào chính vẫn là không cấp quyền ghi</td></tr>
+      <tr><td><code>GRANT USAGE</code>, <code>GRANT SELECT</code></td><td>Cho vào schema <code>admin</code> và đọc các view trong đó, ngoài ra không có gì</td></tr>
+    </tbody>
+  </table></div>
+      <p>Đọc mật khẩu từ <code>.env</code> vào biến của terminal (chạy lại nếu bạn mở terminal mới):</p>
+<div class="code"><pre><code class="language-bash">GRAFANA_DB_PASSWORD=$(grep '^GRAFANA_DB_PASSWORD=' .env | cut -d= -f2-)</code></pre></div>
+<div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push -v ON_ERROR_STOP=1 -v grafana_password="$GRAFANA_DB_PASSWORD" &lt; db/004_admin_views.sql</code></pre></div>
+<div class="code"><div class="file">Phải thấy</div><pre><code class="language-plaintext">BEGIN
+CREATE SCHEMA
+CREATE VIEW
+CREATE VIEW
+CREATE ROLE
+ALTER ROLE
+ALTER ROLE
+GRANT
+GRANT
+COMMIT</code></pre></div>
+      <p><b>Kiểm tra hàng rào.</b> Lệnh đầu phải chạy được, hai lệnh sau phải bị từ chối. <code>-h 127.0.0.1</code> bắt đăng nhập bằng mật khẩu như Grafana sẽ làm.</p>
+<div class="code"><pre><code class="language-bash">docker compose exec -T -e PGPASSWORD="$GRAFANA_DB_PASSWORD" postgres psql -h 127.0.0.1 -U grafana_ro -d push -c "select count(*) from admin.deliveries"</code></pre></div>
+<div class="code"><pre><code class="language-bash">docker compose exec -T -e PGPASSWORD="$GRAFANA_DB_PASSWORD" postgres psql -h 127.0.0.1 -U grafana_ro -d push -c "select token from public.deliveries"</code></pre></div>
+<div class="code"><pre><code class="language-bash">docker compose exec -T -e PGPASSWORD="$GRAFANA_DB_PASSWORD" postgres psql -h 127.0.0.1 -U grafana_ro -d push -c "delete from admin.deliveries"</code></pre></div>
+<div class="code"><div class="file">Phải thấy (lần lượt; số đếm tuỳ dữ liệu của bạn)</div><pre><code class="language-plaintext"> count
+-------
+     0
+(1 row)
+
+ERROR:  permission denied for table deliveries
+ERROR:  permission denied for view deliveries</code></pre></div>
+  <div class="callout warn"><span class="tag">Gặp lỗi?</span><ul>
+    <li><code>syntax error at or near ":"</code>: thiếu <code>-v grafana_password=…</code>.</li>
+    <li><code>column "category" does not exist</code>: chưa chạy <code>003_features.sql</code> của chặng 7. Mới làm xong chặng 6 thì bỏ chữ <code>category</code> trong view; khi đó cũng bỏ cột "Loại" ở panel "Thông báo của một người dùng" và câu "tỉ lệ mở theo loại".</li>
+    <li><code>schema "admin" already exists</code>: bạn đã chạy thành công trước đó, không cần chạy lại. Muốn đổi mật khẩu: <code>ALTER ROLE grafana_ro PASSWORD '…';</code></li>
+  </ul></div>
+    </li>
+    <li><p class="st">Cấu hình Grafana và nguồn dữ liệu</p>
+      <p><b>Mục tiêu:</b> Grafana chạy lên và đã biết sẵn cách nối database.<br><b>Vì sao:</b> <b>provisioning</b> là cấu hình bằng file thay vì bấm chuột: xoá container dựng lại vẫn y nguyên, và thay đổi được xem lại trong Git.</p>
+<div class="code"><pre><code class="language-bash">mkdir -p grafana/provisioning/datasources grafana/provisioning/dashboards</code></pre></div>
+<div class="code"><div class="file">grafana/provisioning/datasources/push-db.yml</div><pre><code class="language-yaml">apiVersion: 1
+datasources:
+  - name: Push DB
+    uid: push-db
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: postgres:5432
+    user: grafana_ro
+    secureJsonData:
+      password: $GRAFANA_DB_PASSWORD   # Grafana tự thay bằng biến môi trường
+    jsonData:
+      database: push
+      sslmode: disable                 # cùng mạng Docker; database ở xa thì phải bật TLS
+      postgresVersion: 1600
+    editable: false</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Trường</th><th>Ý nghĩa</th></tr></thead>
+    <tbody>
+      <tr><td><code>uid: push-db</code></td><td>Tên cố định để dashboard trỏ tới. Đổi ở đây thì phải đổi trong file JSON</td></tr>
+      <tr><td><code>url: postgres:5432</code></td><td>Grafana chạy trong Docker nên gọi database bằng tên service</td></tr>
+      <tr><td><code>$GRAFANA_DB_PASSWORD</code></td><td>Grafana thay bằng biến môi trường; mật khẩu không nằm trong file</td></tr>
+      <tr><td><code>editable: false</code></td><td>Không cho sửa từ giao diện: file là nguồn đúng duy nhất</td></tr>
+    </tbody>
+  </table></div>
+<div class="code"><div class="file">docker-compose.yml (thêm vào services)</div><pre><code class="language-yaml">  grafana:
+    image: grafana/grafana:13.3.2
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?thêm GRAFANA_ADMIN_PASSWORD vào .env}
+      GRAFANA_DB_PASSWORD: ${GRAFANA_DB_PASSWORD:?thêm GRAFANA_DB_PASSWORD vào .env}
+    ports: ["127.0.0.1:3001:3000"]
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on: [postgres]</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Dòng</th><th>Ý nghĩa</th></tr></thead>
+    <tbody>
+      <tr><td><code>${…:?thông báo}</code></td><td>Thiếu biến thì Compose dừng và in thông báo, thay vì chạy với mật khẩu rỗng</td></tr>
+      <tr><td><code>127.0.0.1:3001:3000</code></td><td>Dùng cổng 3001 vì Push API đã chiếm cổng 3000</td></tr>
+      <tr><td><code>grafanadata:/var/lib/grafana</code></td><td>Giữ tài khoản và cài đặt khi tạo lại container</td></tr>
+      <tr><td><code>./grafana/provisioning:…:ro</code></td><td>Đưa file cấu hình vào container, chỉ đọc</td></tr>
+    </tbody>
+  </table></div>
+      <p>Thêm một dòng <code>grafanadata:</code> vào khối <code>volumes:</code> ở <b>cuối file</b>:</p>
+<div class="code"><div class="file">docker-compose.yml (khối volumes cuối file)</div><pre><code class="language-yaml">volumes:
+  pgdata:
+  grafanadata:</code></pre></div>
+  <div class="callout warn"><span class="tag">Gặp lỗi?</span><ul><li><code>required variable GRAFANA_ADMIN_PASSWORD is missing a value</code>: chưa làm bước 1, hoặc <code>.env</code> không nằm cùng thư mục với <code>docker-compose.yml</code>. Lưu ý: từ lúc thêm khối này, <b>mọi</b> lệnh <code>docker compose</code> đều cần hai biến đó.</li></ul></div>
+    </li>
+    <li><p class="st">Nạp dashboard và đọc nó</p>
+      <p><b>Mục tiêu:</b> mở Grafana và thấy dashboard có sẵn 7 ô.<br><b>Vì sao:</b> dashboard nằm trong file nên ai dựng lại dự án cũng có y hệt.</p>
+<div class="code"><div class="file">grafana/provisioning/dashboards/provider.yml</div><pre><code class="language-yaml">apiVersion: 1
+providers:
+  - name: push
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards</code></pre></div>
+      <p>File JSON mô tả từng ô. Không cần thuộc: mỗi phần tử trong <code>panels</code> chỉ gồm tiêu đề (<code>title</code>), kiểu vẽ (<code>type</code>), vị trí (<code>gridPos</code>, lưới rộng 24 cột) và câu SQL (<code>rawSql</code>).</p>
+<div class="code"><div class="file">grafana/provisioning/dashboards/push-admin.json</div><pre><code class="language-json">{
+  "uid": "push-admin",
+  "title": "Push Service: theo dõi",
+  "schemaVersion": 39,
+  "time": {"from": "now-7d", "to": "now"},
+  "refresh": "1m",
+  "templating": {"list": [{"name": "user_id", "label": "userId", "type": "textbox", "query": "", "current": {"text": "", "value": ""}}, {"name": "notification_id", "label": "notificationId", "type": "textbox", "query": "", "current": {"text": "", "value": ""}}]},
+  "panels": [
+    {
+      "id": 1,
+      "title": "Kết quả gửi (đếm theo thiết bị)",
+      "type": "stat",
+      "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"},
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 5},
+      "targets": [{"refId": "A", "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"}, "format": "table", "rawQuery": true, "editorMode": "code", "rawSql": "SELECT count(*) FILTER (WHERE status = 'sent') AS \"Thành công\", count(*) FILTER (WHERE status = 'failed') AS \"Lỗi\", COALESCE(round(100.0 * count(*) FILTER (WHERE status = 'failed') / NULLIF(count(*), 0), 1), 0) AS \"% lỗi\" FROM admin.deliveries WHERE $__timeFilter(updated_at)"}],
+      "fieldConfig": {"defaults": {}, "overrides": [{"matcher": {"id": "byName", "options": "Thành công"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]}, {"matcher": {"id": "byName", "options": "Lỗi"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}]}, {"matcher": {"id": "byName", "options": "% lỗi"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}]}]}
+    },
+    {
+      "id": 2,
+      "title": "Thành công và lỗi theo giờ",
+      "type": "timeseries",
+      "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"},
+      "gridPos": {"x": 0, "y": 5, "w": 16, "h": 8},
+      "targets": [{"refId": "A", "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"}, "format": "time_series", "rawQuery": true, "editorMode": "code", "rawSql": "SELECT $__timeGroupAlias(updated_at, '1h'), count(*) FILTER (WHERE status = 'sent') AS sent, count(*) FILTER (WHERE status = 'failed') AS failed FROM admin.deliveries WHERE $__timeFilter(updated_at) GROUP BY 1 ORDER BY 1"}],
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "bars", "fillOpacity": 70}}, "overrides": [{"matcher": {"id": "byName", "options": "sent"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "green"}}]}, {"matcher": {"id": "byName", "options": "failed"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}}]}]}
+    },
+    {
+      "id": 3,
+      "title": "Lỗi theo mã",
+      "type": "table",
+      "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"},
+      "gridPos": {"x": 16, "y": 5, "w": 8, "h": 8},
+      "targets": [{"refId": "A", "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"}, "format": "table", "rawQuery": true, "editorMode": "code", "rawSql": "SELECT error_code AS \"Mã lỗi\", count(*) AS \"Số lần\" FROM admin.deliveries WHERE status = 'failed' AND $__timeFilter(updated_at) GROUP BY 1 ORDER BY 2 DESC"}]
+    },
+    {
+      "id": 4,
+      "title": "Thông báo theo trạng thái",
+      "type": "table",
+      "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"},
+      "gridPos": {"x": 0, "y": 13, "w": 8, "h": 9},
+      "targets": [{"refId": "A", "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"}, "format": "table", "rawQuery": true, "editorMode": "code", "rawSql": "SELECT status AS \"Trạng thái\", count(*) AS \"Số lượng\", count(opened_at) AS \"Đã mở\" FROM admin.notifications WHERE $__timeFilter(created_at) GROUP BY 1 ORDER BY 2 DESC"}]
+    },
+    {
+      "id": 5,
+      "title": "Thông báo lỗi gần đây",
+      "type": "table",
+      "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"},
+      "gridPos": {"x": 8, "y": 13, "w": 16, "h": 9},
+      "targets": [{"refId": "A", "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"}, "format": "table", "rawQuery": true, "editorMode": "code", "rawSql": "SELECT updated_at AS \"Lúc\", id::text AS \"notificationId\", user_id AS \"User\", status AS \"Trạng thái\" FROM admin.notifications WHERE status IN ('failed', 'partially_sent') AND $__timeFilter(updated_at) ORDER BY updated_at DESC LIMIT 100"}]
+    },
+    {
+      "id": 7,
+      "title": "Thông báo của một người dùng (nhập userId phía trên)",
+      "type": "table",
+      "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"},
+      "gridPos": {"x": 0, "y": 22, "w": 24, "h": 8},
+      "targets": [{"refId": "A", "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"}, "format": "table", "rawQuery": true, "editorMode": "code", "rawSql": "SELECT created_at AS \"Tạo lúc\", id::text AS \"notificationId\", category AS \"Loại\", status AS \"Trạng thái\", send_at AS \"Giờ gửi\", opened_at AS \"Mở lúc\" FROM admin.notifications WHERE user_id = ${user_id:sqlstring} ORDER BY created_at DESC LIMIT 50"}]
+    },
+    {
+      "id": 6,
+      "title": "Tra một thông báo (dán notificationId vào ô phía trên)",
+      "type": "table",
+      "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"},
+      "gridPos": {"x": 0, "y": 30, "w": 24, "h": 8},
+      "targets": [{"refId": "A", "datasource": {"type": "grafana-postgresql-datasource", "uid": "push-db"}, "format": "table", "rawQuery": true, "editorMode": "code", "rawSql": "SELECT n.user_id AS \"User\", n.status AS \"Thông báo\", d.token_prefix AS \"Thiết bị\", d.status AS \"Kết quả\", d.error_code AS \"Mã lỗi\", d.attempts AS \"Số lần gửi\", d.updated_at AS \"Lúc\" FROM admin.notifications n LEFT JOIN admin.deliveries d ON d.notification_id = n.id WHERE n.id::text = ${notification_id:sqlstring}"}]
+    }
+  ]
+}</code></pre></div>
+<div class="code"><pre><code class="language-bash">docker compose up -d grafana</code></pre></div>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3001/api/health</code></pre></div>
+<div class="code"><div class="file">Phải thấy (chờ vài giây sau khi khởi động)</div><pre><code class="language-plaintext">{
+  "database": "ok",
+  "version": "13.3.2",
+  …
+}</code></pre></div>
+      <p>Mở <code>http://localhost:3001</code>, đăng nhập <code>admin</code> với <code>GRAFANA_ADMIN_PASSWORD</code>, vào <b>Dashboards → Push Service: theo dõi</b>. Chưa gửi gì thì các ô trống; phần diễn tập bên dưới sẽ tạo dữ liệu.</p>
+      <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 338" role="img" aria-label="Bố cục dashboard: hai ô nhập ở trên; ô kết quả gửi; biểu đồ theo giờ và lỗi theo mã; bảng theo trạng thái và thông báo lỗi gần đây; ô tra theo người dùng và ô tra theo thông báo">
+      <rect class="n2" x="8" y="8" width="350" height="30" rx="10"/><text class="b mid" x="183" y="28">ô nhập userId</text>
+      <rect class="n2" x="362" y="8" width="350" height="30" rx="10"/><text class="b mid" x="537" y="28">ô nhập notificationId</text>
+      <rect class="na" x="8" y="46" width="704" height="44" rx="10"/><text class="b mid" x="360" y="73">① Kết quả gửi: thành công · lỗi · % lỗi</text>
+      <rect class="n" x="8" y="98" width="466" height="60" rx="10"/><text class="b mid" x="241" y="133">② Thành công và lỗi theo giờ</text>
+      <rect class="n" x="480" y="98" width="232" height="60" rx="10"/><text class="b mid" x="596" y="133">③ Lỗi theo mã</text>
+      <rect class="n" x="8" y="166" width="232" height="60" rx="10"/><text class="b mid" x="124" y="201">④ Theo trạng thái</text>
+      <rect class="n" x="246" y="166" width="466" height="60" rx="10"/><text class="b mid" x="479" y="201">⑤ Thông báo lỗi gần đây</text>
+      <rect class="nok" x="8" y="234" width="704" height="44" rx="10"/><text class="b mid" x="360" y="261">⑥ Thông báo của một người dùng (theo userId)</text>
+      <rect class="nok" x="8" y="286" width="704" height="44" rx="10"/><text class="b mid" x="360" y="313">⑦ Tra một thông báo (theo notificationId)</text>
+
+    </svg>
+    </div>
+    <figcaption><b>Đọc từ trên xuống:</b> ① đến ③ cho biết có chuyện không; ④ và ⑤ cho biết chuyện xảy ra với ai; ⑥ và ⑦ để đi sâu vào một trường hợp.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Ô</th><th>Trả lời câu hỏi</th><th>Khi nào đáng lo</th></tr></thead>
+    <tbody>
+      <tr><td>① Kết quả gửi</td><td>Bao nhiêu lượt gửi thành công, lỗi, tỉ lệ lỗi?</td><td>Tỉ lệ lỗi cao hơn hẳn ngày thường</td></tr>
+      <tr><td>② Theo giờ</td><td>Lỗi tăng từ lúc nào?</td><td>Cột đỏ tăng đột ngột; hoặc không còn cột nào trong giờ vốn có gửi</td></tr>
+      <tr><td>③ Lỗi theo mã</td><td>Lỗi gì nhiều nhất?</td><td>Một mã bỗng chiếm đa số</td></tr>
+      <tr><td>④ Theo trạng thái</td><td>Bao nhiêu thông báo ở mỗi trạng thái, bao nhiêu được mở?</td><td><code>queued</code> hoặc <code>processing</code> dồn lại</td></tr>
+      <tr><td>⑤ Lỗi gần đây</td><td>Thông báo nào, của ai bị lỗi toàn bộ hoặc một phần?</td><td>Cùng một user lặp lại</td></tr>
+      <tr><td>⑥ Theo người dùng</td><td>Người này được tạo những thông báo nào, trạng thái ra sao?</td><td>(dùng khi điều tra)</td></tr>
+      <tr><td>⑦ Một thông báo</td><td>Nó tới máy nào, kết quả và mã lỗi?</td><td>(dùng khi điều tra)</td></tr>
+    </tbody>
+  </table></div>
+      <p><b>Đọc hiểu SQL của ô ①.</b> <code>FILTER</code> cho phép đếm nhiều loại trong một lần quét:</p>
+<div class="code"><pre><code class="language-sql">SELECT
+  count(*) FILTER (WHERE status = 'sent')   AS "Thành công",
+  count(*) FILTER (WHERE status = 'failed') AS "Lỗi",
+  COALESCE(round(
+    100.0 * count(*) FILTER (WHERE status = 'failed')
+    / NULLIF(count(*), 0),      -- không có dòng nào: tránh chia cho 0
+  1), 0) AS "% lỗi"             -- COALESCE: đổi NULL thành 0
+FROM admin.deliveries
+WHERE $__timeFilter(updated_at) -- Grafana thay bằng khoảng thời gian đang chọn</code></pre></div>
+      <p><b>Ô ②</b> gom theo giờ. <code>$__timeGroupAlias(updated_at, '1h')</code> làm tròn thời điểm xuống đầu giờ và đặt tên cột là <code>time</code>:</p>
+<div class="code"><pre><code class="language-sql">SELECT $__timeGroupAlias(updated_at, '1h'),
+       count(*) FILTER (WHERE status = 'sent')   AS sent,
+       count(*) FILTER (WHERE status = 'failed') AS failed
+FROM admin.deliveries
+WHERE $__timeFilter(updated_at)
+GROUP BY 1      -- 1 = cột thứ nhất (giờ)
+ORDER BY 1</code></pre></div>
+      <p><b>Ô ⑦</b> dùng <code>LEFT JOIN</code>: thông báo <b>không có</b> dòng delivery nào vẫn hiện ra, với các cột thiết bị để trống. Dấu hiệu đó rất quan trọng khi điều tra. <code>${notification_id:sqlstring}</code> là giá trị bạn nhập, được Grafana bọc nháy và thoát ký tự.</p>
+<div class="code"><pre><code class="language-sql">FROM admin.notifications n
+LEFT JOIN admin.deliveries d ON d.notification_id = n.id
+WHERE n.id::text = ${notification_id:sqlstring}
+-- id::text: ô nhập đang trống thì chỉ không ra kết quả, không báo lỗi kiểu UUID</code></pre></div>
+      <p>Mã lỗi (do hàm <code>fcm.Code</code> ở chặng 6 đặt):</p>
+  <div class="tbl"><table>
+    <thead><tr><th>error_code</th><th>Ý nghĩa</th><th>Việc cần làm</th></tr></thead>
+    <tbody>
+      <tr><td><code>unregistered</code></td><td>Token chết; service tự xoá</td><td>Bình thường, trừ khi tăng đột biến</td></tr>
+      <tr><td><code>unavailable</code>, <code>internal</code>, <code>message_rate_exceeded</code></td><td>Lỗi tạm thời, được thử lại</td><td>Kéo dài: xem trạng thái FCM hoặc giảm tốc độ gửi</td></tr>
+      <tr><td><code>invalid_argument</code></td><td>Payload hoặc token sai định dạng</td><td>Kiểm tra dữ liệu gửi đi và code</td></tr>
+      <tr><td><code>third_party_auth_error</code></td><td>Khoá APNs hoặc Web Push trên Firebase sai hay hết hạn</td><td>Cập nhật khoá trên Firebase</td></tr>
+      <tr><td><code>unknown</code></td><td>Chưa được phân loại, ví dụ khoá service account sai</td><td>Xem log worker, kiểm tra file khoá</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn"><span class="tag">Gặp lỗi?</span><ul>
+    <li><b>Mọi ô báo <code>password authentication failed for user "grafana_ro"</code></b>: mật khẩu trong <code>.env</code> khác mật khẩu lúc tạo role. Chạy <code>ALTER ROLE grafana_ro PASSWORD '…';</code> bằng tài khoản <code>push</code>.</li>
+    <li><b>Không đăng nhập được trang web</b>: mật khẩu admin chỉ được áp dụng ở <b>lần khởi động đầu tiên</b>; đổi <code>.env</code> sau đó không đổi mật khẩu.</li>
+    <li><b>Ô trống</b>: kiểm tra time range ở góc trên, và đã có thông báo nào được gửi chưa.</li>
+    <li><b>Sửa file JSON mà không thấy đổi</b>: <code>docker compose restart grafana</code>.</li>
+  </ul></div>
+      <p><b>Tự viết câu hỏi mới:</b> vào mục <b>Explore</b>, chọn data source <b>Push DB</b>, chuyển sang chế độ viết code rồi dán SQL. Bốn câu hay dùng:</p>
+<div class="code"><div class="file">Explore: thông báo đang kẹt</div><pre><code class="language-sql">-- Đã tới giờ gửi hơn 5 phút mà vẫn chưa xong
+SELECT id, user_id, status, send_at
+FROM admin.notifications
+WHERE status IN ('scheduled', 'queued', 'processing')
+  AND send_at &lt; now() - interval '5 minutes'
+ORDER BY send_at
+LIMIT 50;</code></pre></div>
+<div class="code"><div class="file">Explore: tỉ lệ mở theo loại</div><pre><code class="language-sql">-- Tỉ lệ mở theo loại, 7 ngày gần nhất
+SELECT category,
+       count(*)                 AS da_gui,
+       count(opened_at)         AS da_mo,
+       round(100.0 * count(opened_at) / count(*), 1) AS ti_le_mo
+FROM admin.notifications
+WHERE status IN ('sent', 'partially_sent')
+  AND created_at &gt; now() - interval '7 days'
+GROUP BY category;</code></pre></div>
+<div class="code"><div class="file">Explore: gửi nhanh hay chậm</div><pre><code class="language-sql">-- Từ giờ hẹn gửi tới lúc FCM nhận, 24 giờ gần nhất (giây)
+-- p50: một nửa số lượt nhanh hơn mức này; p95: 95% số lượt nhanh hơn
+SELECT percentile_cont(0.5)  WITHIN GROUP (ORDER BY extract(epoch FROM d.updated_at - n.send_at)) AS p50,
+       percentile_cont(0.95) WITHIN GROUP (ORDER BY extract(epoch FROM d.updated_at - n.send_at)) AS p95
+FROM admin.deliveries d
+JOIN admin.notifications n ON n.id = d.notification_id
+WHERE d.status = 'sent'
+  AND d.updated_at &gt; now() - interval '24 hours';</code></pre></div>
+<div class="code"><div class="file">Explore: ai gặp lỗi nhiều nhất</div><pre><code class="language-sql">-- Ai gặp lỗi nhiều nhất trong 24 giờ
+SELECT n.user_id, d.error_code, count(*) AS so_luot_loi
+FROM admin.deliveries d
+JOIN admin.notifications n ON n.id = d.notification_id
+WHERE d.status = 'failed'
+  AND d.updated_at &gt; now() - interval '24 hours'
+GROUP BY n.user_id, d.error_code
+ORDER BY so_luot_loi DESC
+LIMIT 10;</code></pre></div>
+      <p class="muted"><code>ti_le_mo</code> chỉ có ý nghĩa khi app đã gọi <code>/notifications/{id}/opened</code>. Cột <code>updated_at</code> của delivery là lần thử <b>gần nhất</b>, nên thông báo phải thử lại sẽ làm số p95 tăng.</p>
+    </li>
+  </ol>
+<div class="lang lang-go">
+  <h3><span class="kicker k-do">Làm</span>Phần B: log lần theo được, và gom lỗi</h3>
+  <p>Phần này sửa code, viết dựa trên code ở cuối <a href="#chang-8">chặng 8</a>. <b>Commit trước khi bắt đầu</b> để so sánh và quay lại được. Dự án build được sau từng bước 6 và 8.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>File</th><th>Bước</th><th>Thay đổi</th></tr></thead>
+    <tbody>
+      <tr><td><code>internal/logging/logging.go</code></td><td>6</td><td>Thay toàn bộ: tự gắn <code>requestId</code></td></tr>
+      <tr><td><code>internal/httpx/requestid.go</code></td><td>6</td><td>Mới: sinh mã cho mỗi request</td></tr>
+      <tr><td><code>internal/httpx/logging.go</code></td><td>6</td><td>Thay toàn bộ: ghi route thay vì đường dẫn, chọn mức log</td></tr>
+      <tr><td><code>httpx/errors.go</code>, <code>app/app.go</code>, <code>notifications/handler.go</code>, <code>worker/processor.go</code></td><td>6</td><td>Sửa vài dòng</td></tr>
+      <tr><td><code>internal/errtrack/errtrack.go</code>, <code>internal/httpx/recover.go</code></td><td>8</td><td>Mới: Sentry và bắt <code>panic</code></td></tr>
+      <tr><td><code>config.go</code>, <code>cmd/api</code>, <code>cmd/worker</code></td><td>8</td><td>Thêm cấu hình và khởi tạo</td></tr>
+    </tbody>
+  </table></div>
+</div>
+  <ol class="steps" style="counter-reset:s 5">
+    <li class="lang lang-go"><p class="st">Gắn <code>requestId</code> vào log, và ngừng ghi token</p>
+      <p><b>Mục tiêu:</b> mọi dòng log của một request có chung một mã, và log không còn chứa token.<br><b>Vì sao:</b> đây là nền cho mọi việc điều tra sau này.</p>
+      <div class="callout danger"><span class="tag">Sửa một lỗi của các chặng trước</span><p><code>LogRequests</code> và <code>Handle</code> đang ghi <code>r.URL.Path</code>. Với <code>DELETE /devices/{token}</code>, đường dẫn đó chứa <b>token đầy đủ</b>, nên token đã nằm trong log. Bản mới ghi <code>r.Pattern</code>: tên mẫu route, không có giá trị thật. Nếu service đã chạy thật, hãy xoá hoặc giới hạn quyền xem log cũ.</p></div>
+      <p>Ý tưởng lần theo một thông báo:</p>
+      <figure class="fig"><div class="scroll">
+      <svg class="dg" viewBox="0 0 720 104" role="img" aria-label="requestId nằm trên mọi dòng log của một request. Dòng đã nhận thông báo có cả requestId lẫn notificationId. notificationId đi tiếp sang log worker và database">
+        <rect class="n" x="8" y="16" width="200" height="72" rx="10"/><text class="b mid" x="108" y="44">Log của API</text><text class="m mid" x="108" y="64">nối bằng requestId</text>
+        <line class="e" x1="208" y1="52" x2="254" y2="52" marker-end="url(#mk-m)"/>
+        <rect class="na" x="258" y="16" width="204" height="72" rx="10"/><text class="b mid" x="360" y="44">"đã nhận thông báo"</text><text class="m mid" x="360" y="64">có cả hai mã: cái cầu nối</text>
+        <line class="e" x1="462" y1="52" x2="508" y2="52" marker-end="url(#mk-m)"/>
+        <rect class="nok" x="512" y="16" width="200" height="72" rx="10"/><text class="b mid" x="612" y="44">Log worker, database</text><text class="m mid" x="612" y="64">nối bằng notificationId</text>
+      </svg></div>
+      <figcaption>Không cần sửa dữ liệu job trong hàng đợi: <code>notificationId</code> đã có sẵn trong đó.</figcaption></figure>
+      <p><b>6.1. Logger tự đọc mã từ context.</b></p>
+<div class="code"><div class="file">internal/logging/logging.go (thay toàn bộ)</div><pre><code class="language-go">package logging
+
+import (
+	"context"
+	"log/slog"
+	"os"
+	"strings"
+)
+
+type requestIDKey struct{}
+
+// WithRequestID gắn mã request vào context.
+func WithRequestID(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, requestIDKey{}, id)
+}
+
+// RequestID lấy mã request từ context; không có thì trả chuỗi rỗng.
+func RequestID(ctx context.Context) string {
+	id, _ := ctx.Value(requestIDKey{}).(string)
+	return id
+}
+
+// contextHandler bọc một slog.Handler: dòng log nào được ghi kèm context
+// (InfoContext, ErrorContext…) thì tự có thêm requestId.
+type contextHandler struct{ slog.Handler }
+
+func (h contextHandler) Handle(ctx context.Context, r slog.Record) error {
+	if id := RequestID(ctx); id != "" {
+		r.AddAttrs(slog.String("requestId", id))
+	}
+	return h.Handler.Handle(ctx, r)
+}
+
+// Hai hàm dưới giữ nguyên lớp bọc khi gọi log.With(…) hoặc log.WithGroup(…).
+func (h contextHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return contextHandler{h.Handler.WithAttrs(attrs)}
+}
+
+func (h contextHandler) WithGroup(name string) slog.Handler {
+	return contextHandler{h.Handler.WithGroup(name)}
+}
+
+// New tạo logger JSON với mức log lấy từ cấu hình (debug, info, warn, error).
+func New(level string) *slog.Logger {
+	var l slog.Level
+	if err := l.UnmarshalText([]byte(strings.ToUpper(level))); err != nil {
+		l = slog.LevelInfo
+	}
+	return slog.New(contextHandler{slog.NewJSONHandler(os.Stdout, &amp;slog.HandlerOptions{Level: l})})
+}</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Phần</th><th>Giải thích</th></tr></thead>
+    <tbody>
+      <tr><td><code>requestIDKey struct{}</code></td><td>Kiểu khoá riêng để không package nào khác vô tình ghi đè giá trị trong context</td></tr>
+      <tr><td><code>contextHandler</code></td><td>Bọc handler JSON, đúng kiểu "bọc" của middleware: thêm <code>requestId</code> rồi chuyển tiếp</td></tr>
+      <tr><td><code>WithAttrs</code>, <code>WithGroup</code></td><td>Thiếu hai hàm này, <code>log.With(…)</code> trả về logger đã mất lớp bọc</td></tr>
+    </tbody>
+  </table></div>
+      <p>Chỉ những lời gọi <b>nhận context</b> (<code>slog.InfoContext</code>, <code>slog.ErrorContext</code>, <code>log.Log(ctx, …)</code>) mới được gắn mã. Gọi <code>slog.Info</code> thì không.</p>
+      <p><b>6.2. Sinh mã cho mỗi request.</b></p>
+<div class="code"><div class="file">internal/httpx/requestid.go</div><pre><code class="language-go">package httpx
+
+import (
+	"crypto/rand"
+	"net/http"
+
+	"push-service/internal/logging"
+)
+
+// RequestID cấp cho mỗi request một mã ngẫu nhiên, gắn vào context để log
+// dùng, và trả về trong header X-Request-ID để người gọi báo lại khi gặp lỗi.
+func RequestID(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Luôn tự sinh, không tin giá trị client gửi lên
+		id := rand.Text()
+		w.Header().Set("X-Request-ID", id)
+		next.ServeHTTP(w, r.WithContext(logging.WithRequestID(r.Context(), id)))
+	})
+}</code></pre></div>
+      <p><code>rand.Text()</code> trả một chuỗi ngẫu nhiên 26 ký tự (có từ Go 1.24). Không dùng giá trị client gửi lên, vì họ có thể gửi mã trùng nhau hoặc chuỗi rác để làm nhiễu log.</p>
+      <p><b>6.3. Log request an toàn và có mức.</b></p>
+<div class="code"><div class="file">internal/httpx/logging.go (thay toàn bộ)</div><pre><code class="language-go">package httpx
+
+import (
+	"log/slog"
+	"net/http"
+	"time"
+)
+
+// statusRecorder nhớ lại status mà handler đã ghi, để đưa vào log.
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (s *statusRecorder) WriteHeader(code int) {
+	s.status = code
+	s.ResponseWriter.WriteHeader(code)
+}
+
+// LogRequests ghi một dòng log JSON cho mỗi request.
+func LogRequests(log *slog.Logger, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rec := &amp;statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(rec, r)
+
+		// r.Pattern là mẫu route mà mux đã chọn, ví dụ "DELETE /devices/{token}".
+		// Không ghi r.URL.Path: đường dẫn đó chứa token thật.
+		route := r.Pattern
+		if route == "" {
+			route = "unmatched" // không khớp route nào (404, 405)
+		}
+		level := slog.LevelInfo
+		switch {
+		case rec.status &gt;= 500:
+			level = slog.LevelError
+		case rec.status &gt;= 400:
+			level = slog.LevelWarn
+		}
+		log.Log(r.Context(), level, "request",
+			"method", r.Method,
+			"route", route,
+			"status", rec.status,
+			"ms", time.Since(start).Milliseconds(),
+		)
+	})
+}</code></pre></div>
+      <p><code>r.Pattern</code> được <code>mux</code> gán lên chính request khi chọn route. Vì vậy phải đọc nó <b>sau</b> <code>next.ServeHTTP</code>.</p>
+<div class="code"><div class="file">internal/httpx/errors.go (sửa một dòng)</div><pre><code class="language-go">// Trong nhánh default của Handle, thay dòng slog.ErrorContext bằng:
+slog.ErrorContext(r.Context(), "lỗi không lường trước", "err", err, "route", r.Pattern)</code></pre></div>
+      <p><b>6.4. Lắp middleware.</b> <code>RequestID</code> phải ở ngoài cùng, để <code>LogRequests</code> đã có mã khi ghi log.</p>
+<div class="code"><div class="file">internal/app/app.go (sửa một dòng)</div><pre><code class="language-go">// Dòng return cuối hàm New:
+return httpx.RequestID(httpx.LogRequests(deps.Log, mux))</code></pre></div>
+      <p><b>6.5. Dòng log cầu nối.</b></p>
+<div class="code"><div class="file">internal/notifications/handler.go (thêm)</div><pre><code class="language-go">// Thêm "log/slog" vào import. Trong Create, ngay trước dòng status := http.StatusAccepted:
+// Thông báo bị bỏ qua (skipped) không được ghi database: đây là dấu vết duy nhất
+slog.InfoContext(r.Context(), "đã nhận thông báo",
+	"notificationId", n.ID, "userId", req.UserID, "category", req.Category,
+	"status", n.Status, "reason", n.Reason, "duplicate", n.Duplicate)</code></pre></div>
+      <p>Có <code>userId</code> nên tìm được cả những thông báo bị bỏ qua. Chỉ dùng được cách này khi <code>userId</code> là mã nội bộ; nếu hệ thống của bạn lấy email hay số điện thoại làm id, đừng ghi thẳng vào log. Yêu cầu bị <code>429</code> trả lỗi trước dòng này, nên chỉ để lại dòng log request.</p>
+      <p><b>6.6. Worker: dòng lỗi nào cũng có <code>notificationId</code>.</b> Bản cũ đọc payload chỉ khi hết lượt, nên đúng những dòng <code>job lỗi</code> lại không biết là của thông báo nào.</p>
+<div class="code"><div class="file">internal/worker/processor.go (thay hàm OnError ở cuối file)</div><pre><code class="language-go">// OnError được asynq gọi sau mỗi lần job lỗi.
+func (p *Processor) OnError(ctx context.Context, t *asynq.Task, err error) {
+	retried, _ := asynq.GetRetryCount(ctx)
+	maxRetry, _ := asynq.GetMaxRetry(ctx)
+	// Đọc payload ngay từ đầu để dòng log nào cũng có notificationId
+	var job queue.SendJob
+	_ = json.Unmarshal(t.Payload(), &amp;job) // payload hỏng thì id để rỗng
+	p.log.Warn("job lỗi", "notificationId", job.NotificationID,
+		"type", t.Type(), "attempt", retried+1, "err", err)
+
+	// Hết lượt thử (hoặc lỗi vĩnh viễn): đánh dấu failed để không kẹt ở processing
+	if retried &gt;= maxRetry || errors.Is(err, asynq.SkipRetry) {
+		if job.NotificationID != "" {
+			if e := p.notifications.SetStatus(ctx, job.NotificationID, "failed"); e != nil {
+				p.log.Error("không ghi được trạng thái failed", "err", e)
+			}
+		}
+	}
+}</code></pre></div>
+      <p><code>cmd/worker/main.go</code> phải dùng <code>logging.New(cfg.LogLevel)</code> như đã sửa ở chặng 8.</p>
+<div class="code"><pre><code class="language-bash">go build ./... &amp;&amp; go test ./...</code></pre></div>
+      <p><b>Kiểm tra:</b> chạy API, gọi health check kèm <code>-i</code> để xem header:</p>
+<div class="code"><pre><code class="language-bash">curl -i http://localhost:3000/health/live</code></pre></div>
+<div class="code"><div class="file">Phải thấy trong header (mã mỗi lần một khác)</div><pre><code class="language-plaintext">X-Request-Id: XEHMYYESDFQYHDTOQ76ZBZGPAL</code></pre></div>
+      <p>Khi bạn gọi <code>DELETE /devices/…</code> (xem diễn tập), log trông như sau, không có token:</p>
+<div class="code"><div class="file">Phải thấy (đã bỏ trường time)</div><pre><code class="language-json">{"level":"INFO","msg":"request","method":"DELETE","route":"DELETE /devices/{token}","status":204,"ms":8,"requestId":"QHLDIYHKCY2AIMMOBFQNMAKCQR"}</code></pre></div>
+    </li>
+    <li class="lang lang-go"><p class="st">Đọc và lọc log</p>
+      <p><b>Mục tiêu:</b> trả lời được các câu hỏi thường gặp chỉ bằng vài lệnh.<br><b>Vì sao:</b> có log mà không biết lọc thì cũng như không.</p>
+      <p>Chạy bằng <code>go run</code> thì log chỉ hiện trên terminal. Ghi đồng thời ra file (nhớ thêm <code>logs/</code> vào <code>.gitignore</code>). Mỗi lệnh một terminal:</p>
+<div class="code"><pre><code class="language-bash">mkdir -p logs &amp;&amp; go run ./cmd/api 2&gt;&amp;1 | tee -a logs/api.log</code></pre></div>
+<div class="code"><pre><code class="language-bash">mkdir -p logs &amp;&amp; go run ./cmd/worker 2&gt;&amp;1 | tee -a logs/worker.log</code></pre></div>
+      <p><b><code>jq</code></b> là công cụ đọc và lọc JSON trên terminal (kiểm tra bằng <code>jq --version</code>; chưa có thì <code>brew install jq</code>). Các phần xuất hiện trong lệnh:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Phần</th><th>Nghĩa là</th></tr></thead>
+    <tbody>
+      <tr><td><code>-R</code> và <code>fromjson?</code></td><td>Đọc từng dòng như chữ, thử đổi thành JSON, <b>bỏ qua</b> dòng không phải JSON (ví dụ dòng khởi động của <code>asynq</code>)</td></tr>
+      <tr><td><code>select(điều kiện)</code></td><td>Chỉ giữ dòng thoả điều kiện</td></tr>
+      <tr><td><code>.status</code></td><td>Lấy trường <code>status</code> của dòng đang xét</td></tr>
+      <tr><td><code>--arg id "X"</code></td><td>Tạo biến <code>$id</code> để dùng trong bộ lọc</td></tr>
+      <tr><td><code>-c</code>, <code>-r</code></td><td>In gọn một dòng mỗi object; in chuỗi trần không có nháy</td></tr>
+    </tbody>
+  </table></div>
+      <p><b>Câu 1. Có lỗi gì không?</b></p>
+<div class="code"><pre><code class="language-bash">cat logs/*.log | jq -R -c 'fromjson? | select(.level == "WARN" or .level == "ERROR")'</code></pre></div>
+      <p><b>Câu 2. Bao nhiêu request mỗi loại status?</b> Đây là cách đếm 400, 401, 429, 500, thứ database không có.</p>
+<div class="code"><pre><code class="language-bash">cat logs/api.log | jq -R -r 'fromjson? | select(.msg == "request" and (.route | startswith("GET /health") | not)) | "\(.status) \(.route)"' | sort | uniq -c</code></pre></div>
+<div class="code"><div class="file">Ví dụ kết quả</div><pre><code class="language-plaintext">   2 200 POST /notifications
+   1 201 POST /devices
+  14 202 POST /notifications
+   1 401 POST /notifications
+   1 429 POST /notifications</code></pre></div>
+      <p><b>Câu 3. Người dùng này được yêu cầu gửi gì?</b> Kể cả những cái bị bỏ qua:</p>
+<div class="code"><pre><code class="language-bash">cat logs/api.log | jq -R -c --arg u "u_off" 'fromjson? | select(.userId == $u)'</code></pre></div>
+<div class="code"><div class="file">Ví dụ kết quả (đã bỏ trường time)</div><pre><code class="language-json">{"level":"INFO","msg":"đã nhận thông báo","notificationId":"","userId":"u_off","category":"comment","status":"skipped","reason":"user_opted_out","duplicate":false,"requestId":"VD7AKPZH…"}</code></pre></div>
+      <p><b>Câu 4. Thông báo này đã trải qua những gì?</b> Thay <code>NOTIFICATION_ID</code> bằng id thật:</p>
+<div class="code"><pre><code class="language-bash">cat logs/*.log | jq -R -c --arg id "NOTIFICATION_ID" 'fromjson? | select(.notificationId == $id)'</code></pre></div>
+<div class="code"><div class="file">Ví dụ kết quả khi database hỏng (rút gọn)</div><pre><code class="language-plaintext">{"msg":"đã nhận thông báo","requestId":"NCVU7X43…", …}
+{"msg":"job lỗi","attempt":1,"err":"ERROR: relation \"deliveries\" does not exist (SQLSTATE 42P01)", …}
+{"msg":"job lỗi","attempt":2, …}
+{"msg":"job lỗi","attempt":3, …}
+{"msg":"job lỗi","attempt":4, …}
+{"msg":"job lỗi","attempt":5, …}</code></pre></div>
+      <p><b>Câu 5. Request gốc ra sao?</b> Lấy <code>requestId</code> ở dòng "đã nhận thông báo". Người gọi API báo lỗi thì xin họ giá trị header <code>X-Request-ID</code> rồi dùng cùng lệnh này.</p>
+<div class="code"><pre><code class="language-bash">cat logs/api.log | jq -R -c --arg id "REQUEST_ID" 'fromjson? | select(.requestId == $id)'</code></pre></div>
+      <p>Khi chạy bằng Docker (chặng 8), lấy log từ Docker thay cho file:</p>
+<div class="code"><pre><code class="language-bash">docker compose logs --no-log-prefix api worker | jq -R -c 'fromjson? | select(.level == "ERROR")'</code></pre></div>
+      <p>Giới hạn dung lượng để log không làm đầy ổ đĩa: mỗi file tối đa 10 MB, giữ 5 file. Thêm khối này vào cả <code>api</code> và <code>worker</code>:</p>
+<div class="code"><div class="file">docker-compose.yml (trong service api và worker)</div><pre><code class="language-yaml">    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "5"}</code></pre></div>
+    </li>
+    <li class="lang lang-go"><p class="st">Nấc 2: gom lỗi bằng Sentry, và bắt <code>panic</code></p>
+      <p><b>Mục tiêu:</b> lỗi nghiêm trọng tự tìm đến bạn, và <code>panic</code> trong API không còn làm client mất response.<br><b>Vì sao:</b> log chỉ giúp khi bạn biết là phải đi tìm.</p>
+      <div class="tbl"><table><thead><tr><th>Chuyện xảy ra</th><th>Gửi Sentry?</th><th>Chỗ gọi</th></tr></thead><tbody><tr><td>Lỗi không lường trước trong API (500)</td><td>Có</td><td>Nhánh <code>default</code> của <code>Handle</code></td></tr><tr><td><code>panic</code> trong API</td><td>Có</td><td>Middleware <code>Recover</code></td></tr><tr><td>Job hỏng hẳn (kể cả do <code>panic</code>, <code>asynq</code> tự bắt)</td><td>Có</td><td><code>OnError</code>, lần cuối</td></tr><tr><td>Job lỗi nhưng còn được thử lại</td><td>Không</td><td></td></tr><tr><td>400, 401, 404, 429</td><td>Không: lỗi của người gọi</td><td></td></tr><tr><td>Một vài thiết bị lỗi khi gửi</td><td>Không: xem ở Grafana</td><td></td></tr></tbody></table></div>
+      <p><b>8.1. Lấy DSN.</b> Tự đăng ký tài khoản Sentry, tạo project loại Go, rồi chép <b>DSN</b>: một URL cho SDK biết gửi lỗi vào project nào. Để trống <code>SENTRY_DSN</code> thì service chạy bình thường và không gửi gì.</p>
+<div class="code"><pre><code class="language-bash">go get github.com/getsentry/sentry-go@v0.50.0</code></pre></div>
+<div class="code"><pre><code class="language-bash">mkdir -p internal/errtrack</code></pre></div>
+<div class="code"><div class="file">.env (thêm)</div><pre><code class="language-ini">SENTRY_DSN=
+APP_ENV=development</code></pre></div>
+<div class="code"><div class="file">internal/config/config.go</div><pre><code class="language-go">// thêm vào struct Config:
+SentryDSN string // để trống thì không gửi lỗi lên Sentry
+AppEnv    string
+
+// thêm vào Config{ … } trong hàm Load:
+SentryDSN: l.text("SENTRY_DSN", ""),
+AppEnv:    l.text("APP_ENV", "development"),</code></pre></div>
+      <p><b>8.2. Lớp bọc Sentry.</b> Cũng như package <code>fcm</code>, chỉ một chỗ biết tới thư viện bên ngoài. Đổi dịch vụ thì chỉ sửa file này.</p>
+<div class="code"><div class="file">internal/errtrack/errtrack.go</div><pre><code class="language-go">// Package errtrack là lớp mỏng bọc Sentry. Chỉ package này biết tới Sentry.
+package errtrack
+
+import (
+	"context"
+	"errors"
+	"time"
+
+	"github.com/getsentry/sentry-go"
+
+	"push-service/internal/logging"
+)
+
+// Init bật Sentry. dsn rỗng (máy dev) thì không bật, và Capture không làm gì.
+// Nhớ gọi flush trước khi chương trình thoát để gửi nốt lỗi còn trong hàng.
+func Init(dsn, environment, service string) (flush func(), err error) {
+	if dsn == "" {
+		return func() {}, nil
+	}
+	err = sentry.Init(sentry.ClientOptions{Dsn: dsn, Environment: environment})
+	if err != nil {
+		return nil, err
+	}
+	sentry.CurrentHub().Scope().SetTag("service", service) // api hay worker
+	return func() { sentry.Flush(2 * time.Second) }, nil
+}
+
+// Capture gửi một lỗi lên Sentry. tags chỉ chứa thông tin an toàn:
+// KHÔNG đưa token, JWT, API key hay nội dung thông báo vào đây.
+func Capture(ctx context.Context, err error, tags map[string]string) {
+	// Client ngắt kết nối giữa chừng không phải lỗi của server
+	if errors.Is(err, context.Canceled) {
+		return
+	}
+	// Clone: mỗi lần gửi dùng bản riêng, nhiều goroutine không giẫm tag của nhau
+	hub := sentry.CurrentHub().Clone()
+	hub.WithScope(func(scope *sentry.Scope) {
+		scope.SetTags(tags)
+		if id := logging.RequestID(ctx); id != "" {
+			scope.SetTag("requestId", id)
+		}
+		// Lỗi được gửi từ cùng một chỗ có stack trace giống nhau. Thêm route
+		// hoặc loại job vào dấu vân tay để lỗi khác nơi không bị gộp làm một.
+		scope.SetFingerprint([]string{"{{ default }}", tags["route"], tags["jobType"]})
+		hub.CaptureException(err)
+	})
+}</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Phần</th><th>Giải thích</th></tr></thead>
+    <tbody>
+      <tr><td><code>flush</code></td><td>SDK gửi lỗi ở nền. Không gọi flush trước khi thoát thì lỗi cuối cùng có thể mất</td></tr>
+      <tr><td><code>environment</code>, tag <code>service</code></td><td>Phân biệt lỗi từ máy dev hay production, từ API hay worker</td></tr>
+      <tr><td>Bỏ qua <code>context.Canceled</code></td><td>Client tự ngắt kết nối không phải lỗi cần sửa</td></tr>
+      <tr><td><code>Clone()</code> và <code>WithScope</code></td><td>Mỗi lần gửi có bộ tag riêng, các goroutine không trộn tag của nhau</td></tr>
+      <tr><td><code>SetFingerprint</code></td><td>"Dấu vân tay" quyết định lỗi nào được gom chung một issue</td></tr>
+    </tbody>
+  </table></div>
+      <p><b>8.3. Bắt <code>panic</code>.</b> <code>recover()</code> chỉ có tác dụng bên trong hàm <code>defer</code>.</p>
+<div class="code"><div class="file">internal/httpx/recover.go</div><pre><code class="language-go">package httpx
+
+import (
+	"fmt"
+	"log/slog"
+	"net/http"
+	"runtime/debug"
+
+	"push-service/internal/errtrack"
+)
+
+// Recover bắt panic trong handler: ghi log, báo Sentry, trả 500 dạng JSON.
+func Recover(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			v := recover()
+			if v == nil {
+				return
+			}
+			// Đây là panic cố ý của net/http để huỷ response: để nó đi tiếp
+			if v == http.ErrAbortHandler {
+				panic(v)
+			}
+			err := fmt.Errorf("panic: %v", v)
+			slog.ErrorContext(r.Context(), "panic", "err", err, "route", r.Pattern, "stack", string(debug.Stack()))
+			errtrack.Capture(r.Context(), err, map[string]string{"route": r.Pattern})
+			WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal_error"})
+		}()
+		next.ServeHTTP(w, r)
+	})
+}</code></pre></div>
+<div class="code"><div class="file">internal/httpx/errors.go (thêm)</div><pre><code class="language-go">// Thêm "push-service/internal/errtrack" vào import.
+// Trong nhánh default của Handle, ngay sau dòng slog.ErrorContext:
+errtrack.Capture(r.Context(), err, map[string]string{"route": r.Pattern})</code></pre></div>
+<div class="code"><div class="file">internal/app/app.go (sửa dòng return)</div><pre><code class="language-go">// Đọc từ ngoài vào: RequestID → LogRequests → Recover → mux
+return httpx.RequestID(httpx.LogRequests(deps.Log, httpx.Recover(mux)))</code></pre></div>
+      <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 84" role="img" aria-label="RequestID bọc LogRequests, LogRequests bọc Recover, Recover bọc mux và handler">
+      <rect class="n2" x="8" y="16" width="140" height="56" rx="10"/><text class="b mid" x="78" y="41">RequestID</text><text class="m mid" x="78" y="60">gắn mã</text>
+      <path class="e " d="M148 44H184" marker-end="url(#mk-m)"/>
+      <rect class="na" x="188" y="16" width="140" height="56" rx="10"/><text class="b mid" x="258" y="41">LogRequests</text><text class="m mid" x="258" y="60">ghi status</text>
+      <path class="e " d="M328 44H364" marker-end="url(#mk-m)"/>
+      <rect class="nw" x="368" y="16" width="140" height="56" rx="10"/><text class="b mid" x="438" y="41">Recover</text><text class="m mid" x="438" y="60">bắt panic</text>
+      <path class="e " d="M508 44H544" marker-end="url(#mk-m)"/>
+      <rect class="nb" x="548" y="16" width="164" height="56" rx="10"/><text class="b mid" x="630" y="41">mux → handler</text><text class="m mid" x="630" y="60">nơi có thể panic</text>
+
+    </svg>
+    </div>
+    <figcaption><code>Recover</code> nằm <b>bên trong</b> <code>LogRequests</code>: nó trả 500 trước, nên <code>LogRequests</code> vẫn ghi được dòng log với đúng status. Đây là lời giải cho cái bẫy "<code>Handle</code> không bắt <code>panic</code>" ở <a href="#go-loi">chặng 3</a>. Nó không bắt được panic trong goroutine bạn tự tạo.</figcaption>
+  </figure>
+      <p><b>8.4. Worker và hai file main.</b></p>
+<div class="code"><div class="file">internal/worker/processor.go (thêm ngay đầu khối if hết lượt trong OnError; nhớ import errtrack)</div><pre><code class="language-go">// Chỉ báo Sentry khi job hỏng hẳn; lần lỗi còn được thử lại thì thôi
+errtrack.Capture(ctx, err, map[string]string{
+	"jobType": t.Type(), "notificationId": job.NotificationID,
+})</code></pre></div>
+<div class="code"><div class="file">cmd/api/main.go và cmd/worker/main.go (thêm)</div><pre><code class="language-go">// ngay sau slog.SetDefault(log). Cần import "push-service/internal/errtrack"
+flush, err := errtrack.Init(cfg.SentryDSN, cfg.AppEnv, "api") // worker: "worker"
+if err != nil {
+	return err
+}
+defer flush()</code></pre></div>
+<div class="code"><pre><code class="language-bash">go build ./... &amp;&amp; go test ./...</code></pre></div>
+      <p><b>8.5. Thử.</b> Điền DSN vào <code>.env</code>, khởi động lại API và worker, rồi làm kịch bản "database hỏng" trong phần diễn tập. Trong project Sentry, mục lỗi (Issues) phải có một lỗi mới nói bảng <code>deliveries</code> không tồn tại, kèm các tag <code>service=worker</code>, <code>jobType</code>, <code>notificationId</code>. Job thử 5 lần nhưng chỉ lần cuối được gửi. Không thấy gì: kiểm tra DSN, và nhớ đợi đủ 5 lần thử.</p>
+      <div class="callout warn"><span class="tag">Đừng gửi dữ liệu nhạy cảm ra ngoài</span><p>Sentry là dịch vụ của bên thứ ba. Không đưa token, JWT, API key, tiêu đề hay nội dung thông báo vào tag. Cả <b>nội dung lỗi</b> cũng được gửi đi, nên đừng viết kiểu <code>fmt.Errorf("gửi tới %s lỗi", token)</code>.</p></div>
+      <p class="muted">Stack trace của lỗi thường chỉ tới chỗ gọi <code>Capture</code>, không phải chỗ lỗi sinh ra. Muốn biết lỗi từ đâu, hãy gói thêm ngữ cảnh: <code>fmt.Errorf("lưu delivery: %w", err)</code>. Với <code>panic</code> trong API, stack trace có cả chỗ gây panic.</p>
+    </li>
+  </ol>
+  <h3><span class="kicker k-do">Làm</span>Dọn dữ liệu cũ</h3>
+  <ol class="steps steps-retain">
+    <li><p class="st">Quyết định giữ lịch sử bao lâu</p>
+      <p><b>Mục tiêu:</b> lịch sử không lớn mãi.<br><b>Vì sao:</b> bảng càng lớn thì dashboard càng chậm, sao lưu càng lâu, và bạn đang giữ dữ liệu người dùng lâu hơn mức cần.</p>
+      <p>Ví dụ giữ 90 ngày. Lệnh xoá là <b>vĩnh viễn</b>: sao lưu trước, rồi đếm xem sẽ mất bao nhiêu dòng.</p>
+<div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push -c "SELECT count(*) FROM notifications WHERE updated_at &lt; now() - interval '90 days' AND status NOT IN ('scheduled', 'queued', 'processing')"</code></pre></div>
+<div class="code"><div class="file">db/retention.sql</div><pre><code class="language-sql">-- Xoá lịch sử cũ hơn 90 ngày. deliveries bị xoá theo nhờ ON DELETE CASCADE.
+-- Thông báo còn đang chờ gửi hoặc đang gửi thì giữ lại dù được tạo từ lâu.
+DELETE FROM notifications
+WHERE updated_at &lt; now() - interval '90 days'
+  AND status NOT IN ('scheduled', 'queued', 'processing');</code></pre></div>
+<div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push -v ON_ERROR_STOP=1 &lt; db/retention.sql</code></pre></div>
+<div class="code"><div class="file">Ví dụ kết quả (số dòng phải khớp số đã đếm)</div><pre><code class="language-plaintext">DELETE 1</code></pre></div>
+      <p>Khi chạy thật, đặt lệnh này chạy hằng ngày bằng cron của máy chủ hoặc tính năng tác vụ định kỳ của nền tảng. Thông báo bị xoá cũng mất <code>idempotency_key</code>, nên thời gian giữ phải dài hơn nhiều so với khoảng mà bên gọi còn có thể gửi lại.</p>
+    </li>
+  </ol>
+  <h3><span class="kicker k-do">Làm</span>Diễn tập: cố ý làm hỏng</h3>
+  <p>Dashboard chưa từng thấy lỗi thì chưa biết có dùng được không. Mỗi kịch bản dạy bạn <b>nhận mặt một loại sự cố</b>. <b>Chỉ làm trên máy dev.</b> Chạy API và worker, rồi chuẩn bị một terminal:</p>
+<div class="code"><pre><code class="language-bash">API_KEY=$(grep '^API_KEY=' .env | cut -d= -f2-)</code></pre></div>
+  <div>
+  <h4>Kịch bản 1: Người dùng chưa đăng ký thiết bị</h4>
+  <p>Gửi cho một user chưa từng gọi <code>/devices</code>.</p>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/notifications -H "X-API-Key: $API_KEY" \
+  -d '{"userId":"u_nodevice","category":"reminder","template":"task_due_soon","vars":{"taskTitle":"Diễn tập","minutes":"5"}}'</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Nhìn ở đâu</th><th>Phải thấy</th></tr></thead>
+    <tbody>
+      <tr><td>Response</td><td>202, <code>status: queued</code></td></tr>
+      <tr><td>Dashboard ⑥ (nhập <code>u_nodevice</code>)</td><td><code>failed</code></td></tr>
+      <tr><td>Dashboard ⑦</td><td>Một dòng, các cột thiết bị <b>trống</b></td></tr>
+      <tr><td><span class="lang lang-go">Log worker</span></td><td><span class="lang lang-go"><code>đã xử lý thông báo</code>, <code>status: failed</code>, <code>total: 0</code></span></td></tr>
+    </tbody>
+  </table></div>
+  </div>
+  <div>
+  <h4>Kịch bản 2: Gửi tới một token bịa</h4>
+  <p>Đăng ký token giả cho <code>u_drill</code>, rồi gửi.</p>
+<div class="code"><pre><code class="language-bash">JWT=$(go run ./cmd/make-jwt u_drill)</code></pre></div>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/devices -H "Authorization: Bearer $JWT" -d '{"token":"fake-token-for-drill-0001","platform":"android"}'</code></pre></div>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/notifications -H "X-API-Key: $API_KEY" \
+  -d '{"userId":"u_drill","category":"reminder","template":"task_due_soon","vars":{"taskTitle":"Diễn tập","minutes":"5"}}'</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Nhìn ở đâu</th><th>Phải thấy</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard ⑦</td><td>Có dòng thiết bị <code>fake-tok…</code>, kết quả <code>failed</code>, kèm một mã lỗi</td></tr>
+      <tr><td><span class="lang lang-go"><code>asynqmon</code></span></td><td><span class="lang lang-go">Job vẫn là <b>completed</b>. Đây là điều cần nhớ</span></td></tr>
+      <tr><td>Mã lỗi</td><td>Tuỳ FCM trả lời. Lần chạy thử cho tài liệu này dùng khoá Firebase giả nên ra <code>unknown</code></td></tr>
+    </tbody>
+  </table></div>
+  </div>
+  <div class="lang lang-go">
+  <h4>Kịch bản 3: Worker chết</h4>
+  <p>Tắt worker (Ctrl+C), gửi một thông báo, quan sát, rồi bật lại.</p>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/notifications -H "X-API-Key: $API_KEY" \
+  -d '{"userId":"u_nodevice","category":"reminder","template":"task_due_soon","vars":{"taskTitle":"Diễn tập","minutes":"5"}}'</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Nhìn ở đâu</th><th>Phải thấy</th></tr></thead>
+    <tbody>
+      <tr><td><span class="lang lang-go"><code>asynqmon</code></span></td><td><span class="lang lang-go">Job nằm ở <b>pending</b></span></td></tr>
+      <tr><td>Dashboard ⑥</td><td><code>queued</code> mãi</td></tr>
+      <tr><td>Sau khi bật worker</td><td>Job được xử lý ngay</td></tr>
+    </tbody>
+  </table></div>
+  </div>
+  <div class="lang lang-go">
+  <h4>Kịch bản 4: Database hỏng giữa chừng</h4>
+  <p>Đổi tên bảng <code>deliveries</code> để worker không đọc được, rồi gửi.</p>
+<div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push -c "ALTER TABLE deliveries RENAME TO deliveries_off"</code></pre></div>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/notifications -H "X-API-Key: $API_KEY" \
+  -d '{"userId":"u_drill","category":"reminder","template":"task_due_soon","vars":{"taskTitle":"Diễn tập","minutes":"5"}}'</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Nhìn ở đâu</th><th>Phải thấy</th></tr></thead>
+    <tbody>
+      <tr><td><code>asynqmon</code></td><td>Vào <b>retry</b>, sau khoảng 40 giây (đủ 5 lần) thì sang <b>archived</b></td></tr>
+      <tr><td>Log worker</td><td>5 dòng <code>job lỗi</code>, <code>attempt</code> từ 1 đến 5, khoảng cách tăng dần</td></tr>
+      <tr><td>Dashboard ⑥</td><td>Cuối cùng là <code>failed</code></td></tr>
+      <tr><td>Sentry (nếu có DSN)</td><td><b>Một</b> sự kiện kèm <code>notificationId</code></td></tr>
+      <tr><td>Dashboard ①②③⑦</td><td>Báo lỗi SQL trong lúc bảng bị đổi tên: bình thường</td></tr>
+    </tbody>
+  </table></div>
+  </div>
+<div class="lang lang-go">
+  <p><b>Khôi phục ngay sau khi xem xong:</b></p>
+<div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push -c "ALTER TABLE deliveries_off RENAME TO deliveries"</code></pre></div>
+  <p>Giờ vào ngăn archived trong <code>asynqmon</code> và chạy lại job đó. Nguyên nhân đã hết nên worker gửi lại được; với token bịa ở kịch bản 2, kết quả sẽ là <code>failed</code> nhưng lần này có dòng delivery.</p>
+</div>
+  <div>
+  <h4>Kịch bản 5: Yêu cầu không để lại gì trong database</h4>
+  <p>Ba yêu cầu bị chặn theo ba cách. Đầu tiên cho <code>u_off</code> tắt loại <code>comment</code>:</p>
+<div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push -c "INSERT INTO notification_preferences VALUES ('u_off','comment',false) ON CONFLICT (user_id, category) DO UPDATE SET enabled = false"</code></pre></div>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/notifications -H "X-API-Key: $API_KEY" \
+  -d '{"userId":"u_off","category":"comment","template":"task_due_soon","vars":{"taskTitle":"Diễn tập","minutes":"5"}}'</code></pre></div>
+  <p>Tiếp theo, gửi lệnh dưới 11 lần liền để vượt giới hạn 10 thông báo không gấp mỗi giờ:</p>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/notifications -H "X-API-Key: $API_KEY" \
+  -d '{"userId":"u_many","category":"comment","template":"task_due_soon","vars":{"taskTitle":"Diễn tập","minutes":"5"}}'</code></pre></div>
+  <p>Cuối cùng, gửi với API key sai:</p>
+<div class="code"><pre><code class="language-bash">curl -s -w ' [%{http_code}]\n' http://localhost:3000/notifications -H "X-API-Key: sai" -d '{}'</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Nhìn ở đâu</th><th>Phải thấy</th></tr></thead>
+    <tbody>
+      <tr><td><code>u_off</code></td><td>200 <code>{"status":"skipped","reason":"user_opted_out"}</code>; dashboard ⑥ không có gì</td></tr>
+      <tr><td><code>u_many</code> lần 11</td><td>429 <code>{"error":"rate_limited"}</code></td></tr>
+      <tr><td>Sai API key</td><td>401 <code>{"error":"unauthorized"}</code></td></tr>
+      <tr><td><span class="lang lang-go">Log API</span></td><td><span class="lang lang-go"><code>u_off</code>: tìm được theo <code>userId</code>. 429 và 401: dòng <code>request</code> mức <code>WARN</code></span></td></tr>
+    </tbody>
+  </table></div>
+  </div>
+  <div>
+  <h4>Kịch bản 6: Giờ yên tĩnh</h4>
+  <p>Đặt cho <code>u_quiet</code> khung yên tĩnh bao trùm giờ hiện tại, rồi gửi loại <code>comment</code>.</p>
+<div class="code"><pre><code class="language-bash">docker compose exec -T postgres psql -U push -d push &lt;&lt;'SQL'
+INSERT INTO user_settings (user_id, timezone, quiet_start, quiet_end)
+SELECT 'u_quiet', 'Asia/Ho_Chi_Minh', h, (h + 2) % 24
+FROM (SELECT extract(hour FROM now() AT TIME ZONE 'Asia/Ho_Chi_Minh')::int AS h) AS gio
+ON CONFLICT (user_id) DO UPDATE
+  SET quiet_start = EXCLUDED.quiet_start, quiet_end = EXCLUDED.quiet_end;
+SQL</code></pre></div>
+<div class="code"><pre><code class="language-bash">curl -s http://localhost:3000/notifications -H "X-API-Key: $API_KEY" \
+  -d '{"userId":"u_quiet","category":"comment","template":"task_due_soon","vars":{"taskTitle":"Diễn tập","minutes":"5"}}'</code></pre></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Nhìn ở đâu</th><th>Phải thấy</th></tr></thead>
+    <tbody>
+      <tr><td>Response</td><td>202, <code>status: scheduled</code>, <code>sendAt</code> ở tương lai</td></tr>
+      <tr><td>Dashboard ⑥</td><td><code>scheduled</code>, cột "Giờ gửi" ở tương lai</td></tr>
+      <tr><td><span class="lang lang-go"><code>asynqmon</code></span></td><td><span class="lang lang-go">Job ở ngăn <b>scheduled</b></span></td></tr>
+      <tr><td>Múi giờ</td><td>API trả <code>+07:00</code>, còn <code>psql</code> thường hiện <code>+00</code>: cùng một thời điểm</td></tr>
+    </tbody>
+  </table></div>
+  </div>
+<div class="lang lang-go">
+  <p><b>Kiểm tra cuối: log không lộ token.</b> Xoá thiết bị diễn tập rồi tìm token trong log. Lệnh thứ hai phải in ra <code>0</code> cho mỗi file:</p>
+<div class="code"><pre><code class="language-bash">curl -s -X DELETE http://localhost:3000/devices/fake-token-for-drill-0001 -H "Authorization: Bearer $JWT"</code></pre></div>
+<div class="code"><pre><code class="language-bash">grep -c fake-token-for-drill logs/*.log</code></pre></div>
+</div>
+  <h3>Quy trình: "Tôi không nhận được thông báo"</h3>
+  <p>Đây là câu bạn sẽ gặp nhiều nhất. Đi lần lượt, <b>đừng đoán</b>. Hỏi trước hai điều: <code>userId</code> là gì, và khoảng mấy giờ.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 332" role="img" aria-label="Sơ đồ điều tra: nếu thông báo không có trong dashboard thì tìm log; nếu đang chờ thì xem giờ gửi và hàng đợi; nếu bị huỷ thì hỏi bên gọi; nếu lỗi thì xem thiết bị và mã lỗi; nếu đã gửi thì kiểm tra điện thoại">
+      <rect class="na" x="8" y="8" width="300" height="44" rx="10"/><text class="b mid" x="158" y="35">① Có trong dashboard ⑥ không?</text>
+      <path class="e " d="M308 30H412" marker-end="url(#mk-m)"/>
+      <rect class="nw" x="416" y="8" width="296" height="44" rx="10"/><text class="b mid" x="564" y="35">Tìm log API theo userId</text>
+      <text class="m mid" x="362" y="23">không</text>
+      <path class="e " d="M158 52V72" marker-end="url(#mk-m)"/>
+      <text class="m" x="170" y="67">có</text>
+      <rect class="na" x="8" y="76" width="300" height="44" rx="10"/><text class="b mid" x="158" y="103">② scheduled, queued hay processing?</text>
+      <path class="e " d="M308 98H412" marker-end="url(#mk-m)"/>
+      <rect class="nw" x="416" y="76" width="296" height="44" rx="10"/><text class="b mid" x="564" y="103">Xem send_at, rồi xem hàng đợi</text>
+      <text class="m mid" x="362" y="91">có</text>
+      <path class="e " d="M158 120V140" marker-end="url(#mk-m)"/>
+      <text class="m" x="170" y="135">không</text>
+      <rect class="na" x="8" y="144" width="300" height="44" rx="10"/><text class="b mid" x="158" y="171">③ canceled?</text>
+      <path class="e " d="M308 166H412" marker-end="url(#mk-m)"/>
+      <rect class="n2" x="416" y="144" width="296" height="44" rx="10"/><text class="b mid" x="564" y="171">Bên gọi đã huỷ</text>
+      <text class="m mid" x="362" y="159">có</text>
+      <path class="e " d="M158 188V208" marker-end="url(#mk-m)"/>
+      <text class="m" x="170" y="203">không</text>
+      <rect class="na" x="8" y="212" width="300" height="44" rx="10"/><text class="b mid" x="158" y="239">④ failed hoặc partially_sent?</text>
+      <path class="e " d="M308 234H412" marker-end="url(#mk-m)"/>
+      <rect class="nb" x="416" y="212" width="296" height="44" rx="10"/><text class="b mid" x="564" y="239">Mở ⑦: xem dòng thiết bị, mã lỗi</text>
+      <text class="m mid" x="362" y="227">có</text>
+      <path class="e " d="M158 256V276" marker-end="url(#mk-m)"/>
+      <text class="m" x="170" y="271">không</text>
+      <rect class="na" x="8" y="280" width="300" height="44" rx="10"/><text class="b mid" x="158" y="307">⑤ sent</text>
+      <path class="e " d="M308 302H412" marker-end="url(#mk-m)"/>
+      <rect class="nok" x="416" y="280" width="296" height="44" rx="10"/><text class="b mid" x="564" y="307">FCM đã nhận: kiểm tra điện thoại</text>
+
+    </svg>
+    </div>
+    <figcaption>Bắt đầu từ ô ①. Mỗi câu trả lời bên phải đưa bạn tới một dòng trong bảng dưới.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Bạn thấy</th><th>Nguyên nhân có thể</th><th>Kiểm tra tiếp</th></tr></thead>
+    <tbody>
+      <tr><td>Không có dòng nào, log ghi <code>skipped</code></td><td>Người dùng đã tắt loại thông báo này</td><td>Bảng <code>notification_preferences</code></td></tr>
+      <tr><td>Không có dòng nào, log có request 429</td><td>Vượt 10 thông báo không gấp mỗi giờ</td><td>Hỏi bên gọi gửi bao nhiêu; dòng 429 không có <code>userId</code> nên khớp theo thời gian hoặc <code>X-Request-ID</code></td></tr>
+      <tr><td>Không có dòng nào, log có 400 hoặc 401</td><td>Bên gọi gửi sai dữ liệu hoặc sai khoá</td><td>Gửi họ nội dung lỗi</td></tr>
+      <tr><td>Không có cả trong log</td><td>Bên gọi chưa hề gọi API</td><td>Kiểm tra phía họ; kiểm tra đúng môi trường, đúng khoảng giờ</td></tr>
+      <tr><td><code>scheduled</code>, <code>send_at</code> ở tương lai</td><td>Hẹn giờ hoặc giờ yên tĩnh</td><td>Bảng <code>user_settings</code>. Đúng thiết kế</td></tr>
+      <tr><td><code>queued</code> hoặc <code>processing</code> quá lâu</td><td>Worker chết, quá tải, hoặc đang thử lại</td><td>Hàng đợi: pending hay retry; log worker</td></tr>
+      <tr><td><code>failed</code>, ⑦ <b>trống</b> cột thiết bị</td><td>Chưa đăng ký thiết bị, hoặc lỗi xảy ra trước khi ghi được kết quả</td><td>Log theo <code>notificationId</code>: <code>total: 0</code> hay <code>job lỗi</code></td></tr>
+      <tr><td><code>failed</code>, có dòng thiết bị</td><td>FCM từ chối từng máy</td><td>Tra bảng mã lỗi ở bước 5</td></tr>
+      <tr><td><code>partially_sent</code></td><td>Một vài máy hỏng, thường là máy cũ</td><td>Người dùng đang dùng máy nào?</td></tr>
+      <tr><td><code>sent</code> mà không thấy</td><td>Quyền thông báo bị tắt, chế độ tập trung hoặc tiết kiệm pin, app đang mở (<a href="#chang-2">chặng 2</a>), hoặc nhìn nhầm máy</td><td>Hỏi người dùng; so các máy ở ⑦ với máy họ đang cầm</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout tip"><span class="tag">Ví dụ một lần điều tra</span><ol><li><code>u_42</code> báo không được nhắc lúc 9 giờ. Nhập <code>u_42</code> vào ô ⑥: có một thông báo <code>failed</code> lúc 09:00.</li><li>Chép <code>notificationId</code> sang ô ⑦: một dòng thiết bị, mã <code>unregistered</code>.</li><li>Kết luận: token đã chết (gỡ app hoặc token bị thay), và app chưa gửi token mới lên.</li><li>Hướng xử lý: người dùng mở lại app để đăng ký token mới. Nhiều người bị giống vậy thì kiểm tra app có xử lý <code>onTokenRefresh</code> không (<a href="#chang-3">chặng 3</a>).</li></ol></div>
+  <h3>Thói quen hằng ngày</h3>
+  <p>Công cụ chỉ có ích khi có người nhìn. Gợi ý ban đầu, hãy chỉnh theo số liệu thật của bạn sau vài tuần:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Khi nào</th><th>Xem gì</th><th>Cần hành động nếu</th></tr></thead>
+    <tbody>
+      <tr><td>Mỗi sáng (5 phút)</td><td>①②③ trong 24 giờ</td><td>Tỉ lệ lỗi gấp đôi ngày thường, hoặc xuất hiện mã lỗi mới</td></tr>
+      <tr><td>Mỗi sáng</td><td><span class="lang lang-go">Ngăn archived trong <code>asynqmon</code>; Sentry</span><span class="lang lang-ts">Job hỏng hẳn trong hàng đợi</span></td><td>Có job hỏng hẳn hoặc issue mới</td></tr>
+      <tr><td>Sau mỗi lần deploy</td><td>② và log lỗi, trong 15 phút đầu</td><td>Cột đỏ tăng ngay sau lúc deploy: cân nhắc quay lại bản cũ</td></tr>
+      <tr><td>Mỗi tuần</td><td>Câu "đang kẹt" và "tỉ lệ mở" trong Explore</td><td>Có thông báo kẹt; tỉ lệ mở giảm mạnh</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Các mục này cần người tự mở ra xem. Muốn được nhắn tin khi có chuyện, bước tiếp theo là cảnh báo của Grafana hoặc Sentry (chặng này chưa hướng dẫn).</p>
+  <h3>Bảo mật khu vực admin</h3>
+  <div class="callout danger"><span class="tag">Làm trước khi đưa lên server</span><ul>
+    <li><span class="lang lang-go"><code>asynqmon</code> <b>không có đăng nhập</b> và cho phép thao tác trên job. </span>Giữ phần <code>127.0.0.1:</code> trong <code>ports</code>: chỉ chính máy đó truy cập được.</li>
+    <li>File <code>docker-compose.yml</code> ở các chặng trước mở PostgreSQL và Redis bằng <code>"5432:5432"</code>, <code>"6379:6379"</code>, tức là <b>mọi địa chỉ</b>, với mật khẩu mẫu và Redis không mật khẩu. Trên server, đổi thành <code>"127.0.0.1:5432:5432"</code>, <code>"127.0.0.1:6379:6379"</code> và đặt mật khẩu mạnh.</li>
+    <li>Không mở <code>/metrics</code> ra Internet.</li>
+    <li>Nhiều người cùng xem thì mỗi người một tài khoản Grafana; người chỉ cần xem cho quyền Viewer. Người truy cập được Grafana vẫn có thể gửi truy vấn tới nguồn dữ liệu, nên quyền hạn của <code>grafana_ro</code> mới là hàng rào thật.</li>
+  </ul></div>
+  <p>Xem từ máy của bạn qua <b>SSH tunnel</b>: cổng trên máy bạn được nối an toàn tới cổng trên server, không phải mở gì ra Internet. Trong khi lệnh đang chạy, mở <code>http://localhost:3001</code> trên máy bạn là thấy Grafana của server.</p>
+<div class="code"><pre><code class="language-bash">ssh -L 3001:localhost:3001 -L 8081:localhost:8081 user@dia_chi_server</code></pre></div>
+  <h3>Nấc 3: khi nào cần thêm</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Dấu hiệu</th><th>Thêm</th><th>Được gì</th></tr></thead>
+    <tbody>
+      <tr><td>Truy vấn dashboard chậm; cần độ trễ, tỉ lệ 4xx/5xx theo thời gian, cảnh báo</td><td>Prometheus (xem mục metric ở <a href="#chang-8">chặng 8</a>)</td><td>Số đếm theo thời gian, nhẹ hơn nhiều so với đếm từng dòng trong database</td></tr>
+      <tr><td>Nhiều bản API, worker trên nhiều máy; <code>jq</code> không còn đủ</td><td>Loki và Grafana Alloy</td><td>Tìm log ngay trong Grafana</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">ELK (Elasticsearch, Logstash, Kibana) cũng làm được việc này, nhưng nặng để vận hành khi bạn mới học.</p>
+  <h3>Tự hỏi, tự trả lời</h3>
+  <p class="muted">Nghĩ câu trả lời rồi mới bấm mở.</p>
+  <details><summary>Grafana báo 0 lỗi, nhưng bên gọi nói API trả lỗi liên tục. Vì sao có thể cả hai đều đúng?</summary><p>Request bị 400, 401, 429 không được ghi vào database. Grafana ở chặng này chỉ đọc database, nên phải đếm trong log.</p></details>
+  <details><summary><span class="lang lang-go"><code>asynqmon</code> toàn completed. Có kết luận được mọi thông báo đã gửi thành công không?</span><span class="lang lang-ts">Hàng đợi toàn job hoàn thành. Có kết luận được mọi thông báo đã gửi thành công không?</span></summary><p>Không. Job "xong" chỉ có nghĩa hàm xử lý không trả lỗi. Phải xem <code>notifications.status</code> và <code>deliveries</code>.</p></details>
+  <details><summary>Vì sao không cho Grafana dùng tài khoản <code>push</code> cho nhanh?</summary><p>Ai dùng được Grafana đều gửi được SQL qua data source. Tài khoản <code>push</code> đọc được token, nội dung và xoá được bảng.</p></details>
+  <details><summary>Một thông báo <code>failed</code> và không có dòng delivery nào. Hai nguyên nhân nên nghĩ tới?</summary><p>Người dùng không có thiết bị nào được đăng ký, hoặc job hỏng trước khi ghi được kết quả. Log theo <code>notificationId</code> sẽ phân biệt.</p></details>
+  <details><summary>Tỉ lệ <code>sent</code> là 99%. Có nghĩa 99% người dùng đã thấy thông báo không?</summary><p>Không. <code>sent</code> chỉ có nghĩa FCM đã nhận. Và số này đếm theo lượt gửi tới thiết bị, không phải theo người.</p></details>
+
+  <div class="checkbox"><h4>Tự kiểm tra <span class="count" data-stage="9">0/8</span></h4>
+    <ul class="checks" data-stage="9">
+      <li><label><input type="checkbox" data-k="9-1"><span>Dashboard hiện số gửi thành công, lỗi và mã lỗi sau khi diễn tập</span></label></li>
+      <li><label><input type="checkbox" data-k="9-2"><span><code>grafana_ro</code> đọc được view nhưng không đọc được bảng gốc</span></label></li>
+      <li><label><input type="checkbox" data-k="9-3"><span>Từ một <code>notificationId</code>, tìm được nó đã tới máy nào, kết quả gì</span></label></li>
+      <li><label><input type="checkbox" data-k="9-4"><span>Xoá một thiết bị rồi tìm trong log: không thấy token đầy đủ</span></label></li>
+      <li><label><input type="checkbox" data-k="9-5"><span><span class="lang lang-go">Job hỏng hẳn hiện trong <code>asynqmon</code> (và trên Sentry nếu đã đặt DSN)</span><span class="lang lang-ts">Biết job hỏng hẳn nằm ở đâu trong hàng đợi</span></span></label></li>
+      <li><label><input type="checkbox" data-k="9-6"><span>Công cụ admin không truy cập được từ Internet</span></label></li>
+      <li><label><input type="checkbox" data-k="9-7"><span>Từ một <code>userId</code>, giải thích được vì sao người đó không nhận được thông báo</span></label></li>
+      <li><label><input type="checkbox" data-k="9-8"><span>Đã diễn tập và nhận ra được từng loại sự cố</span></label></li>
+    </ul>
+  </div>
+</section>
+
 <!-- ============ GLOSSARY ============ -->
 <section class="extra" id="thuat-ngu">
   <p class="eyebrow">Phụ lục</p>
@@ -7954,6 +9324,10 @@ CMD ["/api"]</code></pre></div>
       <tr><td>Rate limit</td><td>Giới hạn số lần trong một khoảng thời gian</td><td>7</td></tr>
       <tr><td>Stateless</td><td>Tiến trình không giữ dữ liệu riêng, chạy nhiều bản được</td><td>8</td></tr>
       <tr><td>Graceful shutdown</td><td>Tắt sau khi làm xong việc đang dở</td><td>8</td></tr>
+      <tr><td>Dashboard</td><td>Trang gom biểu đồ và bảng số liệu để theo dõi</td><td>9</td></tr>
+      <tr><td>View (SQL)</td><td>Câu <code>SELECT</code> được đặt tên, dùng như bảng; ở đây để che dữ liệu nhạy cảm</td><td>9</td></tr>
+      <tr><td>Request ID</td><td>Mã riêng của mỗi request, gắn vào mọi dòng log của nó</td><td>9</td></tr>
+      <tr><td>Error tracking</td><td>Gom lỗi giống nhau, đếm và cảnh báo (ví dụ Sentry)</td><td>9</td></tr>
     </tbody>
   </table></div>
 
@@ -7979,7 +9353,7 @@ CMD ["/api"]</code></pre></div>
     <li><b>A/B test nội dung</b>: hai phiên bản template, đo tỉ lệ mở bằng <code>opened_at</code>.</li>
   </ul>
 
-  <footer>Viết cho người mới học backend. <span class="lang lang-ts">Bản TypeScript dùng Node.js 22+, TypeScript 7, Fastify 5, Zod 4, firebase-admin 14 và BullMQ 6;</span><span class="lang lang-go">Bản Go dùng Go 1.26, pgx 5, asynq 0.26, go-redis 9, golang-jwt 5 và Firebase Admin SDK for Go 4;</span> PostgreSQL 16 cho cả hai bản; nếu thư viện ra bản mới và tên hàm đổi, tài liệu chính thức ở trên là nguồn đúng nhất.</footer>
+  <footer>Viết cho người mới học backend. <span class="lang lang-ts">Bản TypeScript dùng Node.js 22+, TypeScript 7, Fastify 5, Zod 4, firebase-admin 14 và BullMQ 6;</span><span class="lang lang-go">Bản Go dùng Go 1.26, pgx 5, asynq 0.26, sentry-go 0.50, Grafana 13.3, asynqmon 0.7, go-redis 9, golang-jwt 5 và Firebase Admin SDK for Go 4;</span> PostgreSQL 16 cho cả hai bản; nếu thư viện ra bản mới và tên hàm đổi, tài liệu chính thức ở trên là nguồn đúng nhất.</footer>
 </section>
 
 </main>
