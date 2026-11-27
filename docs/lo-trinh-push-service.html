@@ -2584,6 +2584,358 @@ return httpx.LogRequests(deps.Log, mux)</code></pre></div>
   <div class="callout tip"><span class="tag">Câu để nhớ</span><p><b>Vào từ ngoài, ra từ trong. Bên trong chỉ <code>return err</code>, bên ngoài mới trả lời.</b></p>
   <p>Tự kiểm tra: nếu bỏ gọi <code>next</code> trong <code>requireUser</code> và <code>return nil</code> thì client nhận gì? <span class="muted">(200 với body rỗng: <code>Register</code> không chạy, còn <code>Handle</code> tưởng mọi thứ đã xong.)</span></p></div>
 
+  <h3 id="go-validate"><span class="kicker k-learn">Học</span>Validate chạy thế nào? Hiểu <code>validate.go</code> trước khi gõ code</h3>
+  <p><b>Ý chính trong một câu:</b> mọi thứ client gửi lên đều <b>chưa tin được</b>, nên phải qua hai cửa trong Go (<code>DecodeJSON</code> rồi <code>validate()</code>) trước khi được dùng.</p>
+
+  <h4>1. Vì sao phải kiểm tra?</h4>
+  <p>Client không chỉ là app của bạn. Ai biết địa chỉ API cũng gửi được bất cứ chuỗi byte nào bằng <code>curl</code>. Kể cả app của bạn cũng có thể có bug.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Client gửi</th><th>Nếu không kiểm tra</th></tr></thead>
+    <tbody>
+      <tr><td>JSON bị cụt do mất mạng giữa chừng</td><td>Code chạy tiếp với dữ liệu thiếu</td></tr>
+      <tr><td>Không có <code>userId</code></td><td>Database lưu một thiết bị không thuộc về ai</td></tr>
+      <tr><td><code>"token":"abc"</code></td><td>Lưu token rác, tới lúc gửi thông báo mới phát hiện</td></tr>
+      <tr><td><code>"platform":"windows"</code></td><td>Database từ chối, client nhận <b>500</b> và không biết mình sai gì</td></tr>
+      <tr><td>Body 500 MB</td><td>Server phải đọc và giữ một khối dữ liệu khổng lồ trong bộ nhớ</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout analogy"><span class="tag">Hình dung</span><p>Nộp hồ sơ ở quầy. <b>Cửa 1</b> xem tờ đơn có đọc được không và có đúng mẫu không. <b>Cửa 2</b> mới xem nội dung điền trong đơn có hợp lệ không. Đơn rách thì chẳng ai soát nội dung.</p></div>
+
+  <h4>2. Toàn cảnh: ba cửa</h4>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 262" role="img" aria-label="Body đi qua cửa 1 DecodeJSON, cửa 2 validate, rồi cửa 3 là ràng buộc của database. Trượt cửa 1 hoặc cửa 2 nhận 400, trượt cửa 3 nhận 500">
+      <path class="grp" d="M120 8H464V110H120z"/><text class="m mid" x="292" y="24">code Go trong API</text>
+      <path class="grp" d="M476 8H620V110H476z"/><text class="m mid" x="548" y="24">PostgreSQL</text>
+      <rect class="n2" x="8" y="38" width="88" height="62" rx="10"/><text class="b mid" x="52" y="65">Body</text><text class="m mid" x="52" y="84">chuỗi byte</text>
+      <rect class="na" x="128" y="38" width="150" height="62" rx="10"/><text class="b mid" x="203" y="62">① DecodeJSON</text><text class="m mid" x="203" y="82">đọc được? đúng mẫu?</text>
+      <rect class="na" x="306" y="38" width="150" height="62" rx="10"/><text class="b mid" x="381" y="62">② validate()</text><text class="m mid" x="381" y="82">nội dung đúng luật?</text>
+      <rect class="nw" x="484" y="38" width="128" height="62" rx="10"/><text class="b mid" x="548" y="62">③ Ràng buộc</text><text class="m mid" x="548" y="82">NOT NULL, CHECK…</text>
+      <rect class="nok" x="640" y="38" width="72" height="62" rx="10"/><text class="b mid" x="676" y="74">201</text>
+      <path class="e ea" d="M96 69H126" marker-end="url(#mk-a)"/><path class="e ea" d="M278 69H304" marker-end="url(#mk-a)"/><path class="e ea" d="M456 69H482" marker-end="url(#mk-a)"/><path class="e ea" d="M612 69H638" marker-end="url(#mk-a)"/>
+      <path class="e eb" d="M203 100V156" marker-end="url(#mk-b)"/><path class="e eb" d="M381 100V156" marker-end="url(#mk-b)"/><path class="e eb" d="M548 100V156" marker-end="url(#mk-b)"/>
+      <text class="m" x="211" y="134">trượt</text><text class="m" x="389" y="134">trượt</text><text class="m" x="556" y="134">trượt</text>
+      <rect class="nb" x="128" y="158" width="150" height="56" rx="10"/><text class="b mid" x="203" y="181">400</text><text class="m mid" x="203" y="200">một lỗi, field "body"</text>
+      <rect class="nb" x="306" y="158" width="150" height="56" rx="10"/><text class="b mid" x="381" y="181">400</text><text class="m mid" x="381" y="200">mỗi luật sai một dòng</text>
+      <rect class="nb" x="484" y="158" width="128" height="56" rx="10"/><text class="b mid" x="548" y="181">500</text><text class="m mid" x="548" y="200">internal_error</text>
+      <text class="m mid" x="360" y="246">Cửa ① và ② nói cho client biết sai gì. Tới được cửa ③ mà trượt nghĩa là code Go đã bỏ sót.</text>
+    </svg>
+    </div>
+    <figcaption>Cửa ③ là lưới an toàn cuối cùng, không thay được hai cửa đầu.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Cửa</th><th>Câu hỏi</th><th>Ai viết</th><th>Báo mấy lỗi</th></tr></thead>
+    <tbody>
+      <tr><td>① <code>DecodeJSON</code></td><td>Body có phải JSON không? Có field lạ không? Kiểu dữ liệu có khớp không?</td><td>Viết một lần trong <code>httpx</code>, mọi request dùng chung</td><td>Chỉ <b>một</b></td></tr>
+      <tr><td>② <code>validate()</code></td><td>Field bắt buộc có chưa? Đủ dài chưa? Giá trị có nằm trong danh sách cho phép không?</td><td>Bạn viết <b>riêng cho từng loại request</b></td><td><b>Tất cả</b> luật bị sai</td></tr>
+      <tr><td>③ Database</td><td>Dữ liệu có phá ràng buộc của bảng không?</td><td>File migration SQL</td><td>Một</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>3. Trong <code>validate.go</code> có gì?</h4>
+  <p>File trông dài, nhưng chỉ làm một việc: <b>tạo ra lỗi <code>*ValidationError</code></b> theo ba cách.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 244" role="img" aria-label="DecodeJSON, Validator và PathUUID đều tạo ra ValidationError. Handle nhận ValidationError và trả 400">
+      <rect class="na" x="8" y="12" width="244" height="58" rx="10"/><text class="b mid" x="130" y="36">DecodeJSON</text><text class="m mid" x="130" y="56">body không đọc được vào struct</text>
+      <rect class="na" x="8" y="92" width="244" height="58" rx="10"/><text class="b mid" x="130" y="116">Validator: Check… rồi Err</text><text class="m mid" x="130" y="136">nội dung trong body sai luật</text>
+      <rect class="na" x="8" y="172" width="244" height="58" rx="10"/><text class="b mid" x="130" y="196">PathUUID</text><text class="m mid" x="130" y="216">id trên đường dẫn không phải UUID</text>
+      <rect class="nw" x="326" y="72" width="190" height="98" rx="12"/><text class="b mid" x="421" y="97">*ValidationError</text><text class="m mid" x="421" y="120">Issues: danh sách Issue</text><text class="m mid" x="421" y="139">mỗi Issue gồm</text><text class="m mid" x="421" y="156">Field + Message</text>
+      <rect class="nok" x="572" y="82" width="140" height="78" rx="12"/><text class="b mid" x="642" y="107">httpx.Handle</text><text class="m mid" x="642" y="128">nhận ra loại lỗi</text><text class="m mid" x="642" y="145">trả 400 + issues</text>
+      <path class="e" d="M252 41C292 41 290 95 324 100" marker-end="url(#mk-m)"/><path class="e" d="M252 121H324" marker-end="url(#mk-m)"/><path class="e" d="M252 201C292 201 290 148 324 142" marker-end="url(#mk-m)"/>
+      <path class="e eb" d="M516 121H570" marker-end="url(#mk-b)"/>
+    </svg>
+    </div>
+    <figcaption>Ba nơi tạo lỗi, một nơi trả lời. Thêm cách kiểm tra mới thì chỉ cần trả cùng loại lỗi này, không phải sửa <code>Handle</code>.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Tên</th><th>Là gì</th><th>Dùng để</th></tr></thead>
+    <tbody>
+      <tr><td><code>Issue</code></td><td>Struct 2 field</td><td>Một chỗ sai: sai ở <code>Field</code> nào, <code>Message</code> giải thích. Thẻ <code>json:"…"</code> làm chúng hiện thành <code>field</code>, <code>message</code></td></tr>
+      <tr><td><code>ValidationError</code></td><td>Struct chứa <code>[]Issue</code></td><td>Cả xấp chỗ sai. Vì có hàm <code>Error()</code> nên Go coi nó là một <code>error</code>, trả về bằng <code>return</code> được</td></tr>
+      <tr><td><code>Validator</code></td><td>Struct có danh sách <code>issues</code></td><td>Cuốn sổ ghi chỗ sai trong lúc soát</td></tr>
+      <tr><td><code>NewValidator</code></td><td>Hàm</td><td>Đưa một cuốn sổ trắng</td></tr>
+      <tr><td><code>Check</code></td><td>Method</td><td>Soát một luật; sai thì ghi vào sổ</td></tr>
+      <tr><td><code>Err</code></td><td>Method</td><td>Soát xong: sổ trống thì <code>nil</code>, không thì <code>*ValidationError</code></td></tr>
+      <tr><td><code>DecodeJSON</code></td><td>Hàm</td><td>Cửa ①</td></tr>
+      <tr><td><code>uuidRe</code>, <code>PathUUID</code></td><td>Mẫu regex và hàm</td><td>Kiểm tra <code>{id}</code> trên đường dẫn</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>4. Cửa ①: <code>DecodeJSON</code> đọc body</h4>
+<div class="code"><div class="file">Trích internal/httpx/validate.go, thêm chú thích</div><pre><code class="language-go">func DecodeJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+	r.Body = http.MaxBytesReader(w, r.Body, 1&lt;&lt;20) // cài đặt: tối đa 1 MB
+	dec := json.NewDecoder(r.Body)                  // tạo bộ đọc JSON
+	dec.DisallowUnknownFields()                     // cài đặt: cấm field lạ
+	if err := dec.Decode(dst); err != nil {         // LÚC NÀY mới thật sự đọc
+		return &amp;ValidationError{Issues: []Issue{{Field: "body", Message: err.Error()}}}
+	}
+	return nil
+}</code></pre></div>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 232" role="img" aria-label="Hai bước đầu chỉ cài đặt: giới hạn 1 MB và cấm field lạ. Bước Decode mới đọc body. Lỗi thì trả ValidationError field body, không lỗi thì trả nil">
+      <path class="grp" d="M8 10H452V108H8z"/><text class="m" x="20" y="28">Cài đặt: chưa kiểm tra gì cả</text>
+      <rect class="n2" x="20" y="40" width="200" height="56" rx="10"/><text class="b mid" x="120" y="63">MaxBytesReader</text><text class="m mid" x="120" y="83">đọc quá 1 MB thì báo lỗi</text>
+      <rect class="n2" x="240" y="40" width="200" height="56" rx="10"/><text class="b mid" x="340" y="63">DisallowUnknownFields</text><text class="m mid" x="340" y="83">gặp field lạ thì báo lỗi</text>
+      <path class="e" d="M220 68H238" marker-end="url(#mk-m)"/>
+      <path class="e ea" d="M340 108V140" marker-end="url(#mk-a)"/>
+      <rect class="na" x="220" y="142" width="240" height="64" rx="12"/><text class="b mid" x="340" y="168">dec.Decode(dst)</text><text class="m mid" x="340" y="190">đọc body và điền vào struct</text>
+      <rect class="nb" x="508" y="96" width="204" height="62" rx="10"/><text class="b mid" x="610" y="121">return *ValidationError</text><text class="m mid" x="610" y="142">field "body", message của Go</text>
+      <rect class="nok" x="508" y="176" width="204" height="48" rx="10"/><text class="b mid" x="610" y="205">return nil</text>
+      <path class="e eb" d="M460 162L506 130" marker-end="url(#mk-b)"/><path class="e" d="M460 186L506 198" marker-end="url(#mk-m)"/>
+      <text class="m" x="462" y="140">lỗi</text><text class="m" x="468" y="212">ổn</text>
+    </svg>
+    </div>
+    <figcaption>Giới hạn 1 MB và cấm field lạ được <b>cài trước</b>, nhưng chỉ phát huy tác dụng khi <code>Decode</code> chạy. Vì vậy mọi lỗi của cửa ① đều đi ra từ cùng một chỗ.</figcaption>
+  </figure>
+  <div class="tbl"><table>
+    <thead><tr><th>Đoạn code</th><th>Ý nghĩa</th></tr></thead>
+    <tbody>
+      <tr><td><code>dst any</code></td><td>"Chỗ để điền dữ liệu", kiểu gì cũng được. Nhờ vậy một hàm dùng cho mọi loại request</td></tr>
+      <tr><td><code>DecodeJSON(w, r, &amp;req)</code></td><td><code>&amp;req</code> là <b>địa chỉ</b> của <code>req</code>. Hàm cần địa chỉ để điền vào đúng biến của bạn. Truyền <code>req</code> không có <code>&amp;</code> thì <code>Decode</code> báo lỗi</td></tr>
+      <tr><td><code>1&lt;&lt;20</code></td><td>2 mũ 20 = 1.048.576 byte, tức 1 MB</td></tr>
+      <tr><td><code>w</code></td><td><code>MaxBytesReader</code> cần nó để báo server đóng kết nối khi body quá lớn. <code>DecodeJSON</code> <b>không</b> tự ghi response</td></tr>
+      <tr><td><code>err.Error()</code></td><td>Lấy nguyên câu báo lỗi tiếng Anh của Go làm <code>message</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>5. JSON điền vào struct ra sao?</h4>
+  <p>Thẻ <code>json:"userId"</code> là "nhãn dán" cho Go biết field nào trong JSON đi vào field nào của struct.</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 300" role="img" aria-label="userId, token, platform trong JSON điền vào UserID, Token, Platform của struct. Field role không có chỗ nhận nên bị lỗi. AppVersion không được gửi nên giữ chuỗi rỗng">
+      <text class="b mid" x="130" y="20">JSON client gửi</text><text class="b mid" x="580" y="20">struct registerRequest</text>
+      <rect class="n2" x="8" y="36" width="244" height="36" rx="8"/><text class="mid" x="130" y="59">"userId": "u_42"</text>
+      <rect class="n2" x="8" y="84" width="244" height="36" rx="8"/><text class="mid" x="130" y="107">"token": "fK3x…"</text>
+      <rect class="n2" x="8" y="132" width="244" height="36" rx="8"/><text class="mid" x="130" y="155">"platform": "ios"</text>
+      <rect class="nb" x="8" y="244" width="244" height="36" rx="8"/><text class="mid" x="130" y="267">"role": "admin"</text>
+      <rect class="nok" x="448" y="36" width="264" height="36" rx="8"/><text class="mid" x="580" y="59">UserID = "u_42"</text>
+      <rect class="nok" x="448" y="84" width="264" height="36" rx="8"/><text class="mid" x="580" y="107">Token = "fK3x…"</text>
+      <rect class="nok" x="448" y="132" width="264" height="36" rx="8"/><text class="mid" x="580" y="155">Platform = "ios"</text>
+      <rect class="nw" x="448" y="180" width="264" height="36" rx="8"/><text class="mid" x="580" y="203">AppVersion = ""</text>
+      <path class="e ea" d="M252 54H446" marker-end="url(#mk-a)"/><path class="e ea" d="M252 102H446" marker-end="url(#mk-a)"/><path class="e ea" d="M252 150H446" marker-end="url(#mk-a)"/>
+      <text class="m mid" x="350" y="47">thẻ json:"userId"</text><text class="m mid" x="350" y="95">thẻ json:"token"</text><text class="m mid" x="350" y="143">thẻ json:"platform"</text>
+      <path class="e ew" d="M260 198H446" marker-end="url(#mk-w)"/><text class="m mid" x="350" y="191">JSON không gửi appVersion</text>
+      <path class="e eb" d="M252 262H340" marker-end="url(#mk-b)"/>
+      <rect class="nb" x="342" y="240" width="370" height="44" rx="8"/><text class="mid" x="527" y="267">Không field nào nhận → lỗi "unknown field"</text>
+    </svg>
+    </div>
+    <figcaption>Ô vàng là điều quan trọng nhất của hình: <b>thiếu field không phải lỗi</b> đối với <code>Decode</code>. Ô đỏ: chỉ cần một field lạ là <b>cả request</b> bị từ chối.</figcaption>
+  </figure>
+  <p>Field nào JSON không gửi thì giữ nguyên giá trị sẵn có. Với struct vừa khai báo bằng <code>var req registerRequest</code>, đó là <b>giá trị zero</b> của kiểu:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Kiểu trong struct</th><th>Giá trị khi JSON không gửi</th><th>Phân biệt được "không gửi" với "gửi giá trị zero"?</th></tr></thead>
+    <tbody>
+      <tr><td><code>string</code></td><td><code>""</code></td><td>Không</td></tr>
+      <tr><td><code>int</code></td><td><code>0</code></td><td>Không</td></tr>
+      <tr><td><code>bool</code></td><td><code>false</code></td><td>Không</td></tr>
+      <tr><td><code>[]string</code>, <code>map</code></td><td><code>nil</code></td><td>Có: gửi <code>[]</code> hay <code>{}</code> thì khác <code>nil</code></td></tr>
+      <tr><td><code>*int</code>, <code>*bool</code>, <code>*time.Time</code></td><td><code>nil</code></td><td><b>Có</b>: gửi <code>0</code> thì được con trỏ trỏ tới 0</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn"><span class="tag">Nhớ kỹ</span><p>Cửa ① <b>không biết field nào bắt buộc</b>. Body <code>{}</code> qua cửa ① ngon lành, mọi field đều rỗng. Việc bắt buộc là của cửa ②. Giá trị <code>null</code> cũng vậy: <code>"userId": null</code> để lại <code>""</code>.</p></div>
+
+  <h4>6. Cửa ②: <code>Validator</code> gom chỗ sai</h4>
+  <p>Toàn bộ "bộ máy" chỉ là một câu <code>if</code>:</p>
+<div class="code"><div class="file">Trích internal/httpx/validate.go, thêm chú thích</div><pre><code class="language-go">func (v *Validator) Check(field string, ok bool, message string) {
+	if !ok { // điều kiện KHÔNG đúng thì mới ghi
+		v.issues = append(v.issues, Issue{Field: field, Message: message})
+	}
+}</code></pre></div>
+  <div class="callout tip"><span class="tag">Chỗ dễ viết ngược nhất</span><p>Tham số thứ hai là <b>điều phải ĐÚNG</b>, không phải điều kiện để báo lỗi. Đọc <code>v.Check("userId", r.UserID != "", "bắt buộc")</code> là: "đảm bảo <code>userId</code> khác rỗng, nếu không thì ghi <i>bắt buộc</i>". Viết nhầm thành <code>== ""</code> thì request đúng bị chặn, request sai lọt qua.</p></div>
+  <p>Ví dụ body <code>{"userId":"","token":"abc","platform":"web"}</code> đã qua cửa ①. Đây là cuốn sổ sau từng dòng:</p>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 296" role="img" aria-label="Sổ bắt đầu trống. Luật userId sai nên ghi userId. Luật token sai nên ghi token. Luật platform đúng nên không ghi. Err thấy hai chỗ sai nên trả ValidationError">
+      <text class="b" x="16" y="20">Dòng code chạy</text><text class="b mid" x="348" y="20">Điều kiện</text><text class="b" x="468" y="20">Sổ v.issues sau dòng đó</text>
+      <rect class="n2" x="8" y="34" width="272" height="36" rx="8"/><text x="20" y="57">v := httpx.NewValidator()</text>
+      <text class="m mid" x="348" y="57">—</text><text class="m" x="468" y="57">trống</text>
+      <rect class="n" x="8" y="84" width="272" height="36" rx="8"/><text x="20" y="107">Check("userId", UserID != "")</text>
+      <rect class="nb" x="304" y="88" width="88" height="28" rx="14"/><text class="mid" x="348" y="107">false: ghi</text>
+      <rect class="nb" x="468" y="88" width="68" height="28" rx="6"/><text class="mid" x="502" y="107">userId</text>
+      <rect class="n" x="8" y="134" width="272" height="36" rx="8"/><text x="20" y="157">Check("token", len ≥ 20)</text>
+      <rect class="nb" x="304" y="138" width="88" height="28" rx="14"/><text class="mid" x="348" y="157">false: ghi</text>
+      <rect class="nb" x="468" y="138" width="68" height="28" rx="6"/><text class="mid" x="502" y="157">userId</text><rect class="nb" x="544" y="138" width="68" height="28" rx="6"/><text class="mid" x="578" y="157">token</text>
+      <rect class="n" x="8" y="184" width="272" height="36" rx="8"/><text x="20" y="207">Check("platform", Contains(…))</text>
+      <rect class="nok" x="304" y="188" width="88" height="28" rx="14"/><text class="mid" x="348" y="207">true: bỏ qua</text>
+      <rect class="nb" x="468" y="188" width="68" height="28" rx="6"/><text class="mid" x="502" y="207">userId</text><rect class="nb" x="544" y="188" width="68" height="28" rx="6"/><text class="mid" x="578" y="207">token</text>
+      <rect class="na" x="8" y="240" width="272" height="44" rx="8"/><text class="b" x="20" y="267">return v.Err()</text>
+      <text class="m mid" x="348" y="267">sổ có 2 dòng</text>
+      <path class="e eb" d="M394 262H466" marker-end="url(#mk-b)"/>
+      <rect class="nw" x="468" y="240" width="244" height="44" rx="8"/><text class="b mid" x="590" y="267">*ValidationError (2 chỗ sai)</text>
+      <path class="e" d="M144 70V82" marker-end="url(#mk-m)"/><path class="e" d="M144 120V132" marker-end="url(#mk-m)"/><path class="e" d="M144 170V182" marker-end="url(#mk-m)"/><path class="e" d="M144 220V238" marker-end="url(#mk-m)"/>
+    </svg>
+    </div>
+    <figcaption><code>Check</code> <b>không dừng</b> hàm. Dù luật đầu đã sai, các luật sau vẫn được soát, nên client sửa được mọi chỗ trong một lần.</figcaption>
+  </figure>
+  <p>Ba điều ít ai để ý:</p>
+  <ol>
+    <li><b>Điều kiện được tính trước khi vào <code>Check</code></b>, và luật nào cũng chạy. Vì thế một luật không được dựa vào việc luật trước đã đúng:
+<div class="code"><pre><code class="language-go">v.Check("title", r.Title != "", "bắt buộc")
+v.Check("title", r.Title[0] != '#', "không bắt đầu bằng #") // panic nếu Title rỗng!
+// Đúng: dùng hàm an toàn với chuỗi rỗng
+v.Check("title", !strings.HasPrefix(r.Title, "#"), "không bắt đầu bằng #")</code></pre></div>
+    </li>
+    <li><b>Mỗi request một cuốn sổ mới.</b> <code>NewValidator()</code> được gọi bên trong <code>validate()</code>, nên lỗi của người này không lẫn sang người khác, kể cả khi nhiều request chạy cùng lúc.</li>
+    <li><b><code>validate()</code> chỉ đọc, không sửa dữ liệu.</b> Nó khai báo <code>(r registerRequest)</code> không có <code>*</code>, nghĩa là làm việc trên một bản sao. Gán <code>r.Token = …</code> trong đó không đổi được <code>req</code> của handler.</li>
+  </ol>
+  <p><b>Vì sao <code>Err()</code> phải viết <code>return nil</code> rõ ràng?</b> Viết gọn hơn như sau trông đúng, nhưng sai:</p>
+<div class="code"><pre><code class="language-go">// SAI: khai báo trả con trỏ cụ thể
+func (v *Validator) Err() *ValidationError { return nil }
+
+func (r registerRequest) validate() error {
+	// ...
+	return v.Err() // con trỏ nil bị đựng vào "hộp" error
+}
+
+// Ở handler: err != nil lại là TRUE, kể cả khi không có chỗ sai nào</code></pre></div>
+  <p>Một giá trị <code>error</code> giống cái hộp ghi hai thứ: <b>kiểu</b> và <b>giá trị</b>. Hộp chỉ bằng <code>nil</code> khi cả hai đều trống. Con trỏ nil kiểu <code>*ValidationError</code> vẫn mang theo kiểu, nên hộp không trống. Vì vậy <code>Err()</code> trong lộ trình khai báo trả <code>error</code>, và khi sổ trống thì trả đúng chữ <code>nil</code>.</p>
+
+  <h4>7. Từ một chỗ sai tới JSON client nhận</h4>
+  <figure class="fig">
+    <div class="scroll">
+    <svg class="dg" viewBox="0 0 720 170" role="img" aria-label="Sổ issues được Err bọc thành ValidationError, validate trả về dưới dạng error, Register return err, Handle dùng errors.As lấy lại ValidationError và trả JSON 400">
+      <rect class="n2" x="8" y="30" width="120" height="76" rx="10"/><text class="b mid" x="68" y="54">v.issues</text><text class="m mid" x="68" y="76">kiểu []Issue</text><text class="m mid" x="68" y="93">trong sổ</text>
+      <rect class="nw" x="154" y="30" width="120" height="76" rx="10"/><text class="b mid" x="214" y="54">v.Err()</text><text class="m mid" x="214" y="76">bọc thành</text><text class="m mid" x="214" y="93">*ValidationError</text>
+      <rect class="n" x="300" y="30" width="120" height="76" rx="10"/><text class="b mid" x="360" y="54">validate()</text><text class="m mid" x="360" y="76">trả về dưới</text><text class="m mid" x="360" y="93">kiểu error</text>
+      <rect class="n" x="446" y="30" width="120" height="76" rx="10"/><text class="b mid" x="506" y="54">Register</text><text class="m mid" x="506" y="76">return err</text><text class="m mid" x="506" y="93">dừng tại đây</text>
+      <rect class="na" x="592" y="30" width="120" height="76" rx="10"/><text class="b mid" x="652" y="54">Handle</text><text class="m mid" x="652" y="76">errors.As mở</text><text class="m mid" x="652" y="93">hộp error ra</text>
+      <path class="e" d="M128 68H152" marker-end="url(#mk-m)"/><path class="e" d="M274 68H298" marker-end="url(#mk-m)"/><path class="e" d="M420 68H444" marker-end="url(#mk-m)"/><path class="e" d="M566 68H590" marker-end="url(#mk-m)"/>
+      <path class="e eb" d="M652 106V128" marker-end="url(#mk-b)"/>
+      <rect class="nb" x="446" y="130" width="266" height="32" rx="8"/><text class="mid" x="579" y="151">WriteJSON: 400 + verr.Issues</text>
+    </svg>
+    </div>
+    <figcaption>Dữ liệu bên trong không đổi trên đường đi. Chỉ "cái vỏ" đổi: danh sách, rồi <code>*ValidationError</code>, rồi <code>error</code>, rồi được <code>errors.As</code> mở lại thành <code>*ValidationError</code>.</figcaption>
+  </figure>
+<div class="code"><div class="file">Response 400 của ví dụ trên</div><pre><code class="language-json">{"error":"invalid_request","issues":[
+  {"field":"userId","message":"bắt buộc"},
+  {"field":"token","message":"tối thiểu 20 ký tự"}
+]}</code></pre></div>
+  <p>Khi tự debug, nhớ rằng in <code>err</code> ra chỉ thấy <code>invalid_request</code>, vì <code>Error()</code> trả đúng chuỗi đó. Dòng log của <code>LogRequests</code> cũng chỉ có status 400. Muốn xem chỗ sai, hãy đọc response, hoặc thêm tạm vào handler (nhớ import <code>errors</code>, <code>fmt</code>):</p>
+<div class="code"><pre><code class="language-go">var verr *httpx.ValidationError
+if errors.As(err, &amp;verr) {
+	fmt.Printf("%+v\n", verr.Issues) // chỉ để debug, xong thì xoá
+}</code></pre></div>
+  <p><b><code>PathUUID</code></b> là phiên bản thu nhỏ cho dữ liệu nằm trên đường dẫn, dùng từ <a href="#chang-6">chặng 6</a>: lấy <code>r.PathValue("id")</code>, so với mẫu <code>uuidRe</code> (5 nhóm ký tự hex dài 8-4-4-4-12), không khớp thì trả <code>*ValidationError</code> có <code>field</code> là tên tham số. Nhờ vậy <code>abc</code> bị trả 400 ngay, không đi tới database để rồi thành lỗi 500. <code>MustCompile</code> đặt ngoài hàm để mẫu chỉ được dựng một lần.</p>
+
+  <h4>8. Ghép lại trong handler</h4>
+<div class="code"><div class="file">Phần đầu của Register trong internal/devices/handler.go</div><pre><code class="language-go">var req registerRequest // ban đầu mọi field là ""
+if err := httpx.DecodeJSON(w, r, &amp;req); err != nil { // cửa ①: điền vào req
+	return err // dừng ở đây, req chưa dùng được
+}
+if err := req.validate(); err != nil { // cửa ②: soát req vừa được điền
+	return err
+}
+// từ dòng này trở xuống mới được dùng req</code></pre></div>
+  <p><code>if err := f(); err != nil</code> gộp hai việc: gọi hàm, giữ lỗi vào <code>err</code>, rồi hỏi ngay có lỗi không. Thứ tự hai cửa <b>không đổi được</b>: gọi <code>validate()</code> trước <code>DecodeJSON</code> thì nó soát một struct còn trống. Và gọi <code>req.validate()</code> mà không <code>return err</code> thì coi như không kiểm tra.</p>
+
+  <h4>9. Theo dõi từng body: dừng ở cửa nào?</h4>
+  <p>Các kết quả dưới đây lấy từ việc chạy đúng code <code>validate.go</code> và <code>handler.go</code> của chặng này, với database giả. <code>T</code> là một chuỗi token đủ 20 ký tự trở lên.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Body gửi lên</th><th>Dừng ở</th><th>Kết quả</th></tr></thead>
+    <tbody>
+      <tr><td><code>{"userId":"u_42","token":"T","platform":"android"}</code></td><td>Qua cả hai</td><td><b>201</b></td></tr>
+      <tr><td>Body rỗng</td><td>①</td><td>400, <code>EOF</code></td></tr>
+      <tr><td><code>{"userId":"u_42"</code> (thiếu <code>}</code>)</td><td>①</td><td>400, <code>unexpected EOF</code></td></tr>
+      <tr><td><code>{'userId':'u_42'}</code> (nháy đơn)</td><td>①</td><td>400, <code>invalid character '\'' looking for beginning of object key string</code></td></tr>
+      <tr><td>Body đúng, thêm <code>"role":"admin"</code></td><td>①</td><td>400, <code>json: unknown field "role"</code></td></tr>
+      <tr><td><code>{"userId":"u_42","token":12345,"platform":"android"}</code></td><td>①</td><td>400, <code>json: cannot unmarshal number into Go struct field registerRequest.token of type string</code></td></tr>
+      <tr><td>Body hơn 1 MB</td><td>①</td><td>400, <code>http: request body too large</code></td></tr>
+      <tr><td><code>{}</code> hoặc <code>null</code></td><td>②</td><td>400, <b>3</b> chỗ sai: <code>userId</code>, <code>token</code>, <code>platform</code></td></tr>
+      <tr><td><code>{"userId":"","token":"abc","platform":"windows"}</code></td><td>②</td><td>400, 3 chỗ sai</td></tr>
+      <tr><td><code>"platform":"Android"</code> (viết hoa)</td><td>②</td><td>400, 1 chỗ sai: so chuỗi phân biệt hoa thường</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout tip"><span class="tag">Vì sao sửa xong lại hiện lỗi mới?</span><p>Gửi <code>{"userId":"","token":2,"platform":"windows"}</code>, bạn chỉ thấy <b>một</b> lỗi về kiểu của <code>token</code>. Sửa xong mới thấy lỗi của <code>userId</code> và <code>platform</code>. Cửa ① chỉ báo một lỗi rồi dừng, và <code>validate()</code> chưa hề được chạy.</p></div>
+  <p>Sau khi làm xong các bước bên dưới và API đang chạy, hãy tự thử: thay nội dung sau <code>-d</code> bằng từng body ở bảng trên.</p>
+<div class="code"><pre><code class="language-bash">curl -i -X POST http://localhost:3000/devices -d '{"userId":"","token":"abc","platform":"windows"}'</code></pre></div>
+  <h4>10. Tự viết luật mới</h4>
+  <ol>
+    <li>Khai báo struct request, mỗi field có thẻ <code>json</code>. Field không khai báo thì client không gửi được.</li>
+    <li>Viết method <code>validate() error</code>: <code>NewValidator()</code>, mỗi luật một <code>Check</code>, kết thúc bằng <code>return v.Err()</code>.</li>
+    <li>Trong handler: <code>DecodeJSON</code> trước, <code>validate()</code> sau, lỗi nào cũng <code>return err</code>.</li>
+  </ol>
+  <p>Struct dưới đây <b>chỉ để học</b>, không thuộc project. Nó gom 8 kiểu luật hay gặp:</p>
+<div class="code"><div class="file">Ví dụ tham khảo (cần import fmt, slices, strings, time, unicode/utf8 và httpx)</div><pre><code class="language-go">type reminderRequest struct {
+	Title    string     `json:"title"`
+	Note     string     `json:"note"`
+	Priority *int       `json:"priority"`
+	Channel  string     `json:"channel"`
+	Phone    string     `json:"phone"`
+	Tags     []string   `json:"tags"`
+	SendAt   *time.Time `json:"sendAt"`
+}
+
+func (r reminderRequest) validate() error {
+	v := httpx.NewValidator()
+
+	// 1. Bắt buộc, toàn khoảng trắng cũng tính là trống
+	v.Check("title", strings.TrimSpace(r.Title) != "", "bắt buộc")
+	// 2. Độ dài tính theo ký tự, không phải byte
+	v.Check("title", utf8.RuneCountInString(r.Title) &lt;= 100, "tối đa 100 ký tự")
+	// 3. Không bắt buộc, nhưng đã gửi thì phải hợp lệ
+	v.Check("note", r.Note == "" || utf8.RuneCountInString(r.Note) &lt;= 500, "tối đa 500 ký tự")
+	// 4. Số bắt buộc, được phép bằng 0: dùng con trỏ để biết có gửi hay không
+	v.Check("priority", r.Priority != nil &amp;&amp; *r.Priority &gt;= 0 &amp;&amp; *r.Priority &lt;= 5, "bắt buộc, từ 0 đến 5")
+	// 5. Chỉ nhận vài giá trị
+	v.Check("channel", slices.Contains([]string{"push", "sms"}, r.Channel), "phải là push hoặc sms")
+	// 6. Luật phụ thuộc field khác: chỉ khi gửi SMS mới cần số điện thoại
+	v.Check("phone", r.Channel != "sms" || r.Phone != "", "bắt buộc khi channel là sms")
+	// 7. Danh sách: giới hạn số phần tử, rồi kiểm tra từng phần tử
+	v.Check("tags", len(r.Tags) &lt;= 10, "tối đa 10 phần tử")
+	for i, tag := range r.Tags {
+		v.Check(fmt.Sprintf("tags[%d]", i), tag != "", "không được rỗng")
+	}
+	// 8. Thời gian không bắt buộc; đã gửi thì phải ở tương lai
+	v.Check("sendAt", r.SendAt == nil || r.SendAt.After(time.Now()), "phải ở tương lai")
+
+	return v.Err()
+}</code></pre></div>
+  <p>Ở luật 4, <code>r.Priority != nil &amp;&amp; *r.Priority &gt;= 0</code> an toàn vì <code>&amp;&amp;</code> dừng ngay khi vế trái sai, nên không bao giờ đọc con trỏ nil. Đây là cách đúng để một điều kiện phụ thuộc điều kiện khác: <b>gộp chúng trong cùng một biểu thức</b>. Với thời gian, chuỗi sai định dạng bị cửa ① chặn, còn "phải ở tương lai" là luật của cửa ②.</p>
+
+  <h4>11. Kiểm tra nào đặt ở đâu?</h4>
+  <div class="tbl"><table>
+    <thead><tr><th>Câu hỏi</th><th>Đặt ở</th><th>Ví dụ</th></tr></thead>
+    <tbody>
+      <tr><td>Người này là ai, được làm không?</td><td>Middleware</td><td><code>requireUser</code> (chặng 4), trả 401</td></tr>
+      <tr><td>Đọc được body không?</td><td><code>DecodeJSON</code></td><td>JSON hỏng, field lạ</td></tr>
+      <tr><td>Chỉ nhìn request đã biết đúng sai?</td><td><code>validate()</code></td><td>Độ dài, giá trị cho phép</td></tr>
+      <tr><td>Phải hỏi database hay dịch vụ khác mới biết?</td><td>Service</td><td>User chưa có thiết bị nào</td></tr>
+      <tr><td>Điều phải đúng dù code có bug?</td><td>Ràng buộc database</td><td><code>NOT NULL</code>, <code>UNIQUE</code>, <code>CHECK</code></td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout danger"><span class="tag">Nếu quên gọi validate()</span><p>Với bảng <code>devices</code> của chặng này, database chỉ cứu được một phần: <code>platform = 'windows'</code> bị <code>CHECK</code> từ chối (client nhận <b>500</b>), nhưng <code>userId = ''</code> và <code>token = 'abc'</code> <b>được lưu bình thường</b>. <code>NOT NULL</code> chỉ cấm <code>NULL</code>, không cấm chuỗi rỗng.</p></div>
+  <p><code>validate()</code> cũng không chứng minh dữ liệu là <b>thật</b>. Token đủ 20 ký tự vẫn có thể là token bịa (chỉ FCM biết), và <code>userId</code> khác rỗng vẫn có thể là của người khác (chặng 4 sửa bằng JWT).</p>
+
+  <h4>12. Những thứ code này chưa chặn</h4>
+  <p>Các body sau <b>vẫn lọt qua</b> cả hai cửa. Biết để không tưởng mình đã an toàn hơn thực tế:</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Body</th><th>Chuyện gì xảy ra</th><th>Muốn siết thì</th></tr></thead>
+    <tbody>
+      <tr><td><code>"userId":"   "</code></td><td>Lọt, vì <code>"   " != ""</code></td><td>Dùng <code>strings.TrimSpace(r.UserID) != ""</code></td></tr>
+      <tr><td><code>"token":"ệệệệệệệ"</code></td><td>Lọt dù chỉ 7 chữ: <code>len</code> đếm byte (ở đây là 21)</td><td>Với chữ người đọc, đếm bằng <code>utf8.RuneCountInString</code> như hàm <code>between</code> ở chặng 4</td></tr>
+      <tr><td><code>{…} xin chao</code> hoặc <code>{…}{…}</code></td><td>Lọt: <code>Decode</code> đọc xong object đầu là dừng</td><td>Đọc thêm một lần, xem đoạn code dưới</td></tr>
+      <tr><td><code>"USERID":"u_42"</code></td><td>Lọt: Go khớp tên field không phân biệt hoa thường</td><td>Thường không cần làm gì</td></tr>
+      <tr><td>Hai khoá <code>"platform"</code></td><td>Lọt, khoá sau ghi đè khoá trước</td><td>Thường không cần làm gì</td></tr>
+      <tr><td>Không có header <code>Content-Type</code></td><td>Lọt: <code>DecodeJSON</code> không xem header</td><td>Chỉ cần nếu bạn muốn trả 415 như nhiều framework</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Tuỳ chọn:</b> muốn từ chối phần thừa sau object, thêm đoạn này vào <code>DecodeJSON</code> ngay trước <code>return nil</code>, và import thêm <code>errors</code>, <code>io</code>:</p>
+<div class="code"><div class="file">internal/httpx/validate.go (tuỳ chọn)</div><pre><code class="language-go">// Đọc thử lần nữa: phải gặp EOF, nghĩa là sau object không còn gì
+if err := dec.Decode(&amp;struct{}{}); !errors.Is(err, io.EOF) {
+	return &amp;ValidationError{Issues: []Issue{{Field: "body", Message: "chỉ được gửi một object JSON"}}}
+}</code></pre></div>
+  <p>Thêm một đánh đổi: <code>message</code> của cửa ① là câu tiếng Anh nguyên văn của Go, có cả tên struct bên trong code. Nó giúp debug nhanh. Nếu API mở cho người ngoài, bạn có thể thay bằng một câu chung và chỉ ghi câu gốc vào log.</p>
+
+  <div class="callout tip"><span class="tag">Câu để nhớ</span><p><b><code>DecodeJSON</code> lo "đọc được không", <code>validate()</code> lo "đúng luật không". Trong <code>Check</code>, viết điều phải đúng.</b></p></div>
+  <p><b>Tự kiểm tra</b> (nghĩ trước rồi mới mở đáp án):</p>
+  <details><summary>Body <code>{}</code> bị chặn ở cửa nào, và nhận mấy chỗ sai?</summary><p>Cửa ②. Cửa ① cho qua vì thiếu field không phải lỗi. Với <code>registerRequest</code> có 3 chỗ sai; <code>appVersion</code> không có luật nên không bị báo.</p></details>
+  <details><summary><code>v.Check("age", r.Age &lt; 0, "không được âm")</code> sai ở đâu?</summary><p>Viết ngược. Tham số thứ hai phải là điều đúng: <code>r.Age &gt;= 0</code>.</p></details>
+  <details><summary>Thêm field <code>nickname</code> vào app nhưng quên thêm vào struct. Chuyện gì xảy ra?</summary><p>Cả request nhận 400 <code>json: unknown field "nickname"</code>. Vì vậy khi thêm field, hãy deploy server trước rồi mới phát hành app.</p></details>
+  <details><summary>Vì sao <code>"priority": 0</code> cần kiểu <code>*int</code> nếu <code>priority</code> bắt buộc?</summary><p>Với <code>int</code>, "không gửi" và "gửi 0" đều thành 0. Với <code>*int</code>, không gửi là <code>nil</code>, còn gửi 0 là con trỏ tới 0.</p></details>
+
+
   <h3><span class="kicker k-do">Làm</span>Lưu token vào PostgreSQL</h3>
   <ol class="steps">
     <li><p class="st">Chạy PostgreSQL và Redis bằng Docker (Redis dùng từ chặng 5)</p>
@@ -2704,7 +3056,7 @@ func nullable(s string) any {
       <div class="callout tip"><span class="tag">Ba thứ mới trong file này</span><ul><li><b><code>ctx context.Context</code></b> luôn là tham số đầu của hàm chạm tới database hay mạng. Nó mang theo hạn chót và tín hiệu huỷ: khi client ngắt kết nối, <code>r.Context()</code> bị huỷ và câu SQL đang chạy dở dừng theo, không tốn công vô ích.</li><li><b><code>.Scan(&amp;d.ID, …)</code></b> điền kết quả của dòng SQL vào các biến, theo đúng thứ tự cột. Dấu <code>&amp;</code> là "địa chỉ của biến".</li><li><b><code>nullable</code></b>: Go không có <code>null</code> cho chuỗi. Muốn lưu NULL vào database thì truyền <code>nil</code>.</li></ul></div>
     </li>
     <li><p class="st">Lỗi và kiểm tra dữ liệu: package <code>httpx</code></p>
-      <p class="muted">Chưa rõ vì sao viết như vậy? Đọc <a href="#go-loi">Lỗi đi đâu?</a> trước, có sơ đồ luồng request.</p>
+      <p class="muted">Chưa rõ vì sao viết như vậy? Đọc <a href="#go-loi">Lỗi đi đâu?</a> (luồng request) và <a href="#go-validate">Validate chạy thế nào?</a> (hai cửa kiểm tra) trước, có sơ đồ.</p>
       <p>Khi dữ liệu sai, handler cần trả 400; khi không tìm thấy, 404. Thay vì mỗi handler tự viết <code>w.WriteHeader(…)</code>, ta cho handler <b>trả về <code>error</code></b>, và một hàm duy nhất, <code>httpx.Handle</code>, đổi lỗi thành response JSON. Đây là phiên bản Go của "error handler" trong Fastify.</p>
       <div class="code"><div class="file">internal/httpx/errors.go</div><pre><code class="language-go">package httpx
 
